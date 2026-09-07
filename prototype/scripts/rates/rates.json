@@ -1,4 +1,7 @@
 {
+  "//": "WARNING: DO NOT USE. PROTOTYPE ONLY.",
+  "notice": "The model IDs and pricing metrics contained within this manifest are arbitrary placeholders used exclusively for local validation, dry-runs, and tokenomics estimation engine simulations. These figures have not been verified against live provider documentation or public pricing API pages and must not be used for production financial accounting or real-world routing cost comparisons.",
+  "last_quarantine_audit": "2026-09-07",
   "reviewed": "2026-09-06",
   "sources": [
     {
