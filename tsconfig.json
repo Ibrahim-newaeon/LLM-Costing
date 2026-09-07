@@ -1,0 +1,23 @@
+{
+  // One tsconfig for the workspace.
+  //
+  // Per-package configs were the alternative and they are three copies of the
+  // same compiler options waiting to disagree — the defect this repo exists to
+  // avoid, one level down from the schemas. They also could not see `vitest`,
+  // whose types live in the root dev dependencies alongside the single runner.
+  //
+  // Editors pick this up from the workspace root.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "types": ["node"],
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true
+  },
+  "include": ["packages/*/src", "packages/*/scripts", "vitest.config.ts"]
+}

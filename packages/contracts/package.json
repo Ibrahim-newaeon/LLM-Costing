@@ -8,17 +8,12 @@
   },
   "scripts": {
     "generate:schemas": "tsx scripts/generate-schemas.ts",
-    "check:schemas": "tsx scripts/generate-schemas.ts --check",
-    "test": "vitest run",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "check:schemas": "tsx scripts/generate-schemas.ts --check"
   },
   "dependencies": {
     "zod": "^4.5.4"
   },
   "devDependencies": {
-    "@types/node": "^26.4.1",
-    "tsx": "^4.23.13",
-    "typescript": "^7.0.2",
-    "vitest": "^5.0.0"
+    "tsx": "^4.23.13"
   }
 }

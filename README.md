@@ -19,8 +19,9 @@ error bars — and a refusal where a number would be a guess.
 | Path | What it is |
 |---|---|
 | `SPEC.md` | The single spec document (formerly `LLM_COST_ENGINE_PROMPT.md`) — Part A, Part B, usage notes |
-| `packages/contracts/` | Zod contracts — the canonical shapes. The only code that exists today |
-| `schemas/` | Three hand-authored JSON Schemas. **Not** produced by the generator — see below |
+| `packages/contracts/` | Zod contracts — the canonical shapes |
+| `packages/estimator/` | Pure functions over the contracts. Visual token counting so far (§A5.2) |
+| `schemas/` | Seven JSON Schemas, all **generated** from the contracts and gated in CI |
 | `prompts/analyzer.system.md` | Runtime analyzer system prompt; ships at `/prompts/` in the built app |
 | `prototype/` | Working Vite/React prototype recovered from `~/llm-token-calculator`. Reference only — see `docs/prototype-salvage.md` |
 | `reference/` | The published reference page. **Stale** — 8 drift sites, no generator. Kept so it is not lost, not because it is current |
@@ -35,8 +36,9 @@ version from `SPEC.md` when it is needed.
 
 ## State, honestly
 
-`packages/contracts` is the only thing built. Nothing consumes it yet — no estimator, no
-tokenizers, no router, no UI.
+`packages/contracts` is complete as a contract layer and fully gated. `packages/estimator` has
+begun with visual token counting — the first code that consumes the contracts. No tokenizers, no
+ingestion, no router, no UI yet.
 
 The toolchain was stood up on 2026-09-07, and everything here has actually been run rather than
 merely read. The authority is a clean-checkout CI run, not a local one —
@@ -55,9 +57,16 @@ The gate was separately proven to **fail**, which is the half that matters: inje
 offending file; regenerating restored green. That was a local run, not a CI one.
 
 Resolved versions live in `pnpm-lock.yaml`. Run **`corepack enable`** first, then `pnpm install` —
-not `corepack pnpm install`. The root scripts shell out to a bare `pnpm` (`pnpm -r test`), so
-without the shim on `PATH` they fail with `sh: pnpm: command not found` while the outer command
-appears to work. CI does the same thing in its own step.
+not `corepack pnpm install`. Some root scripts shell out to a bare `pnpm` (`pnpm -F @tokenomics/contracts
+check:schemas`), so without the shim on `PATH` they fail with `sh: pnpm: command not found` while
+the outer command appears to work. CI does the same thing in its own step.
+
+**One tsconfig and one test runner, both at the root.** Per-package copies were the alternative
+and they are the same compiler options waiting to disagree — the defect this repo exists to
+avoid, one level down from the schemas. The per-package vitest installs also broke outright:
+pnpm 12 recorded a peerless `vitest@5.0.0` for `packages/estimator` while materializing only the
+peer-resolved variant, so the symlink dangled on a clean install. Regenerating `pnpm-lock.yaml`
+from scratch fixed the resolution; consolidating removed the duplication that invited it.
 
 The lockfile is portable and has been exercised on three platforms — linux-arm64, linux-x64 (CI)
 and darwin-arm64. `node_modules` is not portable; re-run `pnpm install` after changing machine.
@@ -164,9 +173,44 @@ should be deleted.
 
 ## Build order
 
-Contracts (Zod canonical, JSON Schema generated with a CI drift gate)
-→ estimator (pure functions, fully unit-tested)
+**Contracts** ✅ (Zod canonical, JSON Schema generated with a CI drift gate)
+→ **estimator** ◐ (pure functions, fully unit-tested — vision counting done)
 → tokenizers (§A4.5 tiers) + Layer 0 parser (§A4.4)
 → pricing ingestion → registry → router → UI → e2e.
 
 **Estimator before UI.** The math is the product.
+
+### `packages/estimator` — what exists
+
+`countVisionTokens` evaluates all six geometries in the union, ported from
+`prototype/src/lib/images.js` behind the contracts. The prototype had three hardcoded functions
+with the constants inline and no provenance; here the constants arrive from the registry, each
+carrying its own `Provenance`, a missing one **blocks** rather than defaulting to zero, and the
+result's confidence is the minimum over the constants actually read (§A3.7).
+
+Three behaviours worth knowing, each pinned by a test:
+
+- **`BLOCK_GRID_SEP` is not monotonic.** With a 336px block, 10 tokens per block and 100 per
+  separator row: `2000×336` (672k px) costs **770**, while `672×2000` (1,344k px) costs **430**.
+  Twice the pixels, 44% cheaper — because separators bill on *width alone*. Any "smaller is
+  cheaper" shortcut gives wrong advice here.
+- **A `TOKEN_CAP` patch grid saturates.** Under a 1568-token cap, `8000×8000` is normalized to
+  `1092×1092` for 1521 tokens: 64× the pixels for 1.17× the cost. Oversized is cheap and lossy,
+  not expensive. Under `AREA_CLAMP` the same image is expensive and faithful.
+- **An oversized asset is not silently scaled.** The prototype's `scaleToFit` ran
+  unconditionally, which prices a request the provider would have rejected. Scaling now happens
+  only where `provider_auto_normalizes` says the provider does it; otherwise the asset is
+  `BLOCKED` and the decision goes to the §A5.2.1 ladder.
+
+`evaluateResize` recomputes both sides and never reasons from area. It suppresses proposals
+entirely on `FLAT` geometry, blocks below the legibility floor, and reports
+`RESIZE_SAVES_NOTHING` when a shrink raises the count.
+
+**Two gaps in the contracts surfaced by building this**, both recorded rather than guessed:
+
+1. `LowDetailBehaviour.INHERIT` means "the main geometry at reduced resolution", but the
+   reduction factor is not modelled anywhere. `countVisionTokens` refuses that combination rather
+   than counting at full resolution and looking authoritative doing it.
+2. `VisionConstraints.shortest_edge_target_px` has no direction flag. §A5.2.1 warns that several
+   providers *upscale* below that target — which is what makes shrinking able to raise a count —
+   but nothing records which ones do. Only downscaling is implemented.

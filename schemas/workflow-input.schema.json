@@ -715,16 +715,7 @@
       "type": "object",
       "properties": {
         "rung": {
-          "type": "string",
-          "enum": [
-            "FITS_AS_IS",
-            "PROVIDER_NORMALIZED",
-            "RESIZE_PROPOSED",
-            "RESIZE_SAVES_NOTHING",
-            "FIDELITY_LOCKED",
-            "REROUTED",
-            "BLOCKED"
-          ]
+          "$ref": "#/$defs/DispositionRung"
         },
         "violated_constraints": {
           "default": [],
@@ -814,6 +805,18 @@
       },
       "required": [
         "rung"
+      ]
+    },
+    "DispositionRung": {
+      "type": "string",
+      "enum": [
+        "FITS_AS_IS",
+        "PROVIDER_NORMALIZED",
+        "RESIZE_PROPOSED",
+        "RESIZE_SAVES_NOTHING",
+        "FIDELITY_LOCKED",
+        "REROUTED",
+        "BLOCKED"
       ]
     },
     "MediaMetrics": {

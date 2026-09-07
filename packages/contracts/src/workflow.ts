@@ -200,6 +200,22 @@ export type TextMetrics = z.infer<typeof TextMetrics>;
 /* ─────────────────────────── image metrics ─────────────────────────── */
 
 /**
+ * The rungs of the §A5.2.1 ladder, in order. Exported because the estimator
+ * decides which rung an asset lands on and must not invent a parallel vocabulary
+ * to say so.
+ */
+export const DispositionRung = z.enum([
+  'FITS_AS_IS',
+  'PROVIDER_NORMALIZED',
+  'RESIZE_PROPOSED',
+  'RESIZE_SAVES_NOTHING',
+  'FIDELITY_LOCKED',
+  'REROUTED',
+  'BLOCKED',
+]);
+export type DispositionRung = z.infer<typeof DispositionRung>;
+
+/**
  * Outcome of the §A5.2.1 oversized/out-of-spec ladder.
  *
  * The estimator NEVER mutates the user's asset. A resize is a PROPOSAL the user
@@ -207,15 +223,7 @@ export type TextMetrics = z.infer<typeof TextMetrics>;
  */
 export const AssetDisposition = z
   .object({
-    rung: z.enum([
-      'FITS_AS_IS',
-      'PROVIDER_NORMALIZED',
-      'RESIZE_PROPOSED',
-      'RESIZE_SAVES_NOTHING',
-      'FIDELITY_LOCKED',
-      'REROUTED',
-      'BLOCKED',
-    ]),
+    rung: DispositionRung,
     violated_constraints: z
       .array(
         z.enum([
