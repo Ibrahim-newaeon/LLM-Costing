@@ -1,0 +1,2849 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0.0"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+    },
+    "models": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "model_id": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "display_name": {
+            "$ref": "#/$defs/__schema1"
+          },
+          "provider": {
+            "$ref": "#/$defs/__schema2"
+          },
+          "provider_origin": {
+            "$ref": "#/$defs/__schema3"
+          },
+          "tier": {
+            "$ref": "#/$defs/__schema4"
+          },
+          "pricing_model": {
+            "$ref": "#/$defs/__schema5"
+          },
+          "modalities_in": {
+            "$ref": "#/$defs/__schema6"
+          },
+          "modalities_out": {
+            "$ref": "#/$defs/__schema8"
+          },
+          "context_window": {
+            "$ref": "#/$defs/__schema9"
+          },
+          "max_output": {
+            "$ref": "#/$defs/__schema18"
+          },
+          "is_reasoning_model": {
+            "$ref": "#/$defs/__schema19"
+          },
+          "supports_tools": {
+            "$ref": "#/$defs/__schema20"
+          },
+          "supports_caching": {
+            "$ref": "#/$defs/__schema21"
+          },
+          "supports_vision": {
+            "$ref": "#/$defs/__schema22"
+          },
+          "open_weights": {
+            "$ref": "#/$defs/__schema23"
+          },
+          "license": {
+            "$ref": "#/$defs/__schema24"
+          },
+          "served_quantization": {
+            "$ref": "#/$defs/__schema25"
+          },
+          "tokenizer": {
+            "$ref": "#/$defs/__schema26"
+          },
+          "text_rates": {
+            "$ref": "#/$defs/__schema36"
+          },
+          "service_tiers": {
+            "$ref": "#/$defs/__schema49"
+          },
+          "vision": {
+            "$ref": "#/$defs/__schema50"
+          },
+          "image_gen": {
+            "$ref": "#/$defs/__schema51"
+          },
+          "video_gen": {
+            "$ref": "#/$defs/__schema53"
+          },
+          "video_in": {
+            "$ref": "#/$defs/__schema54"
+          },
+          "hardware": {
+            "$ref": "#/$defs/__schema55"
+          },
+          "compliance": {
+            "$ref": "#/$defs/__schema56"
+          },
+          "quality_score": {
+            "$ref": "#/$defs/__schema58"
+          },
+          "quality_score_source_url": {
+            "$ref": "#/$defs/__schema59"
+          },
+          "effective_from": {
+            "$ref": "#/$defs/__schema60"
+          },
+          "effective_to": {
+            "$ref": "#/$defs/__schema61"
+          },
+          "deprecation_date": {
+            "$ref": "#/$defs/__schema62"
+          }
+        },
+        "required": [
+          "model_id",
+          "display_name",
+          "provider",
+          "provider_origin",
+          "tier",
+          "pricing_model",
+          "modalities_in",
+          "modalities_out",
+          "context_window",
+          "max_output",
+          "is_reasoning_model",
+          "supports_tools",
+          "supports_caching",
+          "supports_vision",
+          "open_weights",
+          "license",
+          "tokenizer",
+          "compliance",
+          "effective_from",
+          "effective_to"
+        ]
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "generated_at",
+    "models"
+  ],
+  "$defs": {
+    "__schema0": {
+      "type": "string",
+      "minLength": 1
+    },
+    "__schema1": {
+      "type": "string",
+      "minLength": 1
+    },
+    "__schema2": {
+      "type": "string",
+      "minLength": 1
+    },
+    "__schema3": {
+      "type": "string",
+      "enum": [
+        "US",
+        "EU",
+        "CN",
+        "OTHER"
+      ]
+    },
+    "__schema4": {
+      "type": "string",
+      "enum": [
+        "FRONTIER",
+        "MID",
+        "LIGHTWEIGHT"
+      ]
+    },
+    "__schema5": {
+      "type": "string",
+      "enum": [
+        "usage",
+        "subscription",
+        "hybrid"
+      ]
+    },
+    "__schema6": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/__schema7"
+      }
+    },
+    "__schema7": {
+      "type": "string",
+      "enum": [
+        "text",
+        "code",
+        "image",
+        "video",
+        "audio",
+        "embedding"
+      ]
+    },
+    "__schema8": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/__schema7"
+      }
+    },
+    "__schema9": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "provenance": {
+          "$ref": "#/$defs/__schema10"
+        }
+      },
+      "required": [
+        "value",
+        "provenance"
+      ]
+    },
+    "__schema10": {
+      "type": "object",
+      "properties": {
+        "method": {
+          "$ref": "#/$defs/__schema11"
+        },
+        "confidence": {
+          "$ref": "#/$defs/__schema12"
+        },
+        "source_class": {
+          "$ref": "#/$defs/__schema13"
+        },
+        "source_url": {
+          "$ref": "#/$defs/__schema14"
+        },
+        "verified_at": {
+          "$ref": "#/$defs/__schema15"
+        },
+        "verified_by": {
+          "$ref": "#/$defs/__schema16"
+        },
+        "notes": {
+          "$ref": "#/$defs/__schema17"
+        }
+      },
+      "required": [
+        "method",
+        "confidence",
+        "source_class",
+        "source_url",
+        "verified_at"
+      ]
+    },
+    "__schema11": {
+      "type": "string",
+      "enum": [
+        "EXACT_TOKENIZER",
+        "PROVIDER_COUNT_API",
+        "PROVIDER_FORMULA",
+        "MEASURED_PROBE",
+        "MEASURED_BENCHMARK",
+        "TOKENIZER_SCALED",
+        "CALIBRATED_HEURISTIC",
+        "EXACT_PROXY",
+        "USER_SUPPLIED",
+        "DERIVED",
+        "UNAVAILABLE"
+      ]
+    },
+    "__schema12": {
+      "type": "string",
+      "enum": [
+        "HIGH",
+        "MEDIUM",
+        "LOW",
+        "NONE"
+      ]
+    },
+    "__schema13": {
+      "type": "string",
+      "enum": [
+        "VENDOR_PAGE",
+        "VENDOR_CONFIG",
+        "VENDOR_DOCS",
+        "AGGREGATOR",
+        "MEASURED",
+        "USER_ENTERED"
+      ]
+    },
+    "__schema14": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uri"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema15": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema16": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema17": {
+      "default": null,
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "__schema18": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "provenance": {
+          "$ref": "#/$defs/__schema10"
+        }
+      },
+      "required": [
+        "value",
+        "provenance"
+      ]
+    },
+    "__schema19": {
+      "type": "boolean"
+    },
+    "__schema20": {
+      "type": "boolean"
+    },
+    "__schema21": {
+      "type": "boolean"
+    },
+    "__schema22": {
+      "type": "boolean"
+    },
+    "__schema23": {
+      "type": "boolean"
+    },
+    "__schema24": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "__schema25": {
+      "default": "unknown",
+      "type": "string",
+      "enum": [
+        "bf16",
+        "fp16",
+        "fp8",
+        "int8",
+        "int4",
+        "unknown"
+      ]
+    },
+    "__schema26": {
+      "type": "object",
+      "properties": {
+        "availability": {
+          "$ref": "#/$defs/__schema27"
+        },
+        "identifier": {
+          "$ref": "#/$defs/__schema28"
+        },
+        "revision_hash": {
+          "$ref": "#/$defs/__schema29"
+        },
+        "proxy_for": {
+          "$ref": "#/$defs/__schema30"
+        },
+        "proxy_basis": {
+          "$ref": "#/$defs/__schema31"
+        },
+        "measured_delta_pct": {
+          "$ref": "#/$defs/__schema32"
+        },
+        "tokenizer_multiplier": {
+          "$ref": "#/$defs/__schema33"
+        },
+        "framing_tokens_per_message": {
+          "$ref": "#/$defs/__schema34"
+        },
+        "conversation_preamble_tokens": {
+          "$ref": "#/$defs/__schema35"
+        }
+      },
+      "required": [
+        "availability",
+        "identifier",
+        "revision_hash",
+        "tokenizer_multiplier",
+        "framing_tokens_per_message",
+        "conversation_preamble_tokens"
+      ]
+    },
+    "__schema27": {
+      "type": "string",
+      "enum": [
+        "LOCAL_EXACT",
+        "REMOTE_API",
+        "PROXY",
+        "NONE"
+      ]
+    },
+    "__schema28": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "__schema29": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "__schema30": {
+      "default": null,
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "__schema31": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "SCRIPT_AND_ARCHITECTURE_MATCH",
+            "ARCHITECTURE_ONLY",
+            "UNVALIDATED"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema32": {
+      "default": null,
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "__schema33": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "anyOf": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "provenance": {
+          "$ref": "#/$defs/__schema10"
+        }
+      },
+      "required": [
+        "value",
+        "provenance"
+      ]
+    },
+    "__schema34": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "provenance": {
+          "$ref": "#/$defs/__schema10"
+        }
+      },
+      "required": [
+        "value",
+        "provenance"
+      ]
+    },
+    "__schema35": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "provenance": {
+          "$ref": "#/$defs/__schema10"
+        }
+      },
+      "required": [
+        "value",
+        "provenance"
+      ]
+    },
+    "__schema36": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "variant": {
+            "default": "standard",
+            "$ref": "#/$defs/__schema37"
+          },
+          "currency": {
+            "$ref": "#/$defs/__schema38"
+          },
+          "input_rate_by_modality": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "enum": [
+                "text",
+                "image",
+                "audio",
+                "video"
+              ]
+            },
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/__schema39"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "required": [
+              "text",
+              "image",
+              "audio",
+              "video"
+            ]
+          },
+          "output_rate": {
+            "$ref": "#/$defs/__schema39"
+          },
+          "reasoning_output_rate": {
+            "default": null,
+            "anyOf": [
+              {
+                "$ref": "#/$defs/__schema39"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "per_request_fee": {
+            "default": null,
+            "anyOf": [
+              {
+                "$ref": "#/$defs/__schema39"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "context_tiers": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "upper_bound_tokens": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "exclusiveMinimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "input_rate": {
+                      "$ref": "#/$defs/__schema39"
+                    },
+                    "output_rate": {
+                      "$ref": "#/$defs/__schema39"
+                    },
+                    "cache_read_rate": {
+                      "default": null,
+                      "anyOf": [
+                        {
+                          "$ref": "#/$defs/__schema39"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "applies_to_whole_request": {
+                      "default": true,
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "upper_bound_tokens",
+                    "input_rate",
+                    "output_rate"
+                  ]
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cache": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "write_rate": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/$defs/__schema39"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "read_rate": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/$defs/__schema39"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "write_multipliers_by_ttl": {
+                    "default": {},
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    }
+                  },
+                  "min_cacheable_tokens": {
+                    "type": "object",
+                    "properties": {
+                      "value": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "exclusiveMinimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "provenance": {
+                        "$ref": "#/$defs/__schema10"
+                      }
+                    },
+                    "required": [
+                      "value",
+                      "provenance"
+                    ]
+                  },
+                  "ttl_seconds": {
+                    "type": "object",
+                    "properties": {
+                      "value": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "exclusiveMinimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "provenance": {
+                        "$ref": "#/$defs/__schema10"
+                      }
+                    },
+                    "required": [
+                      "value",
+                      "provenance"
+                    ]
+                  },
+                  "is_automatic": {
+                    "default": null,
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "storage_rate_per_hour": {
+                    "default": null,
+                    "anyOf": [
+                      {
+                        "$ref": "#/$defs/__schema39"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "write_rate",
+                  "read_rate",
+                  "min_cacheable_tokens",
+                  "ttl_seconds"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tool_use_system_prompt_tokens": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "tool_choice_mode": {
+                  "type": "string"
+                },
+                "tokens": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "provenance": {
+                      "$ref": "#/$defs/__schema10"
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "provenance"
+                  ]
+                }
+              },
+              "required": [
+                "tool_choice_mode",
+                "tokens"
+              ]
+            }
+          },
+          "server_tool_fees": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "tool": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "rate": {
+                  "$ref": "#/$defs/__schema39"
+                },
+                "free_allowance_per_month": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "tool",
+                "rate"
+              ]
+            }
+          }
+        },
+        "required": [
+          "currency",
+          "input_rate_by_modality",
+          "output_rate"
+        ]
+      }
+    },
+    "__schema37": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "batch",
+        "flex",
+        "priority",
+        "fast",
+        "provisioned"
+      ]
+    },
+    "__schema38": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3
+    },
+    "__schema39": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "$ref": "#/$defs/__schema40"
+        },
+        "unit": {
+          "$ref": "#/$defs/__schema41"
+        },
+        "list_currency": {
+          "$ref": "#/$defs/__schema42"
+        },
+        "fx_rate_used": {
+          "$ref": "#/$defs/__schema43"
+        },
+        "fx_rate_date": {
+          "$ref": "#/$defs/__schema44"
+        },
+        "fx_source_url": {
+          "$ref": "#/$defs/__schema45"
+        },
+        "effective_from": {
+          "$ref": "#/$defs/__schema46"
+        },
+        "effective_to": {
+          "$ref": "#/$defs/__schema47"
+        },
+        "time_of_day_variant": {
+          "$ref": "#/$defs/__schema48"
+        },
+        "provenance": {
+          "$ref": "#/$defs/__schema10"
+        }
+      },
+      "required": [
+        "amount",
+        "unit",
+        "effective_from",
+        "effective_to",
+        "provenance"
+      ]
+    },
+    "__schema40": {
+      "type": "number",
+      "minimum": 0
+    },
+    "__schema41": {
+      "type": "string",
+      "enum": [
+        "per_1m_tokens",
+        "per_1k_tokens",
+        "per_token",
+        "per_image",
+        "per_megapixel",
+        "per_step",
+        "per_second",
+        "per_request",
+        "per_1k_calls",
+        "per_gb_day",
+        "per_1m_tokens_per_hour",
+        "per_gpu_hour"
+      ]
+    },
+    "__schema42": {
+      "default": "USD",
+      "$ref": "#/$defs/__schema38"
+    },
+    "__schema43": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema44": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema45": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uri"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema46": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+    },
+    "__schema47": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema48": {
+      "default": "all_hours",
+      "type": "string",
+      "enum": [
+        "all_hours",
+        "peak",
+        "offpeak"
+      ]
+    },
+    "__schema49": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tier": {
+            "$ref": "#/$defs/__schema37"
+          },
+          "multiplier": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "provenance": {
+                "$ref": "#/$defs/__schema10"
+              }
+            },
+            "required": [
+              "value",
+              "provenance"
+            ]
+          },
+          "available": {
+            "default": true,
+            "type": "boolean"
+          },
+          "excludes": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/__schema37"
+            }
+          },
+          "unavailable_in_regions": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "tier",
+          "multiplier"
+        ]
+      }
+    },
+    "__schema50": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "geometry": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "geometry": {
+                      "type": "string",
+                      "const": "PATCH_GRID"
+                    },
+                    "patch_px": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "provenance": {
+                          "$ref": "#/$defs/__schema10"
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "provenance"
+                      ]
+                    },
+                    "bound": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "bound_type": {
+                              "type": "string",
+                              "const": "TOKEN_CAP"
+                            },
+                            "token_cap": {
+                              "type": "object",
+                              "properties": {
+                                "value": {
+                                  "anyOf": [
+                                    {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "provenance": {
+                                  "$ref": "#/$defs/__schema10"
+                                }
+                              },
+                              "required": [
+                                "value",
+                                "provenance"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "bound_type",
+                            "token_cap"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "bound_type": {
+                              "type": "string",
+                              "const": "AREA_CLAMP"
+                            },
+                            "min_area_px": {
+                              "type": "object",
+                              "properties": {
+                                "value": {
+                                  "anyOf": [
+                                    {
+                                      "type": "integer",
+                                      "exclusiveMinimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "provenance": {
+                                  "$ref": "#/$defs/__schema10"
+                                }
+                              },
+                              "required": [
+                                "value",
+                                "provenance"
+                              ]
+                            },
+                            "max_area_px": {
+                              "type": "object",
+                              "properties": {
+                                "value": {
+                                  "anyOf": [
+                                    {
+                                      "type": "integer",
+                                      "exclusiveMinimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "provenance": {
+                                  "$ref": "#/$defs/__schema10"
+                                }
+                              },
+                              "required": [
+                                "value",
+                                "provenance"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "bound_type",
+                            "min_area_px",
+                            "max_area_px"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "geometry",
+                    "patch_px",
+                    "bound"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "geometry": {
+                      "type": "string",
+                      "const": "TILE_GRID"
+                    },
+                    "tile_w": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "provenance": {
+                          "$ref": "#/$defs/__schema10"
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "provenance"
+                      ]
+                    },
+                    "tile_h": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "provenance": {
+                          "$ref": "#/$defs/__schema10"
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "provenance"
+                      ]
+                    },
+                    "base_tokens": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "provenance": {
+                          "$ref": "#/$defs/__schema10"
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "provenance"
+                      ]
+                    },
+                    "per_tile_tokens": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "provenance": {
+                          "$ref": "#/$defs/__schema10"
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "provenance"
+                      ]
+                    },
+                    "small_image_flat_tokens": {
+                      "default": null,
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "anyOf": [
+                                {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 9007199254740991
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "provenance": {
+                              "$ref": "#/$defs/__schema10"
+                            }
+                          },
+                          "required": [
+                            "value",
+                            "provenance"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "small_image_max_edge_px": {
+                      "default": null,
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "anyOf": [
+                                {
+                                  "type": "integer",
+                                  "exclusiveMinimum": 0,
+                                  "maximum": 9007199254740991
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "provenance": {
+                              "$ref": "#/$defs/__schema10"
+                            }
+                          },
+                          "required": [
+                            "value",
+                            "provenance"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "geometry",
+                    "tile_w",
+                    "tile_h",
+                    "base_tokens",
+                    "per_tile_tokens"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "geometry": {
+                      "type": "string",
+                      "const": "AREA_BUDGET"
+                    },
+                    "area_divisor": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "anyOf": [
+                            {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "provenance": {
+                          "$ref": "#/$defs/__schema10"
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "provenance"
+                      ]
+                    },
+                    "area_budget_tokens": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "provenance": {
+                          "$ref": "#/$defs/__schema10"
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "provenance"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "geometry",
+                    "area_divisor",
+                    "area_budget_tokens"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "geometry": {
+                      "type": "string",
+                      "const": "FLAT"
+                    },
+                    "flat_tokens_per_image": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "provenance": {
+                          "$ref": "#/$defs/__schema10"
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "provenance"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "geometry",
+                    "flat_tokens_per_image"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "geometry": {
+                      "type": "string",
+                      "const": "BLOCK_GRID_SEP"
+                    },
+                    "block_px": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "provenance": {
+                          "$ref": "#/$defs/__schema10"
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "provenance"
+                      ]
+                    },
+                    "per_block_tokens": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "provenance": {
+                          "$ref": "#/$defs/__schema10"
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "provenance"
+                      ]
+                    },
+                    "sep_tokens_per_row": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "provenance": {
+                          "$ref": "#/$defs/__schema10"
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "provenance"
+                      ]
+                    },
+                    "sep_constant": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "provenance": {
+                          "$ref": "#/$defs/__schema10"
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "provenance"
+                      ]
+                    },
+                    "global_view_included": {
+                      "default": true,
+                      "type": "boolean"
+                    },
+                    "max_blocks": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "candidate_resolutions": {
+                      "default": [],
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "w": {
+                            "type": "integer",
+                            "exclusiveMinimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "h": {
+                            "type": "integer",
+                            "exclusiveMinimum": 0,
+                            "maximum": 9007199254740991
+                          }
+                        },
+                        "required": [
+                          "w",
+                          "h"
+                        ]
+                      }
+                    },
+                    "tie_break_rule_known": {
+                      "default": false,
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "geometry",
+                    "block_px",
+                    "per_block_tokens",
+                    "sep_tokens_per_row",
+                    "sep_constant",
+                    "max_blocks"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "geometry": {
+                      "type": "string",
+                      "const": "UNAVAILABLE"
+                    },
+                    "reason": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "probe_candidate": {
+                      "default": true,
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "geometry",
+                    "reason"
+                  ]
+                }
+              ]
+            },
+            "low_detail": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "FLAT"
+                    },
+                    "flat_tokens": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "provenance": {
+                          "$ref": "#/$defs/__schema10"
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "provenance"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "flat_tokens"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "INHERIT"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "UNSUPPORTED"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              ]
+            },
+            "constraints": {
+              "type": "object",
+              "properties": {
+                "max_edge_px": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "exclusiveMinimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "provenance": {
+                      "$ref": "#/$defs/__schema10"
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "provenance"
+                  ]
+                },
+                "min_edge_px": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "exclusiveMinimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "provenance": {
+                      "$ref": "#/$defs/__schema10"
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "provenance"
+                  ]
+                },
+                "shortest_edge_target_px": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "exclusiveMinimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "provenance": {
+                      "$ref": "#/$defs/__schema10"
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "provenance"
+                  ]
+                },
+                "max_bytes": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "exclusiveMinimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "provenance": {
+                      "$ref": "#/$defs/__schema10"
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "provenance"
+                  ]
+                },
+                "max_pages": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "exclusiveMinimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "provenance": {
+                      "$ref": "#/$defs/__schema10"
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "provenance"
+                  ]
+                },
+                "allowed_mime": {
+                  "default": [],
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "provider_auto_normalizes": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "min_legible_edge_px": {
+                  "default": [],
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "script": {
+                        "type": "string",
+                        "enum": [
+                          "latin",
+                          "ar_msa",
+                          "ar_dialect",
+                          "ar_vocalized",
+                          "zh_hans",
+                          "zh_hant",
+                          "mixed"
+                        ]
+                      },
+                      "content_density": {
+                        "type": "string",
+                        "enum": [
+                          "sparse",
+                          "normal",
+                          "dense"
+                        ]
+                      },
+                      "px": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "exclusiveMinimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "provenance": {
+                            "$ref": "#/$defs/__schema10"
+                          }
+                        },
+                        "required": [
+                          "value",
+                          "provenance"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "script",
+                      "content_density",
+                      "px"
+                    ]
+                  }
+                },
+                "max_context_tokens": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "exclusiveMinimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "provenance": {
+                      "$ref": "#/$defs/__schema10"
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "provenance"
+                  ]
+                }
+              },
+              "required": [
+                "max_edge_px",
+                "min_edge_px",
+                "shortest_edge_target_px",
+                "max_bytes",
+                "max_pages",
+                "max_context_tokens"
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/__schema10"
+            }
+          },
+          "required": [
+            "geometry",
+            "low_detail",
+            "constraints",
+            "provenance"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema51": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "pricing_dimension": {
+              "type": "string",
+              "enum": [
+                "per_image",
+                "per_megapixel",
+                "per_step",
+                "per_output_token"
+              ]
+            },
+            "supported_classes": {
+              "minItems": 1,
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/__schema52"
+              }
+            },
+            "price_matrix": {
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "size": {
+                    "type": "string"
+                  },
+                  "quality": {
+                    "type": "string"
+                  },
+                  "rate": {
+                    "$ref": "#/$defs/__schema39"
+                  }
+                },
+                "required": [
+                  "size",
+                  "quality",
+                  "rate"
+                ]
+              }
+            },
+            "output_tokens_by_resolution": {
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "resolution": {
+                    "type": "string"
+                  },
+                  "tokens": {
+                    "type": "object",
+                    "properties": {
+                      "value": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "exclusiveMinimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "provenance": {
+                        "$ref": "#/$defs/__schema10"
+                      }
+                    },
+                    "required": [
+                      "value",
+                      "provenance"
+                    ]
+                  }
+                },
+                "required": [
+                  "resolution",
+                  "tokens"
+                ]
+              }
+            },
+            "output_token_rate": {
+              "default": null,
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/__schema39"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "bills_source_as_vision_input": {
+              "type": "boolean"
+            },
+            "inpaint_bills_full_canvas": {
+              "type": "boolean"
+            },
+            "upscale_multiplier": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "provenance": {
+                  "$ref": "#/$defs/__schema10"
+                }
+              },
+              "required": [
+                "value",
+                "provenance"
+              ]
+            },
+            "max_reference_images": {
+              "default": null,
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "steps_per_second": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "provenance": {
+                  "$ref": "#/$defs/__schema10"
+                }
+              },
+              "required": [
+                "value",
+                "provenance"
+              ]
+            }
+          },
+          "required": [
+            "pricing_dimension",
+            "supported_classes",
+            "bills_source_as_vision_input",
+            "inpaint_bills_full_canvas",
+            "upscale_multiplier",
+            "steps_per_second"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema52": {
+      "type": "string",
+      "enum": [
+        "TEXT_TO_IMAGE",
+        "IMAGE_TO_IMAGE",
+        "MASK_INPAINT",
+        "UPSCALE"
+      ]
+    },
+    "__schema53": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "pricing_dimension": {
+              "type": "string",
+              "enum": [
+                "per_second",
+                "per_clip"
+              ]
+            },
+            "rate_matrix": {
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "resolution_tier": {
+                    "type": "string"
+                  },
+                  "fps": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "audio_generated": {
+                    "type": "boolean"
+                  },
+                  "rate": {
+                    "$ref": "#/$defs/__schema39"
+                  }
+                },
+                "required": [
+                  "resolution_tier",
+                  "fps",
+                  "audio_generated",
+                  "rate"
+                ]
+              }
+            },
+            "max_duration_seconds": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "provenance": {
+                  "$ref": "#/$defs/__schema10"
+                }
+              },
+              "required": [
+                "value",
+                "provenance"
+              ]
+            },
+            "generates_native_audio": {
+              "type": "boolean"
+            },
+            "bills_failed_generations": {
+              "default": null,
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "expected_retry_rate": {
+              "default": null,
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "per_request_fee": {
+              "default": null,
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/__schema39"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "credit_conversion": {
+              "default": null,
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "credits_per_unit": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "anyOf": [
+                            {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "provenance": {
+                          "$ref": "#/$defs/__schema10"
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "provenance"
+                      ]
+                    },
+                    "currency_per_credit": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "anyOf": [
+                            {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "provenance": {
+                          "$ref": "#/$defs/__schema10"
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "provenance"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "credits_per_unit",
+                    "currency_per_credit"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "pricing_dimension",
+            "max_duration_seconds",
+            "generates_native_audio"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema54": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "frame_sample_rate_hz": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "provenance": {
+                  "$ref": "#/$defs/__schema10"
+                }
+              },
+              "required": [
+                "value",
+                "provenance"
+              ]
+            },
+            "user_configurable_fps": {
+              "default": false,
+              "type": "boolean"
+            },
+            "per_frame_uses_vision_geometry": {
+              "default": true,
+              "type": "boolean"
+            },
+            "audio_tokens_per_second": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "provenance": {
+                  "$ref": "#/$defs/__schema10"
+                }
+              },
+              "required": [
+                "value",
+                "provenance"
+              ]
+            },
+            "audio_billed_separately": {
+              "type": "boolean"
+            },
+            "max_duration_seconds": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "provenance": {
+                  "$ref": "#/$defs/__schema10"
+                }
+              },
+              "required": [
+                "value",
+                "provenance"
+              ]
+            },
+            "max_frames": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "provenance": {
+                  "$ref": "#/$defs/__schema10"
+                }
+              },
+              "required": [
+                "value",
+                "provenance"
+              ]
+            },
+            "has_deterministic_formula": {
+              "default": false,
+              "type": "boolean"
+            },
+            "adaptive_mode_available": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "frame_sample_rate_hz",
+            "audio_tokens_per_second",
+            "audio_billed_separately",
+            "max_duration_seconds",
+            "max_frames"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema55": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "params_b_total": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "params_b_active": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "is_moe": {
+              "default": false,
+              "type": "boolean"
+            },
+            "layers": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "kv_heads": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "attention_heads": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "head_dim": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "max_context_tokens": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "kv_dtype": {
+              "default": null,
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "bf16",
+                    "fp16",
+                    "fp8",
+                    "int8"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "weight_dtype": {
+              "default": null,
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "bf16",
+                    "fp16",
+                    "fp8",
+                    "int8",
+                    "int4"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "supports_flash_attention": {
+              "default": false,
+              "type": "boolean"
+            },
+            "supports_paged_attention": {
+              "default": false,
+              "type": "boolean"
+            },
+            "image_activation_buffer_gb": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "provenance": {
+                  "$ref": "#/$defs/__schema10"
+                }
+              },
+              "required": [
+                "value",
+                "provenance"
+              ]
+            },
+            "prefill_throughput_tps": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "provenance": {
+                  "$ref": "#/$defs/__schema10"
+                }
+              },
+              "required": [
+                "value",
+                "provenance"
+              ]
+            },
+            "decode_throughput_tps": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "provenance": {
+                  "$ref": "#/$defs/__schema10"
+                }
+              },
+              "required": [
+                "value",
+                "provenance"
+              ]
+            },
+            "ttft_seconds": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "provenance": {
+                  "$ref": "#/$defs/__schema10"
+                }
+              },
+              "required": [
+                "value",
+                "provenance"
+              ]
+            },
+            "architecture_source_url": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uri"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "params_b_total",
+            "params_b_active",
+            "layers",
+            "kv_heads",
+            "attention_heads",
+            "head_dim",
+            "max_context_tokens",
+            "image_activation_buffer_gb",
+            "prefill_throughput_tps",
+            "decode_throughput_tps",
+            "ttft_seconds",
+            "architecture_source_url"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema56": {
+      "type": "object",
+      "properties": {
+        "data_residency_region": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/__schema57"
+          }
+        },
+        "is_prc_hosted": {
+          "type": "boolean"
+        },
+        "contractual_dpa_available": {
+          "type": "boolean"
+        },
+        "residency_uplift_pct": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/__schema10"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        },
+        "notes": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "data_residency_region",
+        "is_prc_hosted",
+        "contractual_dpa_available",
+        "residency_uplift_pct"
+      ]
+    },
+    "__schema57": {
+      "type": "string"
+    },
+    "__schema58": {
+      "default": null,
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "__schema59": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uri"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema60": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+    },
+    "__schema61": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema62": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "title": "Registry",
+  "$comment": "GENERATED from /packages/contracts/src — do not hand-edit. Run `pnpm generate:schemas`. CI fails if this file differs from the regenerated output (§A2)."
+}

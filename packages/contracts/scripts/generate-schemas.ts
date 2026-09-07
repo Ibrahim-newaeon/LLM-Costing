@@ -5,11 +5,15 @@
 //
 //   pnpm tsx scripts/generate-schemas.ts            # write
 //   pnpm tsx scripts/generate-schemas.ts --check    # verify, exit 1 on drift (CI)
+//
+// 2026-09-07 — was `zod-to-json-schema`. On zod 4 that package does not throw; it
+// emits `{}` for every object, so all four targets rendered as empty schemas and the
+// gate would have gone green while guarding nothing. Replaced with zod 4's built-in
+// `z.toJSONSchema`, which also removes the dependency.
 
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
-import { zodToJsonSchema } from 'zod-to-json-schema';
-import type { ZodTypeAny } from 'zod';
+import { z } from 'zod';
 
 import { Registry, ModelRow } from '../src/registry';
 import { VisionProfile } from '../src/vision';
@@ -17,7 +21,7 @@ import { Provenance } from '../src/provenance';
 
 const OUT_DIR = join(__dirname, '..', '..', '..', 'schemas');
 
-const TARGETS: Array<{ file: string; schema: ZodTypeAny; name: string }> = [
+const TARGETS: Array<{ file: string; schema: z.ZodType; name: string }> = [
   { file: 'registry.schema.json', schema: Registry, name: 'Registry' },
   { file: 'model-row.schema.json', schema: ModelRow, name: 'ModelRow' },
   { file: 'vision-profile.schema.json', schema: VisionProfile, name: 'VisionProfile' },
@@ -28,12 +32,25 @@ const BANNER =
   'GENERATED from /packages/contracts/src — do not hand-edit. ' +
   'Run `pnpm generate:schemas`. CI fails if this file differs from the regenerated output (§A2).';
 
-function render(schema: ZodTypeAny, name: string): string {
-  const json = zodToJsonSchema(schema, {
-    name,
-    $refStrategy: 'root',
-    target: 'jsonSchema2020-12',
+function render(schema: z.ZodType, name: string): string {
+  // io: 'input' — these schemas validate documents as they arrive (a registry file,
+  // an ingested pricing row), before Zod applies `.default()`. The contracts lean
+  // heavily on defaults, so input and output shapes differ: under 'output' every
+  // defaulted field would be reported as required, which is not what a source
+  // document has to carry.
+  //
+  // unrepresentable is left at its default ('throw'): a shape JSON Schema cannot
+  // express should fail the build, not be silently widened to `{}` — that is the
+  // exact failure this file was rewritten to remove.
+  const json = z.toJSONSchema(schema, {
+    target: 'draft-2020-12',
+    io: 'input',
+    // reused: 'ref' — shared subschemas go to $defs instead of being inlined at every
+    // use site. Without it Registry renders at ~429 KB of repeated copies, which no
+    // reviewer can read a drift diff of.
+    reused: 'ref',
   }) as Record<string, unknown>;
+  json.title = name;
   json.$comment = BANNER;
   return JSON.stringify(json, null, 2) + '\n';
 }

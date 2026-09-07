@@ -36,31 +36,77 @@ version from `SPEC.md` when it is needed.
 ## State, honestly
 
 `packages/contracts` is the only thing built. Nothing consumes it yet — no estimator, no
-tokenizers, no router, no UI. The package manifests in this repo are new scaffolding; run
-`pnpm add -D zod zod-to-json-schema tsx vitest typescript -F @tokenomics/contracts` to
-resolve real versions rather than inventing them.
+tokenizers, no router, no UI.
+
+The toolchain was stood up on 2026-09-07, and as of that date everything here has actually been
+run rather than merely read:
+
+| Command | Result, 2026-09-07 |
+|---|---|
+| `pnpm typecheck` | 0 errors — TypeScript 7.0.2, `strict` |
+| `pnpm test` | 29 passed, 1 file (`src/registry.test.ts`) — first execution ever |
+| `pnpm check:schemas` | green; the four generated targets match the Zod |
+| gate proof | injected `PRETTY_SURE` into the generated `Confidence` enum → red, file named; regenerate → green |
+
+Resolved versions live in `pnpm-lock.yaml`. Use `corepack pnpm install`. The lockfile is
+portable; `node_modules` is not — it is built for whatever platform ran the install.
 
 Note: `scripts/generate-schemas.ts` uses `__dirname`, so the contracts package is intentionally
 **not** `"type": "module"`.
 
-### The generated set and the authored set are disjoint
+### `zod-to-json-schema` emitted empty schemas on zod 4
 
-`generate-schemas.ts` emits four files:
+Recorded because it is precisely the failure this repo exists to prevent, and it was two minutes
+from being committed as build output.
+
+`zod-to-json-schema@3.25.2` declares peer `zod: ^3.25.28 || ^4`. On zod 4 it does not throw. It
+returns `{}` for every object. The first real run of the generator wrote four files shaped like:
+
+```json
+{ "$ref": "#/definitions/Provenance", "definitions": { "Provenance": {} } }
+```
+
+Exit 0, four files written, nothing to see. Committed, `check:schemas` would have gone green
+forever while guarding schemas that validate anything at all. Its *types* were the only thing
+that objected — `tsc` flagged the zod-3-shaped signature, which is how it was caught.
+
+The generator now uses zod 4's built-in `z.toJSONSchema`, which also removes the dependency.
+`zod-to-json-schema` is still declared in `packages/contracts/package.json` and imported by
+nothing; drop it with `pnpm remove zod-to-json-schema -F @tokenomics/contracts`.
+
+Two generator options encode decisions worth revisiting:
+
+- **`io: 'input'`** — these schemas describe a document as it *arrives* (a registry file, an
+  ingested pricing row), before Zod applies `.default()`. The contracts lean hard on defaults,
+  so input and output shapes genuinely differ: under `'output'` every defaulted field would be
+  reported as required, which no source document has to satisfy.
+- **`reused: 'ref'`** — shared subschemas are extracted to `$defs` rather than inlined at every
+  use site. Registry renders at 81 KB with 63 defs; inlined it was 429 KB, which no reviewer can
+  read a drift diff of. The cost: zod names them `__schema0…__schemaN` **positionally**, so
+  inserting one field renumbers the rest and a one-line change produces a large diff. Registering
+  ids on the exported schemas would give them real names. Open.
+
+`unrepresentable` is left at its default, `'throw'` — a shape JSON Schema cannot express should
+fail the build, not be silently widened to `{}`.
+
+### The generated set and the authored set are still disjoint
+
+`generate-schemas.ts` emits four files. As of 2026-09-07 they exist, are correct, and are gated:
 
 ```
 registry.schema.json   model-row.schema.json   vision-profile.schema.json   provenance.schema.json
 ```
 
-`schemas/` currently holds three entirely different ones:
+`schemas/` also holds three hand-authored files that no generator produces:
 
 ```
 estimate-output.schema.json   pricing-record.schema.json   workflow-input.schema.json
 ```
 
-No overlap. So `pnpm check:schemas` today reports all four targets as *missing — never
-generated*, and never inspects the three files that exist. `MIGRATION.md`'s instruction to
-"regenerate" those three cannot be carried out: the Zod shapes they describe —
-`EstimateOutput`, `WorkflowInput`, a pricing record — **do not exist in `packages/contracts`**.
+No overlap. The gate now guards four real files and still ignores the three the app would
+actually use. `MIGRATION.md`'s instruction to "regenerate" those three cannot be carried out: the
+Zod shapes they describe — `EstimateOutput`, `WorkflowInput`, a pricing record — **do not exist
+in `packages/contracts`**.
 
 That is the real gap. The contracts model *provenance* — where a number came from and how far
 to trust it. They do not yet model the *estimate* itself, its inputs, or its assumptions.
@@ -77,8 +123,10 @@ to trust it. They do not yet model the *estimate* itself, its inputs, or its ass
    contract has `per_output_token`. One of them is wrong.
 4. **Paste the VERIFY resolutions into §A4.1** — all three are closed with sources in
    `docs/verify-resolution.md`.
-5. **Prove the gate.** Once the generator has real targets, edit a generated file by hand and
-   watch `check:schemas` go red. A gate nobody has seen fail is a gate nobody trusts.
+5. ~~**Prove the gate.**~~ **Closed 2026-09-07.** `PRETTY_SURE` was injected into the
+   generated `Confidence` enum; `check:schemas` went red and named the file; regenerating
+   restored green. `.github/workflows/ci.yml` now runs install → typecheck → test → gate on
+   every push and PR.
 6. **Then** delete the superseded files per `MIGRATION.md`, re-point `verify-rates.ts` /
    `calibrate-scripts.ts` / the probe at `@tokenomics/contracts`, and start `/packages/estimator`.
 7. **Mine the prototype** — `docs/prototype-salvage.md`. The image geometry math and the rate

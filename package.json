@@ -4,6 +4,7 @@
   "scripts": {
     "generate:schemas": "pnpm -F @tokenomics/contracts generate:schemas",
     "check:schemas": "pnpm -F @tokenomics/contracts check:schemas",
-    "test": "pnpm -r test"
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck"
   }
 }
