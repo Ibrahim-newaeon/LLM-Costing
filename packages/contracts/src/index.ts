@@ -9,3 +9,4 @@ export * from './assumption';
 export * from './vision';
 export * from './pricing';
 export * from './registry';
+export * from './workflow';

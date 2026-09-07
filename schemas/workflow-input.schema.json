@@ -1,270 +1,1313 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://tokenomics.engine/schemas/workflow-input.schema.json",
-  "title": "WorkflowInput",
-  "description": "Output contract of the Request Analyzer (PART B system prompt). Consumed by the deterministic estimator. Contains NO prices and NO token counts.",
   "type": "object",
-  "additionalProperties": false,
-  "required": ["languages", "tasks", "assumptions", "ambiguities", "missing_data", "confidence", "needs_human_review"],
   "properties": {
-    "workflow_id": { "type": "string" },
-    "workflow_label": { "type": "string", "maxLength": 200 },
-    "languages": { "$ref": "#/$defs/languages" },
-    "parse_meta": { "$ref": "#/$defs/parseMeta" },
-    "tasks": {
-      "type": "array",
-      "items": { "$ref": "#/$defs/task" }
+    "workflow_id": {
+      "$ref": "#/$defs/__schema0"
     },
-    "assumptions": {
-      "type": "array",
-      "items": { "$ref": "#/$defs/assumption" }
-    },
-    "ambiguities": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["field", "readings", "impact"],
-        "properties": {
-          "field": { "type": "string" },
-          "readings": { "type": "array", "items": { "type": "string" }, "minItems": 2 },
-          "impact": { "type": "string", "enum": ["COSMETIC", "MATERIAL", "ORDER_OF_MAGNITUDE"] }
-        }
-      }
-    },
-    "missing_data": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["field", "question", "blocks_estimate"],
-        "properties": {
-          "field": { "type": "string" },
-          "task_id": { "type": "string" },
-          "question": { "type": "string", "description": "Specific, answerable question for the user." },
-          "blocks_estimate": { "type": "boolean" }
-        }
-      }
-    },
-    "confidence": { "$ref": "#/$defs/confidence" },
-    "needs_human_review": { "type": "boolean" },
-    "analyzer_notes": { "type": "string" }
-  },
-  "$defs": {
-    "confidence": { "type": "string", "enum": ["HIGH", "MEDIUM", "LOW"] },
-    "provenance": {
-      "type": "string",
-      "enum": ["USER_STATED", "MEASURED_FROM_ASSET", "DERIVED_FROM_ASSET", "DEFAULT_APPLIED", "MISSING"],
-      "description": "Where a metric VALUE came from — not how it is being used. DERIVED_FROM_ASSET means measured then transformed by a stated rule (provider normalization, or a resize the user accepted); it requires transform_rule. Changing detail_mode alone never changes provenance. DEFAULT_APPLIED requires a matching assumptions[] entry and caps task confidence at MEDIUM. MISSING requires a matching missing_data entry. A measured value always overrides a default."
+    "workflow_label": {
+      "$ref": "#/$defs/__schema1"
     },
     "languages": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["payload_languages"],
-      "description": "Three separate facts. Conflating them misprices the workflow: only payload_languages enters the cost math.",
-      "properties": {
-        "ui_language": { "type": "string", "description": "Interface locale. Costs nothing; drives RTL layout only." },
-        "instruction_language": { "type": "string", "description": "Language THIS REQUEST is written in. Selects the parser lexicon." },
-        "payload_languages": {
-          "type": "array",
-          "minItems": 1,
-          "description": "Language of the BILLED CONTENT. Shares should sum to ~1.",
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["code", "share"],
-            "properties": {
-              "code": { "type": "string", "examples": ["en", "ar", "zh-Hans", "zh-Hant"] },
-              "share": { "type": "number", "minimum": 0, "maximum": 1 }
-            }
-          }
-        }
-      }
+      "$ref": "#/$defs/__schema2"
     },
-    "parseMeta": {
-      "type": "object",
-      "additionalProperties": false,
-      "description": "How this task graph was produced. The L2 parse is itself a billable LLM call and must be metered as system_overhead on the estimate.",
-      "properties": {
-        "layer": { "type": "string", "enum": ["L1_DETERMINISTIC", "L2_LLM_PARSE"] },
-        "parse_confidence": { "type": "number", "minimum": 0, "maximum": 1 },
-        "escalated_reason": { "type": ["string", "null"] },
-        "parser_model_id": { "type": ["string", "null"] },
-        "parser_input_tokens": { "type": ["integer", "null"], "minimum": 0 },
-        "parser_output_tokens": { "type": ["integer", "null"], "minimum": 0 }
-      }
+    "parse_meta": {
+      "$ref": "#/$defs/__schema7"
     },
-    "task": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["task_id", "sequence_index", "type", "volume", "flags"],
-      "properties": {
-        "task_id": { "type": "string" },
-        "sequence_index": { "type": "integer", "minimum": 0 },
-        "label": { "type": "string" },
-        "type": { "type": "string", "enum": ["READ", "WRITE", "EDIT"] },
-        "sub_kind": {
+    "tasks": {
+      "$ref": "#/$defs/__schema14"
+    },
+    "assumptions": {
+      "$ref": "#/$defs/__schema63"
+    },
+    "ambiguities": {
+      "$ref": "#/$defs/__schema73"
+    },
+    "missing_data": {
+      "$ref": "#/$defs/__schema75"
+    },
+    "confidence": {
+      "$ref": "#/$defs/__schema82"
+    },
+    "needs_human_review": {
+      "$ref": "#/$defs/__schema83"
+    },
+    "analyzer_notes": {
+      "$ref": "#/$defs/__schema84"
+    }
+  },
+  "required": [
+    "languages",
+    "tasks",
+    "assumptions",
+    "ambiguities",
+    "missing_data",
+    "confidence",
+    "needs_human_review"
+  ],
+  "$defs": {
+    "__schema0": {
+      "default": null,
+      "anyOf": [
+        {
           "type": "string",
-          "enum": [
-            "context_ingestion", "vision_ocr", "image_analysis", "document_parsing",
-            "completion", "reasoning", "creative_draft", "structured_generation",
-            "text_rewrite", "image_generate", "image_to_image", "inpaint", "upscale"
-          ]
+          "minLength": 1
         },
-        "volume": {
-          "type": "integer",
-          "minimum": 1,
-          "description": "Executions of this task. A loop over 500 docs is one task with volume 500. Arabic-Indic and Chinese numerals must be converted before extraction."
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema1": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
         },
-        "expands_from": {
-          "type": ["string", "null"],
-          "description": "Parent task id when a compound verb expanded into a pair. translate and summarize are BOTH read and write — classifying either as a single task undercounts by roughly one document."
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema2": {
+      "type": "object",
+      "properties": {
+        "ui_language": {
+          "$ref": "#/$defs/__schema3"
         },
-        "execution_probability": {
+        "instruction_language": {
+          "$ref": "#/$defs/__schema4"
+        },
+        "payload_languages": {
+          "$ref": "#/$defs/__schema5"
+        }
+      },
+      "required": [
+        "payload_languages"
+      ]
+    },
+    "__schema3": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema4": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema5": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/__schema6"
+      }
+    },
+    "__schema6": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "share": {
           "type": "number",
           "minimum": 0,
-          "maximum": 1,
-          "default": 1,
-          "description": "Below 1 for conditional branches (\"summarize it if it's over 10 pages\"). Multiplies effective volume."
-        },
-        "text_metrics": { "$ref": "#/$defs/textMetrics" },
-        "image_metrics": { "$ref": "#/$defs/imageMetrics" },
-        "media_metrics": { "$ref": "#/$defs/mediaMetrics" },
-        "expected_output_band": {
-          "type": "string",
-          "enum": ["short", "medium", "long", "unbounded"],
-          "description": "Selects a calibrated prior downstream. NOT itself a token estimate."
-        },
-        "max_tokens": { "type": ["integer", "null"], "minimum": 1 },
-        "flags": { "$ref": "#/$defs/costFlags" }
-      }
+          "maximum": 1
+        }
+      },
+      "required": [
+        "code",
+        "share"
+      ]
     },
-    "textMetrics": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "character_count": { "type": ["integer", "null"], "minimum": 0 },
-        "character_count_source": { "$ref": "#/$defs/provenance" },
-        "doc_class": {
-          "type": "string",
-          "enum": ["short_form", "medium_form", "long_form", "unknown"],
-          "description": "Selects the seed default when character_count is absent. Seed values are SEED_UNCALIBRATED and must be replaced from observed runs."
-        },
-        "script_mix": {
+    "__schema7": {
+      "default": null,
+      "anyOf": [
+        {
           "type": "object",
-          "additionalProperties": { "type": "number", "minimum": 0, "maximum": 1 },
-          "propertyNames": { "enum": ["latin", "arabic", "han", "cyrillic", "other"] },
-          "description": "Proportions, not a single label. Mixed Arabic/Latin/Han documents are the norm in Gulf workflows and the tokenizer follows the mix."
+          "properties": {
+            "layer": {
+              "$ref": "#/$defs/__schema8"
+            },
+            "parse_confidence": {
+              "$ref": "#/$defs/__schema9"
+            },
+            "escalated_reason": {
+              "$ref": "#/$defs/__schema10"
+            },
+            "parser_model_id": {
+              "$ref": "#/$defs/__schema11"
+            },
+            "parser_input_tokens": {
+              "$ref": "#/$defs/__schema12"
+            },
+            "parser_output_tokens": {
+              "$ref": "#/$defs/__schema13"
+            }
+          },
+          "required": [
+            "layer",
+            "parse_confidence"
+          ]
         },
-        "arabic_vocalized": {
-          "type": ["boolean", "null"],
-          "description": "Convenience flag for bucket selection, DERIVED from diacritic_density by threshold. Do not set it independently — vocalization is a spectrum and a raw boolean snaps partially-vocalized text to whichever extreme misprices it."
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema8": {
+      "type": "string",
+      "enum": [
+        "L1_DETERMINISTIC",
+        "L2_LLM_PARSE"
+      ]
+    },
+    "__schema9": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "__schema10": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
         },
-        "diacritic_density": {
-          "type": ["number", "null"],
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema11": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema12": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "integer",
           "minimum": 0,
-          "maximum": 1,
-          "description": "Measured diacritics per consonant. The underlying value the calibration table is keyed on and the UI displays. Most real Arabic is partially vocalized — diacritics only on genuinely ambiguous words — so this, not the boolean, is what drives the ratio."
+          "maximum": 9007199254740991
         },
-        "arabic_register": { "type": ["string", "null"], "enum": ["msa", "dialect", "mixed", null] },
-        "pdf_has_text_layer": {
-          "type": ["boolean", "null"],
-          "description": "null = UNKNOWN and BLOCKING. Text-layer PDF is context ingestion; a scanned PDF is vision OCR priced per page in image tiles. No default is defensible across that gap."
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema13": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
         },
-        "content_type": { "type": "string", "enum": ["prose", "code", "structured_json", "tabular", "mixed", "unknown"] },
-        "tool_schemas_present": { "type": "boolean" },
-        "tool_schema_character_count": { "type": ["integer", "null"], "minimum": 0 },
-        "conversation_turns": { "type": ["integer", "null"], "minimum": 1 },
-        "history_strategy": { "type": ["string", "null"], "enum": ["FULL_HISTORY", "SLIDING_WINDOW", "SUMMARIZED_ROLLUP", null] },
-        "history_window_k": { "type": ["integer", "null"], "minimum": 1 }
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema14": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "task_id": {
+            "$ref": "#/$defs/__schema15"
+          },
+          "sequence_index": {
+            "$ref": "#/$defs/__schema16"
+          },
+          "label": {
+            "$ref": "#/$defs/__schema17"
+          },
+          "type": {
+            "$ref": "#/$defs/__schema18"
+          },
+          "sub_kind": {
+            "$ref": "#/$defs/__schema19"
+          },
+          "volume": {
+            "$ref": "#/$defs/__schema20"
+          },
+          "expands_from": {
+            "$ref": "#/$defs/__schema21"
+          },
+          "execution_probability": {
+            "$ref": "#/$defs/__schema22"
+          },
+          "text_metrics": {
+            "$ref": "#/$defs/__schema23"
+          },
+          "image_metrics": {
+            "$ref": "#/$defs/__schema38"
+          },
+          "media_metrics": {
+            "$ref": "#/$defs/__schema59"
+          },
+          "expected_output_band": {
+            "$ref": "#/$defs/__schema60"
+          },
+          "max_tokens": {
+            "$ref": "#/$defs/__schema61"
+          },
+          "flags": {
+            "$ref": "#/$defs/__schema62"
+          }
+        },
+        "required": [
+          "task_id",
+          "sequence_index",
+          "type",
+          "volume",
+          "flags"
+        ]
       }
     },
-    "imageMetrics": {
+    "__schema15": {
+      "type": "string",
+      "minLength": 1
+    },
+    "__schema16": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "__schema17": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema18": {
+      "type": "string",
+      "enum": [
+        "READ",
+        "WRITE",
+        "EDIT"
+      ]
+    },
+    "__schema19": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "context_ingestion",
+            "vision_ocr",
+            "image_analysis",
+            "document_parsing",
+            "completion",
+            "reasoning",
+            "creative_draft",
+            "structured_generation",
+            "text_rewrite",
+            "image_generate",
+            "image_to_image",
+            "inpaint",
+            "upscale"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema20": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991
+    },
+    "__schema21": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema22": {
+      "default": 1,
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "__schema23": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "character_count": {
+              "$ref": "#/$defs/__schema24"
+            },
+            "character_count_source": {
+              "$ref": "#/$defs/__schema25"
+            },
+            "doc_class": {
+              "$ref": "#/$defs/__schema26"
+            },
+            "script_mix": {
+              "$ref": "#/$defs/__schema27"
+            },
+            "arabic_vocalized": {
+              "$ref": "#/$defs/__schema28"
+            },
+            "diacritic_density": {
+              "$ref": "#/$defs/__schema29"
+            },
+            "arabic_register": {
+              "$ref": "#/$defs/__schema30"
+            },
+            "pdf_has_text_layer": {
+              "$ref": "#/$defs/__schema31"
+            },
+            "content_type": {
+              "$ref": "#/$defs/__schema32"
+            },
+            "tool_schemas_present": {
+              "$ref": "#/$defs/__schema33"
+            },
+            "tool_schema_character_count": {
+              "$ref": "#/$defs/__schema34"
+            },
+            "conversation_turns": {
+              "$ref": "#/$defs/__schema35"
+            },
+            "history_strategy": {
+              "$ref": "#/$defs/__schema36"
+            },
+            "history_window_k": {
+              "$ref": "#/$defs/__schema37"
+            }
+          },
+          "required": [
+            "character_count_source"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema24": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema25": {
+      "type": "string",
+      "enum": [
+        "USER_STATED",
+        "MEASURED_FROM_ASSET",
+        "DERIVED_FROM_ASSET",
+        "DEFAULT_APPLIED",
+        "MISSING"
+      ]
+    },
+    "__schema26": {
+      "default": "unknown",
+      "type": "string",
+      "enum": [
+        "short_form",
+        "medium_form",
+        "long_form",
+        "unknown"
+      ]
+    },
+    "__schema27": {
+      "default": {},
       "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "width_px": { "type": ["integer", "null"], "minimum": 1 },
-        "height_px": { "type": ["integer", "null"], "minimum": 1 },
-        "dimensions_source": { "$ref": "#/$defs/provenance" },
-        "detail_mode": { "type": ["string", "null"], "enum": ["low", "high", "auto", null] },
-        "image_count": { "type": "integer", "minimum": 1 },
-        "operation": { "type": "string", "enum": ["analyze", "generate", "img2img", "inpaint", "upscale"] },
-        "upscale_multiplier": { "type": ["number", "null"], "exclusiveMinimum": 1 },
-        "mask_present": { "type": "boolean" },
-        "byte_size": { "type": ["integer", "null"], "minimum": 0 },
-        "page_count": { "type": ["integer", "null"], "minimum": 1, "description": "Multi-page documents multiply the tile grid per page. Surface pages x tiles_per_page as its own estimate line." },
-        "detected_script": { "type": ["string", "null"], "enum": ["latin", "arabic", "han", "mixed", "unknown", null], "description": "Drives min_legible_edge_px. Mixed content takes the STRICTEST floor present, never the average." },
-        "fidelity_critical": { "type": "boolean", "default": false, "description": "User marked this OCR-critical. Blocks the resize rung of the disposition ladder entirely." },
-        "asset_disposition": {
-          "type": ["object", "null"],
-          "additionalProperties": false,
-          "description": "Outcome of the oversized/out-of-spec ladder. The estimator NEVER mutates the asset — a resize is a proposal the user accepted or declined.",
+      "propertyNames": {
+        "type": "string",
+        "enum": [
+          "latin",
+          "arabic",
+          "han",
+          "cyrillic",
+          "other"
+        ]
+      },
+      "additionalProperties": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      }
+    },
+    "__schema28": {
+      "default": null,
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "__schema29": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema30": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "msa",
+            "dialect",
+            "mixed"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema31": {
+      "default": null,
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "__schema32": {
+      "default": "unknown",
+      "type": "string",
+      "enum": [
+        "prose",
+        "code",
+        "structured_json",
+        "tabular",
+        "mixed",
+        "unknown"
+      ]
+    },
+    "__schema33": {
+      "default": false,
+      "type": "boolean"
+    },
+    "__schema34": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema35": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema36": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "FULL_HISTORY",
+            "SLIDING_WINDOW",
+            "SUMMARIZED_ROLLUP"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema37": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema38": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "width_px": {
+              "$ref": "#/$defs/__schema39"
+            },
+            "height_px": {
+              "$ref": "#/$defs/__schema40"
+            },
+            "dimensions_source": {
+              "$ref": "#/$defs/__schema25"
+            },
+            "detail_mode": {
+              "$ref": "#/$defs/__schema41"
+            },
+            "image_count": {
+              "$ref": "#/$defs/__schema42"
+            },
+            "operation": {
+              "$ref": "#/$defs/__schema43"
+            },
+            "upscale_multiplier": {
+              "$ref": "#/$defs/__schema44"
+            },
+            "mask_present": {
+              "$ref": "#/$defs/__schema45"
+            },
+            "byte_size": {
+              "$ref": "#/$defs/__schema46"
+            },
+            "page_count": {
+              "$ref": "#/$defs/__schema47"
+            },
+            "detected_script": {
+              "$ref": "#/$defs/__schema48"
+            },
+            "fidelity_critical": {
+              "$ref": "#/$defs/__schema49"
+            },
+            "asset_disposition": {
+              "$ref": "#/$defs/__schema50"
+            }
+          },
+          "required": [
+            "dimensions_source",
+            "operation"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema39": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema40": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema41": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "low",
+            "high",
+            "auto"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema42": {
+      "default": 1,
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991
+    },
+    "__schema43": {
+      "type": "string",
+      "enum": [
+        "analyze",
+        "generate",
+        "img2img",
+        "inpaint",
+        "upscale"
+      ]
+    },
+    "__schema44": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "number",
+          "exclusiveMinimum": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema45": {
+      "default": false,
+      "type": "boolean"
+    },
+    "__schema46": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema47": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema48": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "latin",
+            "arabic",
+            "han",
+            "cyrillic",
+            "other",
+            "mixed",
+            "unknown"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema49": {
+      "default": false,
+      "type": "boolean"
+    },
+    "__schema50": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "object",
           "properties": {
             "rung": {
-              "type": "string",
-              "enum": ["FITS_AS_IS", "PROVIDER_NORMALIZED", "RESIZE_PROPOSED", "RESIZE_SAVES_NOTHING", "FIDELITY_LOCKED", "REROUTED", "BLOCKED"]
+              "$ref": "#/$defs/__schema51"
             },
             "violated_constraints": {
-              "type": "array",
-              "items": { "type": "string", "enum": ["max_edge_px", "min_edge_px", "max_bytes", "max_pages", "max_duration_seconds", "max_frames", "allowed_mime"] }
+              "$ref": "#/$defs/__schema52"
             },
-            "original_dimensions": { "type": ["string", "null"], "description": "WxH as measured, always retained even when a transform was applied." },
-            "effective_dimensions": { "type": ["string", "null"], "description": "WxH actually priced." },
-            "transform_rule": { "type": ["string", "null"], "description": "Required when provenance is DERIVED_FROM_ASSET. Names the rule, e.g. the provider's normalization or the accepted resize." },
-            "resize_accepted_by_user": { "type": ["boolean", "null"] },
-            "recomputed_tile_delta": { "type": ["integer", "null"], "description": "tiles(scaled) - tiles(original). A resize is only proposed when this is negative." },
-            "min_legible_edge_px": { "type": ["integer", "null"] }
-          }
-        }
-      }
-    },
-    "mediaMetrics": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "modality": { "type": "string", "enum": ["audio", "video"] },
-        "duration_seconds": { "type": ["number", "null"], "minimum": 0 },
-        "duration_source": { "$ref": "#/$defs/provenance" },
-        "has_audio_track": { "type": "boolean" },
-        "frame_sample_rate_hz": { "type": ["number", "null"], "exclusiveMinimum": 0 }
-      }
-    },
-    "costFlags": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["requires_reasoning", "requires_vision", "requires_tool_calling"],
-      "properties": {
-        "requires_reasoning": { "type": "boolean" },
-        "requires_vision": { "type": "boolean" },
-        "requires_tool_calling": { "type": "boolean" },
-        "requires_long_context": { "type": "boolean" },
-        "requires_structured_output": { "type": "boolean" },
-        "is_conversational": { "type": "boolean" },
-        "has_stable_prefix": { "type": "boolean", "description": "Caching candidate: same system prompt/tool block reused across calls." },
-        "latency_sensitive": { "type": "boolean" },
-        "data_residency_constraint": {
-          "type": ["string", "null"],
-          "description": "Jurisdiction or policy the user actually stated. Null when unstated — do not infer."
-        }
-      }
-    },
-    "assumption": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["field", "assumed_value", "basis", "impact_if_wrong"],
-      "properties": {
-        "task_id": { "type": "string" },
-        "field": { "type": "string" },
-        "assumed_value": {},
-        "basis": { "type": "string", "description": "Why this value was chosen. Use 'DEFAULT_APPLIED' for a seed baseline. Never 'typical' without a calibration reference." },
-        "seed_provenance": {
-          "type": ["string", "null"],
-          "enum": ["SEED_UNCALIBRATED", "CALIBRATED_FROM_OBSERVED", "USER_SUPPLIED_BASELINE", null],
-          "description": "SEED_UNCALIBRATED forces LOW confidence and carries a standing task to replace it from observed runs."
+            "original_dimensions": {
+              "$ref": "#/$defs/__schema53"
+            },
+            "effective_dimensions": {
+              "$ref": "#/$defs/__schema54"
+            },
+            "transform_rule": {
+              "$ref": "#/$defs/__schema55"
+            },
+            "resize_accepted_by_user": {
+              "$ref": "#/$defs/__schema56"
+            },
+            "recomputed_tile_delta": {
+              "$ref": "#/$defs/__schema57"
+            },
+            "min_legible_edge_px": {
+              "$ref": "#/$defs/__schema58"
+            }
+          },
+          "required": [
+            "rung"
+          ]
         },
-        "impact_if_wrong": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "ORDER_OF_MAGNITUDE"] },
-        "user_editable": { "type": "boolean", "default": true }
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema51": {
+      "type": "string",
+      "enum": [
+        "FITS_AS_IS",
+        "PROVIDER_NORMALIZED",
+        "RESIZE_PROPOSED",
+        "RESIZE_SAVES_NOTHING",
+        "FIDELITY_LOCKED",
+        "REROUTED",
+        "BLOCKED"
+      ]
+    },
+    "__schema52": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "max_edge_px",
+          "min_edge_px",
+          "max_bytes",
+          "max_pages",
+          "max_duration_seconds",
+          "max_frames",
+          "allowed_mime"
+        ]
       }
+    },
+    "__schema53": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 3
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema54": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 3
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema55": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema56": {
+      "default": null,
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "__schema57": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema58": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema59": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "modality": {
+              "type": "string",
+              "enum": [
+                "audio",
+                "video"
+              ]
+            },
+            "duration_seconds": {
+              "default": null,
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "duration_source": {
+              "$ref": "#/$defs/__schema25"
+            },
+            "has_audio_track": {
+              "default": false,
+              "type": "boolean"
+            },
+            "frame_sample_rate_hz": {
+              "default": null,
+              "anyOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "modality",
+            "duration_source"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema60": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "short",
+            "medium",
+            "long",
+            "unbounded"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema61": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema62": {
+      "type": "object",
+      "properties": {
+        "requires_reasoning": {
+          "type": "boolean"
+        },
+        "requires_vision": {
+          "type": "boolean"
+        },
+        "requires_tool_calling": {
+          "type": "boolean"
+        },
+        "requires_long_context": {
+          "default": false,
+          "type": "boolean"
+        },
+        "requires_structured_output": {
+          "default": false,
+          "type": "boolean"
+        },
+        "is_conversational": {
+          "default": false,
+          "type": "boolean"
+        },
+        "has_stable_prefix": {
+          "default": false,
+          "type": "boolean"
+        },
+        "latency_sensitive": {
+          "default": false,
+          "type": "boolean"
+        },
+        "data_residency_constraint": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "requires_reasoning",
+        "requires_vision",
+        "requires_tool_calling"
+      ]
+    },
+    "__schema63": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/__schema64"
+          },
+          "task_id": {
+            "$ref": "#/$defs/__schema65"
+          },
+          "field": {
+            "$ref": "#/$defs/__schema66"
+          },
+          "value": {
+            "$ref": "#/$defs/__schema67"
+          },
+          "basis": {
+            "$ref": "#/$defs/__schema68"
+          },
+          "seed_provenance": {
+            "$ref": "#/$defs/__schema69"
+          },
+          "impact_if_wrong": {
+            "$ref": "#/$defs/__schema70"
+          },
+          "user_editable": {
+            "$ref": "#/$defs/__schema71"
+          },
+          "sensitivity_rank": {
+            "$ref": "#/$defs/__schema72"
+          }
+        },
+        "required": [
+          "field",
+          "value",
+          "basis",
+          "impact_if_wrong"
+        ]
+      }
+    },
+    "__schema64": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema65": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema66": {
+      "type": "string",
+      "minLength": 1
+    },
+    "__schema67": {},
+    "__schema68": {
+      "type": "string",
+      "minLength": 1
+    },
+    "__schema69": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "SEED_UNCALIBRATED",
+            "CALIBRATED_FROM_OBSERVED",
+            "USER_SUPPLIED_BASELINE"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema70": {
+      "type": "string",
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH",
+        "ORDER_OF_MAGNITUDE"
+      ]
+    },
+    "__schema71": {
+      "default": true,
+      "type": "boolean"
+    },
+    "__schema72": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema73": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string",
+            "minLength": 1
+          },
+          "readings": {
+            "minItems": 2,
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/__schema74"
+            }
+          },
+          "impact": {
+            "type": "string",
+            "enum": [
+              "COSMETIC",
+              "MATERIAL",
+              "ORDER_OF_MAGNITUDE"
+            ]
+          }
+        },
+        "required": [
+          "field",
+          "readings",
+          "impact"
+        ]
+      }
+    },
+    "__schema74": {
+      "type": "string",
+      "minLength": 1
+    },
+    "__schema75": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/$defs/__schema76"
+          },
+          "task_id": {
+            "$ref": "#/$defs/__schema77"
+          },
+          "model_id": {
+            "$ref": "#/$defs/__schema78"
+          },
+          "question": {
+            "$ref": "#/$defs/__schema79"
+          },
+          "why_it_matters": {
+            "$ref": "#/$defs/__schema80"
+          },
+          "blocks_estimate": {
+            "$ref": "#/$defs/__schema81"
+          }
+        },
+        "required": [
+          "field",
+          "blocks_estimate"
+        ]
+      }
+    },
+    "__schema76": {
+      "type": "string",
+      "minLength": 1
+    },
+    "__schema77": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema78": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema79": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema80": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema81": {
+      "type": "boolean"
+    },
+    "__schema82": {
+      "type": "string",
+      "enum": [
+        "HIGH",
+        "MEDIUM",
+        "LOW",
+        "NONE"
+      ]
+    },
+    "__schema83": {
+      "type": "boolean"
+    },
+    "__schema84": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
     }
-  }
+  },
+  "title": "WorkflowInput",
+  "$comment": "GENERATED from /packages/contracts/src — do not hand-edit. Run `pnpm generate:schemas`. CI fails if this file differs from the regenerated output (§A2)."
 }
