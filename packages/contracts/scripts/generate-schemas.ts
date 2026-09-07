@@ -18,6 +18,7 @@ import { z } from 'zod';
 import { Registry, ModelRow } from '../src/registry';
 import { VisionProfile } from '../src/vision';
 import { Provenance } from '../src/provenance';
+import { Assumption } from '../src/assumption';
 
 const OUT_DIR = join(__dirname, '..', '..', '..', 'schemas');
 
@@ -26,6 +27,7 @@ const TARGETS: Array<{ file: string; schema: z.ZodType; name: string }> = [
   { file: 'model-row.schema.json', schema: ModelRow, name: 'ModelRow' },
   { file: 'vision-profile.schema.json', schema: VisionProfile, name: 'VisionProfile' },
   { file: 'provenance.schema.json', schema: Provenance, name: 'Provenance' },
+  { file: 'assumption.schema.json', schema: Assumption, name: 'Assumption' },
 ];
 
 const BANNER =

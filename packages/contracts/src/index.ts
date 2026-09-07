@@ -5,6 +5,7 @@
 // them rather than syncing. Two definitions is how the drift this replaces began.
 
 export * from './provenance';
+export * from './assumption';
 export * from './vision';
 export * from './pricing';
 export * from './registry';

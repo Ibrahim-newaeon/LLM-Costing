@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "#/$defs/__schema0"
+    },
+    "task_id": {
+      "$ref": "#/$defs/__schema1"
+    },
+    "field": {
+      "$ref": "#/$defs/__schema2"
+    },
+    "value": {
+      "$ref": "#/$defs/__schema3"
+    },
+    "basis": {
+      "$ref": "#/$defs/__schema4"
+    },
+    "seed_provenance": {
+      "$ref": "#/$defs/__schema5"
+    },
+    "impact_if_wrong": {
+      "$ref": "#/$defs/__schema6"
+    },
+    "user_editable": {
+      "$ref": "#/$defs/__schema7"
+    },
+    "sensitivity_rank": {
+      "$ref": "#/$defs/__schema8"
+    }
+  },
+  "required": [
+    "field",
+    "value",
+    "basis",
+    "impact_if_wrong"
+  ],
+  "$defs": {
+    "__schema0": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema1": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema2": {
+      "type": "string",
+      "minLength": 1
+    },
+    "__schema3": {},
+    "__schema4": {
+      "type": "string",
+      "minLength": 1
+    },
+    "__schema5": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "SEED_UNCALIBRATED",
+            "CALIBRATED_FROM_OBSERVED",
+            "USER_SUPPLIED_BASELINE"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema6": {
+      "type": "string",
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH",
+        "ORDER_OF_MAGNITUDE"
+      ]
+    },
+    "__schema7": {
+      "default": true,
+      "type": "boolean"
+    },
+    "__schema8": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "title": "Assumption",
+  "$comment": "GENERATED from /packages/contracts/src — do not hand-edit. Run `pnpm generate:schemas`. CI fails if this file differs from the regenerated output (§A2)."
+}
