@@ -1,8 +1,31 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "type": "object",
-  "properties": {
-    "geometry": {
+  "$ref": "#/$defs/VisionProfile",
+  "$defs": {
+    "VisionProfile": {
+      "type": "object",
+      "properties": {
+        "geometry": {
+          "$ref": "#/$defs/VisionGeometry"
+        },
+        "low_detail": {
+          "$ref": "#/$defs/LowDetailBehaviour"
+        },
+        "constraints": {
+          "$ref": "#/$defs/VisionConstraints"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        }
+      },
+      "required": [
+        "geometry",
+        "low_detail",
+        "constraints",
+        "provenance"
+      ]
+    },
+    "VisionGeometry": {
       "oneOf": [
         {
           "type": "object",
@@ -27,7 +50,7 @@
                   ]
                 },
                 "provenance": {
-                  "$ref": "#/$defs/__schema0"
+                  "$ref": "#/$defs/Provenance"
                 }
               },
               "required": [
@@ -60,7 +83,7 @@
                           ]
                         },
                         "provenance": {
-                          "$ref": "#/$defs/__schema0"
+                          "$ref": "#/$defs/Provenance"
                         }
                       },
                       "required": [
@@ -97,7 +120,7 @@
                           ]
                         },
                         "provenance": {
-                          "$ref": "#/$defs/__schema0"
+                          "$ref": "#/$defs/Provenance"
                         }
                       },
                       "required": [
@@ -121,7 +144,7 @@
                           ]
                         },
                         "provenance": {
-                          "$ref": "#/$defs/__schema0"
+                          "$ref": "#/$defs/Provenance"
                         }
                       },
                       "required": [
@@ -168,7 +191,7 @@
                   ]
                 },
                 "provenance": {
-                  "$ref": "#/$defs/__schema0"
+                  "$ref": "#/$defs/Provenance"
                 }
               },
               "required": [
@@ -192,7 +215,7 @@
                   ]
                 },
                 "provenance": {
-                  "$ref": "#/$defs/__schema0"
+                  "$ref": "#/$defs/Provenance"
                 }
               },
               "required": [
@@ -216,7 +239,7 @@
                   ]
                 },
                 "provenance": {
-                  "$ref": "#/$defs/__schema0"
+                  "$ref": "#/$defs/Provenance"
                 }
               },
               "required": [
@@ -240,7 +263,7 @@
                   ]
                 },
                 "provenance": {
-                  "$ref": "#/$defs/__schema0"
+                  "$ref": "#/$defs/Provenance"
                 }
               },
               "required": [
@@ -267,7 +290,7 @@
                       ]
                     },
                     "provenance": {
-                      "$ref": "#/$defs/__schema0"
+                      "$ref": "#/$defs/Provenance"
                     }
                   },
                   "required": [
@@ -299,7 +322,7 @@
                       ]
                     },
                     "provenance": {
-                      "$ref": "#/$defs/__schema0"
+                      "$ref": "#/$defs/Provenance"
                     }
                   },
                   "required": [
@@ -343,7 +366,7 @@
                   ]
                 },
                 "provenance": {
-                  "$ref": "#/$defs/__schema0"
+                  "$ref": "#/$defs/Provenance"
                 }
               },
               "required": [
@@ -367,7 +390,7 @@
                   ]
                 },
                 "provenance": {
-                  "$ref": "#/$defs/__schema0"
+                  "$ref": "#/$defs/Provenance"
                 }
               },
               "required": [
@@ -405,7 +428,7 @@
                   ]
                 },
                 "provenance": {
-                  "$ref": "#/$defs/__schema0"
+                  "$ref": "#/$defs/Provenance"
                 }
               },
               "required": [
@@ -442,7 +465,7 @@
                   ]
                 },
                 "provenance": {
-                  "$ref": "#/$defs/__schema0"
+                  "$ref": "#/$defs/Provenance"
                 }
               },
               "required": [
@@ -466,7 +489,7 @@
                   ]
                 },
                 "provenance": {
-                  "$ref": "#/$defs/__schema0"
+                  "$ref": "#/$defs/Provenance"
                 }
               },
               "required": [
@@ -490,7 +513,7 @@
                   ]
                 },
                 "provenance": {
-                  "$ref": "#/$defs/__schema0"
+                  "$ref": "#/$defs/Provenance"
                 }
               },
               "required": [
@@ -514,7 +537,7 @@
                   ]
                 },
                 "provenance": {
-                  "$ref": "#/$defs/__schema0"
+                  "$ref": "#/$defs/Provenance"
                 }
               },
               "required": [
@@ -591,7 +614,106 @@
         }
       ]
     },
-    "low_detail": {
+    "Provenance": {
+      "type": "object",
+      "properties": {
+        "method": {
+          "$ref": "#/$defs/Method"
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence"
+        },
+        "source_class": {
+          "$ref": "#/$defs/SourceClass"
+        },
+        "source_url": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uri"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "verified_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "verified_by": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "notes": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "method",
+        "confidence",
+        "source_class",
+        "source_url",
+        "verified_at"
+      ]
+    },
+    "Method": {
+      "type": "string",
+      "enum": [
+        "EXACT_TOKENIZER",
+        "PROVIDER_COUNT_API",
+        "PROVIDER_FORMULA",
+        "MEASURED_PROBE",
+        "MEASURED_BENCHMARK",
+        "TOKENIZER_SCALED",
+        "CALIBRATED_HEURISTIC",
+        "EXACT_PROXY",
+        "USER_SUPPLIED",
+        "DERIVED",
+        "UNAVAILABLE"
+      ]
+    },
+    "Confidence": {
+      "type": "string",
+      "enum": [
+        "HIGH",
+        "MEDIUM",
+        "LOW",
+        "NONE"
+      ]
+    },
+    "SourceClass": {
+      "type": "string",
+      "enum": [
+        "VENDOR_PAGE",
+        "VENDOR_CONFIG",
+        "VENDOR_DOCS",
+        "AGGREGATOR",
+        "MEASURED",
+        "USER_ENTERED"
+      ]
+    },
+    "LowDetailBehaviour": {
       "oneOf": [
         {
           "type": "object",
@@ -616,7 +738,7 @@
                   ]
                 },
                 "provenance": {
-                  "$ref": "#/$defs/__schema0"
+                  "$ref": "#/$defs/Provenance"
                 }
               },
               "required": [
@@ -656,7 +778,7 @@
         }
       ]
     },
-    "constraints": {
+    "VisionConstraints": {
       "type": "object",
       "properties": {
         "max_edge_px": {
@@ -675,7 +797,7 @@
               ]
             },
             "provenance": {
-              "$ref": "#/$defs/__schema0"
+              "$ref": "#/$defs/Provenance"
             }
           },
           "required": [
@@ -699,7 +821,7 @@
               ]
             },
             "provenance": {
-              "$ref": "#/$defs/__schema0"
+              "$ref": "#/$defs/Provenance"
             }
           },
           "required": [
@@ -723,7 +845,7 @@
               ]
             },
             "provenance": {
-              "$ref": "#/$defs/__schema0"
+              "$ref": "#/$defs/Provenance"
             }
           },
           "required": [
@@ -747,7 +869,7 @@
               ]
             },
             "provenance": {
-              "$ref": "#/$defs/__schema0"
+              "$ref": "#/$defs/Provenance"
             }
           },
           "required": [
@@ -771,7 +893,7 @@
               ]
             },
             "provenance": {
-              "$ref": "#/$defs/__schema0"
+              "$ref": "#/$defs/Provenance"
             }
           },
           "required": [
@@ -794,58 +916,7 @@
           "default": [],
           "type": "array",
           "items": {
-            "type": "object",
-            "properties": {
-              "script": {
-                "type": "string",
-                "enum": [
-                  "latin",
-                  "ar_msa",
-                  "ar_dialect",
-                  "ar_vocalized",
-                  "zh_hans",
-                  "zh_hant",
-                  "mixed"
-                ]
-              },
-              "content_density": {
-                "type": "string",
-                "enum": [
-                  "sparse",
-                  "normal",
-                  "dense"
-                ]
-              },
-              "px": {
-                "type": "object",
-                "properties": {
-                  "value": {
-                    "anyOf": [
-                      {
-                        "type": "integer",
-                        "exclusiveMinimum": 0,
-                        "maximum": 9007199254740991
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "provenance": {
-                    "$ref": "#/$defs/__schema0"
-                  }
-                },
-                "required": [
-                  "value",
-                  "provenance"
-                ]
-              }
-            },
-            "required": [
-              "script",
-              "content_density",
-              "px"
-            ]
+            "$ref": "#/$defs/LegibilityFloor"
           }
         },
         "max_context_tokens": {
@@ -864,7 +935,7 @@
               ]
             },
             "provenance": {
-              "$ref": "#/$defs/__schema0"
+              "$ref": "#/$defs/Provenance"
             }
           },
           "required": [
@@ -882,126 +953,64 @@
         "max_context_tokens"
       ]
     },
-    "provenance": {
-      "$ref": "#/$defs/__schema0"
-    }
-  },
-  "required": [
-    "geometry",
-    "low_detail",
-    "constraints",
-    "provenance"
-  ],
-  "$defs": {
-    "__schema0": {
+    "LegibilityFloor": {
       "type": "object",
       "properties": {
-        "method": {
-          "$ref": "#/$defs/__schema1"
+        "script": {
+          "$ref": "#/$defs/Script"
         },
-        "confidence": {
-          "$ref": "#/$defs/__schema2"
+        "content_density": {
+          "$ref": "#/$defs/ContentDensity"
         },
-        "source_class": {
-          "$ref": "#/$defs/__schema3"
-        },
-        "source_url": {
-          "$ref": "#/$defs/__schema4"
-        },
-        "verified_at": {
-          "$ref": "#/$defs/__schema5"
-        },
-        "verified_by": {
-          "$ref": "#/$defs/__schema6"
-        },
-        "notes": {
-          "$ref": "#/$defs/__schema7"
+        "px": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
         }
       },
       "required": [
-        "method",
-        "confidence",
-        "source_class",
-        "source_url",
-        "verified_at"
+        "script",
+        "content_density",
+        "px"
       ]
     },
-    "__schema1": {
+    "Script": {
       "type": "string",
       "enum": [
-        "EXACT_TOKENIZER",
-        "PROVIDER_COUNT_API",
-        "PROVIDER_FORMULA",
-        "MEASURED_PROBE",
-        "MEASURED_BENCHMARK",
-        "TOKENIZER_SCALED",
-        "CALIBRATED_HEURISTIC",
-        "EXACT_PROXY",
-        "USER_SUPPLIED",
-        "DERIVED",
-        "UNAVAILABLE"
+        "latin",
+        "ar_msa",
+        "ar_dialect",
+        "ar_vocalized",
+        "zh_hans",
+        "zh_hant",
+        "mixed"
       ]
     },
-    "__schema2": {
+    "ContentDensity": {
       "type": "string",
       "enum": [
-        "HIGH",
-        "MEDIUM",
-        "LOW",
-        "NONE"
-      ]
-    },
-    "__schema3": {
-      "type": "string",
-      "enum": [
-        "VENDOR_PAGE",
-        "VENDOR_CONFIG",
-        "VENDOR_DOCS",
-        "AGGREGATOR",
-        "MEASURED",
-        "USER_ENTERED"
-      ]
-    },
-    "__schema4": {
-      "anyOf": [
-        {
-          "type": "string",
-          "format": "uri"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema5": {
-      "anyOf": [
-        {
-          "type": "string",
-          "format": "date-time",
-          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema6": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema7": {
-      "default": null,
-      "type": [
-        "string",
-        "null"
+        "sparse",
+        "normal",
+        "dense"
       ]
     }
   },

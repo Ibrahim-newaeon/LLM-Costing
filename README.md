@@ -91,10 +91,17 @@ Two generator options encode decisions worth revisiting:
   so input and output shapes genuinely differ: under `'output'` every defaulted field would be
   reported as required, which no source document has to satisfy.
 - **`reused: 'ref'`** — shared subschemas are extracted to `$defs` rather than inlined at every
-  use site. Registry renders at 81 KB with 63 defs; inlined it was 429 KB, which no reviewer can
-  read a drift diff of. The cost: zod names them `__schema0…__schemaN` **positionally**, so
-  inserting one field renumbers the rest and a one-line change produces a large diff. Registering
-  ids on the exported schemas would give them real names. Open.
+  use site. Registry inlined was 429 KB, which no reviewer can read a drift diff of.
+
+  Zod names an unregistered def **positionally** (`__schema0…__schemaN`), so inserting one field
+  renumbered every def after it. **Closed 2026-09-07**, in two steps in the generator: every
+  exported schema is registered in `z.globalRegistry` under its export name, and the anonymous
+  leftovers — inline shapes zod saw twice, 2–385 bytes, median 74 — are inlined back afterwards,
+  since the `$ref` cost about as much as the body it replaced.
+
+  `$defs` now holds only the package's real types, **zero** `__schemaN` across all seven files,
+  and the files are *smaller* than before (registry 82.3 → 67.6 KB). A drift diff now names the
+  type that changed. 314 `$ref`s resolve; none dangle, none are unreferenced.
 
 `unrepresentable` is left at its default, `'throw'` — a shape JSON Schema cannot express should
 fail the build, not be silently widened to `{}`.

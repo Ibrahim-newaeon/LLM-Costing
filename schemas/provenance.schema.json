@@ -1,38 +1,71 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "type": "object",
-  "properties": {
-    "method": {
-      "$ref": "#/$defs/__schema0"
-    },
-    "confidence": {
-      "$ref": "#/$defs/__schema1"
-    },
-    "source_class": {
-      "$ref": "#/$defs/__schema2"
-    },
-    "source_url": {
-      "$ref": "#/$defs/__schema3"
-    },
-    "verified_at": {
-      "$ref": "#/$defs/__schema4"
-    },
-    "verified_by": {
-      "$ref": "#/$defs/__schema5"
-    },
-    "notes": {
-      "$ref": "#/$defs/__schema6"
-    }
-  },
-  "required": [
-    "method",
-    "confidence",
-    "source_class",
-    "source_url",
-    "verified_at"
-  ],
+  "$ref": "#/$defs/Provenance",
   "$defs": {
-    "__schema0": {
+    "Provenance": {
+      "type": "object",
+      "properties": {
+        "method": {
+          "$ref": "#/$defs/Method"
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence"
+        },
+        "source_class": {
+          "$ref": "#/$defs/SourceClass"
+        },
+        "source_url": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uri"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "verified_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "verified_by": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "notes": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "method",
+        "confidence",
+        "source_class",
+        "source_url",
+        "verified_at"
+      ]
+    },
+    "Method": {
       "type": "string",
       "enum": [
         "EXACT_TOKENIZER",
@@ -48,7 +81,7 @@
         "UNAVAILABLE"
       ]
     },
-    "__schema1": {
+    "Confidence": {
       "type": "string",
       "enum": [
         "HIGH",
@@ -57,7 +90,7 @@
         "NONE"
       ]
     },
-    "__schema2": {
+    "SourceClass": {
       "type": "string",
       "enum": [
         "VENDOR_PAGE",
@@ -66,48 +99,6 @@
         "AGGREGATOR",
         "MEASURED",
         "USER_ENTERED"
-      ]
-    },
-    "__schema3": {
-      "anyOf": [
-        {
-          "type": "string",
-          "format": "uri"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema4": {
-      "anyOf": [
-        {
-          "type": "string",
-          "format": "date-time",
-          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema5": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema6": {
-      "default": null,
-      "type": [
-        "string",
-        "null"
       ]
     }
   },

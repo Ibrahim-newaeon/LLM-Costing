@@ -1,189 +1,303 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "type": "object",
-  "properties": {
-    "estimate_id": {
-      "$ref": "#/$defs/__schema0"
-    },
-    "workflow_id": {
-      "$ref": "#/$defs/__schema1"
-    },
-    "scenario_id": {
-      "$ref": "#/$defs/__schema2"
-    },
-    "generated_at": {
-      "$ref": "#/$defs/__schema3"
-    },
-    "pricing_snapshot_id": {
-      "$ref": "#/$defs/__schema4"
-    },
-    "candidates": {
-      "$ref": "#/$defs/__schema5"
-    },
-    "recommendations": {
-      "$ref": "#/$defs/__schema35"
-    },
-    "excluded_models": {
-      "$ref": "#/$defs/__schema38"
-    },
-    "optimization_report": {
-      "$ref": "#/$defs/__schema39"
-    },
-    "breakeven": {
-      "$ref": "#/$defs/__schema45"
-    },
-    "assumptions": {
-      "$ref": "#/$defs/__schema46"
-    },
-    "evidence": {
-      "$ref": "#/$defs/__schema56"
-    },
-    "confidence": {
-      "$ref": "#/$defs/__schema28"
-    },
-    "needs_human_review": {
-      "$ref": "#/$defs/__schema62"
-    },
-    "missing_data": {
-      "$ref": "#/$defs/__schema63"
-    },
-    "warnings": {
-      "$ref": "#/$defs/__schema70"
-    }
-  },
-  "required": [
-    "estimate_id",
-    "generated_at",
-    "pricing_snapshot_id",
-    "candidates",
-    "assumptions",
-    "evidence",
-    "confidence",
-    "needs_human_review",
-    "missing_data"
-  ],
+  "$ref": "#/$defs/EstimateOutput",
   "$defs": {
-    "__schema0": {
-      "type": "string",
-      "minLength": 1
-    },
-    "__schema1": {
-      "default": null,
-      "anyOf": [
-        {
+    "EstimateOutput": {
+      "type": "object",
+      "properties": {
+        "estimate_id": {
           "type": "string",
           "minLength": 1
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema2": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema3": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
-    },
-    "__schema4": {
-      "type": "string",
-      "minLength": 1
-    },
-    "__schema5": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "model_id": {
-            "$ref": "#/$defs/__schema6"
-          },
-          "provider_id": {
-            "$ref": "#/$defs/__schema7"
-          },
-          "tier": {
-            "$ref": "#/$defs/__schema8"
-          },
-          "deployment_mode": {
-            "$ref": "#/$defs/__schema9"
-          },
-          "data_residency_region": {
-            "$ref": "#/$defs/__schema10"
-          },
-          "is_prc_hosted": {
-            "$ref": "#/$defs/__schema11"
-          },
-          "lines": {
-            "$ref": "#/$defs/__schema12"
-          },
-          "total_tokens": {
-            "$ref": "#/$defs/__schema30"
-          },
-          "total_cost": {
-            "$ref": "#/$defs/__schema16"
-          },
-          "currency": {
-            "$ref": "#/$defs/__schema31"
-          },
-          "display_currency": {
-            "$ref": "#/$defs/__schema32"
-          },
-          "fx_rate_ref": {
-            "$ref": "#/$defs/__schema33"
-          },
-          "self_hosted_detail": {
-            "$ref": "#/$defs/__schema34"
-          },
-          "confidence": {
-            "$ref": "#/$defs/__schema28"
-          }
-        },
-        "required": [
-          "model_id",
-          "provider_id",
-          "deployment_mode",
-          "lines",
-          "total_cost",
-          "currency",
-          "confidence"
-        ]
-      }
-    },
-    "__schema6": {
-      "type": "string",
-      "minLength": 1
-    },
-    "__schema7": {
-      "type": "string",
-      "minLength": 1
-    },
-    "__schema8": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "enum": [
-            "FRONTIER",
-            "MID",
-            "LIGHTWEIGHT"
+        "workflow_id": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
           ]
         },
-        {
-          "type": "null"
+        "scenario_id": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "generated_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+        },
+        "pricing_snapshot_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Candidate"
+          }
+        },
+        "recommendations": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Recommendations"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "excluded_models": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ExcludedModel"
+          }
+        },
+        "optimization_report": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Optimization"
+          }
+        },
+        "breakeven": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Breakeven"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "assumptions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Assumption"
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          }
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence"
+        },
+        "needs_human_review": {
+          "type": "boolean"
+        },
+        "missing_data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MissingDatum"
+          }
+        },
+        "warnings": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EstimateWarning"
+          }
         }
+      },
+      "required": [
+        "estimate_id",
+        "generated_at",
+        "pricing_snapshot_id",
+        "candidates",
+        "assumptions",
+        "evidence",
+        "confidence",
+        "needs_human_review",
+        "missing_data"
       ]
     },
-    "__schema9": {
+    "Candidate": {
+      "type": "object",
+      "properties": {
+        "model_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provider_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tier": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Tier"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "deployment_mode": {
+          "$ref": "#/$defs/DeploymentMode"
+        },
+        "data_residency_region": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "is_prc_hosted": {
+          "default": null,
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EstimateLine"
+          }
+        },
+        "total_tokens": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "input": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Range"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "output": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Range"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "reasoning": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Range"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "cached": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Range"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "total_cost": {
+          "$ref": "#/$defs/Range"
+        },
+        "currency": {
+          "$ref": "#/$defs/Currency"
+        },
+        "display_currency": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Currency"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "fx_rate_ref": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "self_hosted_detail": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SelfHostedDetail"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence"
+        }
+      },
+      "required": [
+        "model_id",
+        "provider_id",
+        "deployment_mode",
+        "lines",
+        "total_cost",
+        "currency",
+        "confidence"
+      ]
+    },
+    "Tier": {
+      "type": "string",
+      "enum": [
+        "FRONTIER",
+        "MID",
+        "LIGHTWEIGHT"
+      ]
+    },
+    "DeploymentMode": {
       "type": "string",
       "enum": [
         "API_MANAGED",
@@ -191,83 +305,135 @@
         "DEDICATED_CAPACITY"
       ]
     },
-    "__schema10": {
-      "default": null,
-      "anyOf": [
-        {
+    "EstimateLine": {
+      "type": "object",
+      "properties": {
+        "task_id": {
           "type": "string",
           "minLength": 1
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema11": {
-      "default": null,
-      "type": [
-        "boolean",
-        "null"
-      ]
-    },
-    "__schema12": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "task_id": {
-            "$ref": "#/$defs/__schema13"
-          },
-          "component": {
-            "$ref": "#/$defs/__schema14"
-          },
-          "quantity": {
-            "$ref": "#/$defs/__schema15"
-          },
-          "unit": {
-            "$ref": "#/$defs/__schema20"
-          },
-          "rate_record_id": {
-            "$ref": "#/$defs/__schema21"
-          },
-          "cost": {
-            "$ref": "#/$defs/__schema22"
-          },
-          "context_safety_quantity": {
-            "$ref": "#/$defs/__schema23"
-          },
-          "method": {
-            "$ref": "#/$defs/__schema24"
-          },
-          "tier": {
-            "$ref": "#/$defs/__schema25"
-          },
-          "tokenizer_proxy": {
-            "$ref": "#/$defs/__schema26"
-          },
-          "cache": {
-            "$ref": "#/$defs/__schema27"
-          },
-          "confidence": {
-            "$ref": "#/$defs/__schema28"
-          },
-          "note": {
-            "$ref": "#/$defs/__schema29"
-          }
+        "component": {
+          "$ref": "#/$defs/CostComponent"
         },
-        "required": [
-          "task_id",
-          "component",
-          "method",
-          "confidence"
-        ]
-      }
+        "quantity": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Range"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "unit": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CostUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rate_record_id": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cost": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Range"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "context_safety_quantity": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "method": {
+          "$ref": "#/$defs/Method"
+        },
+        "tier": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 3
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tokenizer_proxy": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TokenizerProxyUse"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cache": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CacheOutcome"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence"
+        },
+        "note": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "task_id",
+        "component",
+        "method",
+        "confidence"
+      ]
     },
-    "__schema13": {
-      "type": "string",
-      "minLength": 1
-    },
-    "__schema14": {
+    "CostComponent": {
       "type": "string",
       "enum": [
         "prompt_input",
@@ -289,28 +455,28 @@
         "ops_labour"
       ]
     },
-    "__schema15": {
-      "default": null,
-      "anyOf": [
-        {
-          "$ref": "#/$defs/__schema16"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema16": {
+    "Range": {
       "type": "object",
       "properties": {
         "p50": {
-          "$ref": "#/$defs/__schema17"
+          "type": "number",
+          "minimum": 0
         },
         "p90": {
-          "$ref": "#/$defs/__schema18"
+          "type": "number",
+          "minimum": 0
         },
         "p99": {
-          "$ref": "#/$defs/__schema19"
+          "default": null,
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [
@@ -318,83 +484,20 @@
         "p90"
       ]
     },
-    "__schema17": {
-      "type": "number",
-      "minimum": 0
-    },
-    "__schema18": {
-      "type": "number",
-      "minimum": 0
-    },
-    "__schema19": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "number",
-          "minimum": 0
-        },
-        {
-          "type": "null"
-        }
+    "CostUnit": {
+      "type": "string",
+      "enum": [
+        "tokens",
+        "tiles",
+        "images",
+        "megapixels",
+        "seconds",
+        "requests",
+        "gb",
+        "months"
       ]
     },
-    "__schema20": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "enum": [
-            "tokens",
-            "tiles",
-            "images",
-            "megapixels",
-            "seconds",
-            "requests",
-            "gb",
-            "months"
-          ]
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema21": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema22": {
-      "default": null,
-      "anyOf": [
-        {
-          "$ref": "#/$defs/__schema16"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema23": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "number",
-          "minimum": 0
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema24": {
+    "Method": {
       "type": "string",
       "enum": [
         "EXACT_TOKENIZER",
@@ -410,84 +513,58 @@
         "UNAVAILABLE"
       ]
     },
-    "__schema25": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 3
+    "TokenizerProxyUse": {
+      "type": "object",
+      "properties": {
+        "target_model": {
+          "type": "string",
+          "minLength": 1
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema26": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "object",
-          "properties": {
-            "target_model": {
-              "type": "string",
-              "minLength": 1
-            },
-            "proxy_model": {
-              "type": "string",
-              "minLength": 1
-            },
-            "basis": {
-              "type": "string",
-              "enum": [
-                "SCRIPT_AND_ARCHITECTURE_MATCH",
-                "ARCHITECTURE_ONLY",
-                "UNVALIDATED"
-              ]
-            },
-            "measured_delta_pct": {
-              "default": null,
-              "type": [
-                "number",
-                "null"
-              ]
-            }
-          },
-          "required": [
-            "target_model",
-            "proxy_model",
-            "basis"
+        "proxy_model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "basis": {
+          "$ref": "#/$defs/ProxyBasis"
+        },
+        "measured_delta_pct": {
+          "default": null,
+          "type": [
+            "number",
+            "null"
           ]
-        },
-        {
-          "type": "null"
         }
+      },
+      "required": [
+        "target_model",
+        "proxy_model",
+        "basis"
       ]
     },
-    "__schema27": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "object",
-          "properties": {
-            "hit": {
-              "type": "boolean"
-            },
-            "key_includes_tokenizer_revision": {
-              "type": "boolean"
-            }
-          },
-          "required": [
-            "hit",
-            "key_includes_tokenizer_revision"
-          ]
-        },
-        {
-          "type": "null"
-        }
+    "ProxyBasis": {
+      "type": "string",
+      "enum": [
+        "SCRIPT_AND_ARCHITECTURE_MATCH",
+        "ARCHITECTURE_ONLY",
+        "UNVALIDATED"
       ]
     },
-    "__schema28": {
+    "CacheOutcome": {
+      "type": "object",
+      "properties": {
+        "hit": {
+          "type": "boolean"
+        },
+        "key_includes_tokenizer_revision": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "hit",
+        "key_includes_tokenizer_revision"
+      ]
+    },
+    "Confidence": {
       "type": "string",
       "enum": [
         "HIGH",
@@ -496,301 +573,145 @@
         "NONE"
       ]
     },
-    "__schema29": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema30": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "object",
-          "properties": {
-            "input": {
-              "default": null,
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/__schema16"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "output": {
-              "default": null,
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/__schema16"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "reasoning": {
-              "default": null,
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/__schema16"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "cached": {
-              "default": null,
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/__schema16"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema31": {
+    "Currency": {
       "type": "string",
       "minLength": 3,
       "maxLength": 3
     },
-    "__schema32": {
-      "default": null,
-      "anyOf": [
-        {
-          "$ref": "#/$defs/__schema31"
+    "SelfHostedDetail": {
+      "type": "object",
+      "properties": {
+        "vram_feasible": {
+          "type": "boolean"
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema33": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema34": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "object",
-          "properties": {
-            "vram_feasible": {
-              "type": "boolean"
-            },
-            "required_vram_gb": {
-              "default": null,
-              "anyOf": [
-                {
-                  "type": "number",
-                  "exclusiveMinimum": 0
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "available_vram_gb": {
-              "default": null,
-              "anyOf": [
-                {
-                  "type": "number",
-                  "exclusiveMinimum": 0
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "request_seconds": {
-              "default": null,
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/__schema16"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "utilization_factor": {
+        "required_vram_gb": {
+          "default": null,
+          "anyOf": [
+            {
               "type": "number",
-              "exclusiveMinimum": 0,
-              "maximum": 1
+              "exclusiveMinimum": 0
             },
-            "idle_cost_per_day": {
-              "default": null,
-              "anyOf": [
-                {
-                  "type": "number",
-                  "minimum": 0
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "ops_labour_monthly": {
-              "default": null,
-              "anyOf": [
-                {
-                  "type": "number",
-                  "minimum": 0
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "rate_basis": {
-              "type": "string",
-              "enum": [
-                "ON_DEMAND",
-                "SPOT"
-              ]
+            {
+              "type": "null"
             }
-          },
-          "required": [
-            "vram_feasible",
-            "utilization_factor",
-            "rate_basis"
           ]
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema35": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "object",
-          "properties": {
-            "cheapest": {
-              "default": null,
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/__schema36"
-                },
-                {
-                  "type": "null"
-                }
-              ]
+        "available_vram_gb": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
             },
-            "best_capability": {
-              "default": null,
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/__schema36"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "balanced": {
-              "default": null,
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/__schema36"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "split_routing": {
-              "default": null,
-              "anyOf": [
-                {
-                  "type": "object",
-                  "properties": {
-                    "assignments": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "task_id": {
-                            "type": "string",
-                            "minLength": 1
-                          },
-                          "model_id": {
-                            "type": "string",
-                            "minLength": 1
-                          },
-                          "rationale": {
-                            "$ref": "#/$defs/__schema37"
-                          }
-                        },
-                        "required": [
-                          "task_id",
-                          "model_id",
-                          "rationale"
-                        ]
-                      }
-                    },
-                    "total_cost_p50": {
-                      "default": null,
-                      "anyOf": [
-                        {
-                          "type": "number",
-                          "minimum": 0
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "saving_vs_single_model_pct": {
-                      "default": null,
-                      "type": [
-                        "number",
-                        "null"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "assignments"
-                  ]
-                },
-                {
-                  "type": "null"
-                }
-              ]
+            {
+              "type": "null"
             }
-          }
+          ]
         },
-        {
-          "type": "null"
+        "request_seconds": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Range"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "utilization_factor": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "idle_cost_per_day": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ops_labour_monthly": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rate_basis": {
+          "type": "string",
+          "enum": [
+            "ON_DEMAND",
+            "SPOT"
+          ]
         }
+      },
+      "required": [
+        "vram_feasible",
+        "utilization_factor",
+        "rate_basis"
       ]
     },
-    "__schema36": {
+    "Recommendations": {
+      "type": "object",
+      "properties": {
+        "cheapest": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Recommendation"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "best_capability": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Recommendation"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "balanced": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Recommendation"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "split_routing": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SplitRouting"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "Recommendation": {
       "type": "object",
       "properties": {
         "model_id": {
@@ -801,7 +722,7 @@
           "default": null,
           "anyOf": [
             {
-              "$ref": "#/$defs/__schema9"
+              "$ref": "#/$defs/DeploymentMode"
             },
             {
               "type": "null"
@@ -812,7 +733,7 @@
           "default": null,
           "anyOf": [
             {
-              "$ref": "#/$defs/__schema16"
+              "$ref": "#/$defs/Range"
             },
             {
               "type": "null"
@@ -820,7 +741,7 @@
           ]
         },
         "rationale": {
-          "$ref": "#/$defs/__schema37"
+          "$ref": "#/$defs/Rationale"
         }
       },
       "required": [
@@ -828,7 +749,7 @@
         "rationale"
       ]
     },
-    "__schema37": {
+    "Rationale": {
       "type": "object",
       "properties": {
         "triggering_metric": {
@@ -856,82 +777,148 @@
         "threshold"
       ]
     },
-    "__schema38": {
-      "default": [],
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "model_id": {
-            "type": "string",
-            "minLength": 1
-          },
-          "reason": {
-            "type": "string",
-            "enum": [
-              "MISSING_MODALITY",
-              "NO_TOOL_SUPPORT",
-              "CONTEXT_TOO_SMALL",
-              "DATA_RESIDENCY_BLOCKED",
-              "RATE_MISSING",
-              "RATE_STALE",
-              "VRAM_INFEASIBLE",
-              "TOKENIZER_UNAVAILABLE",
-              "ASSET_EXCEEDS_CONSTRAINTS"
-            ]
-          },
-          "detail": {
-            "default": null,
-            "anyOf": [
-              {
+    "SplitRouting": {
+      "type": "object",
+      "properties": {
+        "assignments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "task_id": {
                 "type": "string",
                 "minLength": 1
               },
-              {
-                "type": "null"
+              "model_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "rationale": {
+                "$ref": "#/$defs/Rationale"
               }
+            },
+            "required": [
+              "task_id",
+              "model_id",
+              "rationale"
             ]
           }
         },
-        "required": [
-          "model_id",
-          "reason"
-        ]
-      }
+        "total_cost_p50": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "saving_vs_single_model_pct": {
+          "default": null,
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "assignments"
+      ]
     },
-    "__schema39": {
-      "default": [],
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "lever": {
-            "$ref": "#/$defs/__schema40"
-          },
-          "target_task_ids": {
-            "$ref": "#/$defs/__schema41"
-          },
-          "projected_saving_pct": {
-            "$ref": "#/$defs/__schema42"
-          },
-          "projected_saving_absolute": {
-            "$ref": "#/$defs/__schema43"
-          },
-          "tradeoff": {
-            "$ref": "#/$defs/__schema44"
-          },
-          "rationale": {
-            "$ref": "#/$defs/__schema37"
+    "ExcludedModel": {
+      "type": "object",
+      "properties": {
+        "model_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "$ref": "#/$defs/ExclusionReason"
+        },
+        "detail": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "model_id",
+        "reason"
+      ]
+    },
+    "ExclusionReason": {
+      "type": "string",
+      "enum": [
+        "MISSING_MODALITY",
+        "NO_TOOL_SUPPORT",
+        "CONTEXT_TOO_SMALL",
+        "DATA_RESIDENCY_BLOCKED",
+        "RATE_MISSING",
+        "RATE_STALE",
+        "VRAM_INFEASIBLE",
+        "TOKENIZER_UNAVAILABLE",
+        "ASSET_EXCEEDS_CONSTRAINTS"
+      ]
+    },
+    "Optimization": {
+      "type": "object",
+      "properties": {
+        "lever": {
+          "$ref": "#/$defs/OptimizationLever"
+        },
+        "target_task_ids": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
           }
         },
-        "required": [
-          "lever",
-          "projected_saving_pct",
-          "rationale"
-        ]
-      }
+        "projected_saving_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "projected_saving_absolute": {
+          "default": null,
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "tradeoff": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rationale": {
+          "$ref": "#/$defs/Rationale"
+        }
+      },
+      "required": [
+        "lever",
+        "projected_saving_pct",
+        "rationale"
+      ]
     },
-    "__schema40": {
+    "OptimizationLever": {
       "type": "string",
       "enum": [
         "ENABLE_PROMPT_CACHING",
@@ -948,188 +935,144 @@
         "SWITCH_TO_API"
       ]
     },
-    "__schema41": {
-      "default": [],
-      "type": "array",
-      "items": {
-        "type": "string",
-        "minLength": 1
-      }
-    },
-    "__schema42": {
-      "type": "number",
-      "minimum": 0,
-      "maximum": 100
-    },
-    "__schema43": {
-      "default": null,
-      "type": [
-        "number",
-        "null"
-      ]
-    },
-    "__schema44": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema45": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "object",
-          "properties": {
-            "requests_per_day_crossover": {
-              "default": null,
-              "anyOf": [
-                {
-                  "type": "number",
-                  "minimum": 0
-                },
-                {
-                  "type": "null"
-                }
-              ]
+    "Breakeven": {
+      "type": "object",
+      "properties": {
+        "requests_per_day_crossover": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
             },
-            "assumptions_ref": {
-              "default": [],
-              "type": "array",
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            },
-            "series": {
-              "default": [],
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "requests_per_day": {
-                    "type": "number",
-                    "minimum": 0
-                  },
-                  "api_cost": {
-                    "type": "number",
-                    "minimum": 0
-                  },
-                  "self_hosted_cost": {
-                    "type": "number",
-                    "minimum": 0
-                  }
-                },
-                "required": [
-                  "requests_per_day",
-                  "api_cost",
-                  "self_hosted_cost"
-                ]
-              }
+            {
+              "type": "null"
             }
-          }
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema46": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "$ref": "#/$defs/__schema47"
-          },
-          "task_id": {
-            "$ref": "#/$defs/__schema48"
-          },
-          "field": {
-            "$ref": "#/$defs/__schema49"
-          },
-          "value": {
-            "$ref": "#/$defs/__schema50"
-          },
-          "basis": {
-            "$ref": "#/$defs/__schema51"
-          },
-          "seed_provenance": {
-            "$ref": "#/$defs/__schema52"
-          },
-          "impact_if_wrong": {
-            "$ref": "#/$defs/__schema53"
-          },
-          "user_editable": {
-            "$ref": "#/$defs/__schema54"
-          },
-          "sensitivity_rank": {
-            "$ref": "#/$defs/__schema55"
-          }
-        },
-        "required": [
-          "field",
-          "value",
-          "basis",
-          "impact_if_wrong"
-        ]
-      }
-    },
-    "__schema47": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema48": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema49": {
-      "type": "string",
-      "minLength": 1
-    },
-    "__schema50": {},
-    "__schema51": {
-      "type": "string",
-      "minLength": 1
-    },
-    "__schema52": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "enum": [
-            "SEED_UNCALIBRATED",
-            "CALIBRATED_FROM_OBSERVED",
-            "USER_SUPPLIED_BASELINE"
           ]
         },
-        {
-          "type": "null"
+        "assumptions_ref": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "series": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BreakevenPoint"
+          }
         }
+      }
+    },
+    "BreakevenPoint": {
+      "type": "object",
+      "properties": {
+        "requests_per_day": {
+          "type": "number",
+          "minimum": 0
+        },
+        "api_cost": {
+          "type": "number",
+          "minimum": 0
+        },
+        "self_hosted_cost": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "requests_per_day",
+        "api_cost",
+        "self_hosted_cost"
       ]
     },
-    "__schema53": {
+    "Assumption": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "task_id": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "field": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {},
+        "basis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seed_provenance": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SeedProvenance"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "impact_if_wrong": {
+          "$ref": "#/$defs/ImpactIfWrong"
+        },
+        "user_editable": {
+          "default": true,
+          "type": "boolean"
+        },
+        "sensitivity_rank": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "field",
+        "value",
+        "basis",
+        "impact_if_wrong"
+      ]
+    },
+    "SeedProvenance": {
+      "type": "string",
+      "enum": [
+        "SEED_UNCALIBRATED",
+        "CALIBRATED_FROM_OBSERVED",
+        "USER_SUPPLIED_BASELINE"
+      ]
+    },
+    "ImpactIfWrong": {
       "type": "string",
       "enum": [
         "LOW",
@@ -1138,244 +1081,184 @@
         "ORDER_OF_MAGNITUDE"
       ]
     },
-    "__schema54": {
-      "default": true,
-      "type": "boolean"
-    },
-    "__schema55": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 9007199254740991
+    "Evidence": {
+      "type": "object",
+      "properties": {
+        "ref": {
+          "type": "string",
+          "minLength": 1
         },
-        {
-          "type": "null"
+        "kind": {
+          "type": "string",
+          "enum": [
+            "PRICING_RECORD",
+            "TOKENIZER_RUN",
+            "COUNT_API_RESPONSE",
+            "CALIBRATION_ROW",
+            "BENCHMARK",
+            "VENDOR_DOC",
+            "MODEL_CARD"
+          ]
+        },
+        "source_url": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uri"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "verified_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sample_size": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
+      },
+      "required": [
+        "ref",
+        "kind",
+        "source_url",
+        "verified_at"
       ]
     },
-    "__schema56": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "ref": {
-            "$ref": "#/$defs/__schema57"
-          },
-          "kind": {
-            "$ref": "#/$defs/__schema58"
-          },
-          "source_url": {
-            "$ref": "#/$defs/__schema59"
-          },
-          "verified_at": {
-            "$ref": "#/$defs/__schema60"
-          },
-          "sample_size": {
-            "$ref": "#/$defs/__schema61"
-          }
+    "MissingDatum": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "type": "string",
+          "minLength": 1
         },
-        "required": [
-          "ref",
-          "kind",
-          "source_url",
-          "verified_at"
-        ]
-      }
+        "task_id": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "model_id": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "question": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "why_it_matters": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "blocks_estimate": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "field",
+        "blocks_estimate"
+      ]
     },
-    "__schema57": {
-      "type": "string",
-      "minLength": 1
+    "EstimateWarning": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/WarningCode"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "INFO",
+            "WARN",
+            "BLOCKING"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "severity"
+      ]
     },
-    "__schema58": {
+    "WarningCode": {
       "type": "string",
       "enum": [
-        "PRICING_RECORD",
-        "TOKENIZER_RUN",
-        "COUNT_API_RESPONSE",
-        "CALIBRATION_ROW",
-        "BENCHMARK",
-        "VENDOR_DOC",
-        "MODEL_CARD"
+        "MAX_TOKENS_BELOW_P90",
+        "NEAR_CONTEXT_TIER_THRESHOLD",
+        "PRICE_CHANGED_SINCE_LAST_RUN",
+        "RATE_CONFLICT_UNRESOLVED",
+        "PROXY_TOKENIZER_IN_USE",
+        "LOW_UTILIZATION_SELF_HOSTED",
+        "STALE_FX_RATE",
+        "REASONING_TOKENS_ESTIMATED",
+        "VIDEO_HIGH_VARIANCE",
+        "CALIBRATION_SAMPLE_TOO_SMALL",
+        "ESCALATION_FAILED",
+        "HEURISTIC_ON_UNCALIBRATED_SCRIPT",
+        "PROXY_SCRIPT_MISMATCH",
+        "PROXY_DRIFT_EXCEEDED",
+        "MEDIA_PAYLOAD_NOT_REMOTE_COUNTED",
+        "CACHE_KEY_MISSING_TOKENIZER_REVISION",
+        "ASSET_EXCEEDS_MAX_EDGE",
+        "RESIZE_SAVES_NOTHING",
+        "RESIZE_BELOW_LEGIBILITY_FLOOR",
+        "PROVIDER_WILL_NORMALIZE",
+        "REROUTED_FOR_ASSET_CONSTRAINT",
+        "REROUTE_BLOCKED_BY_RESIDENCY"
       ]
-    },
-    "__schema59": {
-      "anyOf": [
-        {
-          "type": "string",
-          "format": "uri"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema60": {
-      "anyOf": [
-        {
-          "type": "string",
-          "format": "date-time",
-          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema61": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "integer",
-          "exclusiveMinimum": 0,
-          "maximum": 9007199254740991
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema62": {
-      "type": "boolean"
-    },
-    "__schema63": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "field": {
-            "$ref": "#/$defs/__schema64"
-          },
-          "task_id": {
-            "$ref": "#/$defs/__schema65"
-          },
-          "model_id": {
-            "$ref": "#/$defs/__schema66"
-          },
-          "question": {
-            "$ref": "#/$defs/__schema67"
-          },
-          "why_it_matters": {
-            "$ref": "#/$defs/__schema68"
-          },
-          "blocks_estimate": {
-            "$ref": "#/$defs/__schema69"
-          }
-        },
-        "required": [
-          "field",
-          "blocks_estimate"
-        ]
-      }
-    },
-    "__schema64": {
-      "type": "string",
-      "minLength": 1
-    },
-    "__schema65": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema66": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema67": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema68": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema69": {
-      "type": "boolean"
-    },
-    "__schema70": {
-      "default": [],
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string",
-            "enum": [
-              "MAX_TOKENS_BELOW_P90",
-              "NEAR_CONTEXT_TIER_THRESHOLD",
-              "PRICE_CHANGED_SINCE_LAST_RUN",
-              "RATE_CONFLICT_UNRESOLVED",
-              "PROXY_TOKENIZER_IN_USE",
-              "LOW_UTILIZATION_SELF_HOSTED",
-              "STALE_FX_RATE",
-              "REASONING_TOKENS_ESTIMATED",
-              "VIDEO_HIGH_VARIANCE",
-              "CALIBRATION_SAMPLE_TOO_SMALL",
-              "ESCALATION_FAILED",
-              "HEURISTIC_ON_UNCALIBRATED_SCRIPT",
-              "PROXY_SCRIPT_MISMATCH",
-              "PROXY_DRIFT_EXCEEDED",
-              "MEDIA_PAYLOAD_NOT_REMOTE_COUNTED",
-              "CACHE_KEY_MISSING_TOKENIZER_REVISION",
-              "ASSET_EXCEEDS_MAX_EDGE",
-              "RESIZE_SAVES_NOTHING",
-              "RESIZE_BELOW_LEGIBILITY_FLOOR",
-              "PROVIDER_WILL_NORMALIZE",
-              "REROUTED_FOR_ASSET_CONSTRAINT",
-              "REROUTE_BLOCKED_BY_RESIDENCY"
-            ]
-          },
-          "message": {
-            "type": "string",
-            "minLength": 1
-          },
-          "severity": {
-            "type": "string",
-            "enum": [
-              "INFO",
-              "WARN",
-              "BLOCKING"
-            ]
-          }
-        },
-        "required": [
-          "code",
-          "message",
-          "severity"
-        ]
-      }
     }
   },
   "title": "EstimateOutput",

@@ -1,146 +1,286 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "type": "object",
-  "properties": {
-    "model_id": {
-      "$ref": "#/$defs/__schema0"
-    },
-    "display_name": {
-      "$ref": "#/$defs/__schema1"
-    },
-    "provider": {
-      "$ref": "#/$defs/__schema2"
-    },
-    "provider_origin": {
-      "$ref": "#/$defs/__schema3"
-    },
-    "tier": {
-      "$ref": "#/$defs/__schema4"
-    },
-    "pricing_model": {
-      "$ref": "#/$defs/__schema5"
-    },
-    "modalities_in": {
-      "$ref": "#/$defs/__schema6"
-    },
-    "modalities_out": {
-      "$ref": "#/$defs/__schema8"
-    },
-    "context_window": {
-      "$ref": "#/$defs/__schema9"
-    },
-    "max_output": {
-      "$ref": "#/$defs/__schema18"
-    },
-    "is_reasoning_model": {
-      "$ref": "#/$defs/__schema19"
-    },
-    "supports_tools": {
-      "$ref": "#/$defs/__schema20"
-    },
-    "supports_caching": {
-      "$ref": "#/$defs/__schema21"
-    },
-    "supports_vision": {
-      "$ref": "#/$defs/__schema22"
-    },
-    "open_weights": {
-      "$ref": "#/$defs/__schema23"
-    },
-    "license": {
-      "$ref": "#/$defs/__schema24"
-    },
-    "served_quantization": {
-      "$ref": "#/$defs/__schema25"
-    },
-    "tokenizer": {
-      "$ref": "#/$defs/__schema26"
-    },
-    "text_rates": {
-      "$ref": "#/$defs/__schema36"
-    },
-    "service_tiers": {
-      "$ref": "#/$defs/__schema51"
-    },
-    "vision": {
-      "$ref": "#/$defs/__schema52"
-    },
-    "image_gen": {
-      "$ref": "#/$defs/__schema53"
-    },
-    "video_gen": {
-      "$ref": "#/$defs/__schema55"
-    },
-    "video_in": {
-      "$ref": "#/$defs/__schema56"
-    },
-    "hardware": {
-      "$ref": "#/$defs/__schema57"
-    },
-    "compliance": {
-      "$ref": "#/$defs/__schema58"
-    },
-    "quality_score": {
-      "$ref": "#/$defs/__schema60"
-    },
-    "quality_score_source_url": {
-      "$ref": "#/$defs/__schema61"
-    },
-    "effective_from": {
-      "$ref": "#/$defs/__schema62"
-    },
-    "effective_to": {
-      "$ref": "#/$defs/__schema63"
-    },
-    "deprecation_date": {
-      "$ref": "#/$defs/__schema64"
-    }
-  },
-  "required": [
-    "model_id",
-    "display_name",
-    "provider",
-    "provider_origin",
-    "tier",
-    "pricing_model",
-    "modalities_in",
-    "modalities_out",
-    "context_window",
-    "max_output",
-    "is_reasoning_model",
-    "supports_tools",
-    "supports_caching",
-    "supports_vision",
-    "open_weights",
-    "license",
-    "tokenizer",
-    "compliance",
-    "effective_from",
-    "effective_to"
-  ],
+  "$ref": "#/$defs/ModelRow",
   "$defs": {
-    "__schema0": {
-      "type": "string",
-      "minLength": 1
-    },
-    "__schema1": {
-      "type": "string",
-      "minLength": 1
-    },
-    "__schema2": {
-      "type": "string",
-      "minLength": 1
-    },
-    "__schema3": {
-      "type": "string",
-      "enum": [
-        "US",
-        "EU",
-        "CN",
-        "OTHER"
+    "ModelRow": {
+      "type": "object",
+      "properties": {
+        "model_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provider_origin": {
+          "type": "string",
+          "enum": [
+            "US",
+            "EU",
+            "CN",
+            "OTHER"
+          ]
+        },
+        "tier": {
+          "$ref": "#/$defs/Tier"
+        },
+        "pricing_model": {
+          "type": "string",
+          "enum": [
+            "usage",
+            "subscription",
+            "hybrid"
+          ]
+        },
+        "modalities_in": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Modality"
+          }
+        },
+        "modalities_out": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Modality"
+          }
+        },
+        "context_window": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        },
+        "max_output": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        },
+        "is_reasoning_model": {
+          "type": "boolean"
+        },
+        "supports_tools": {
+          "type": "boolean"
+        },
+        "supports_caching": {
+          "type": "boolean"
+        },
+        "supports_vision": {
+          "type": "boolean"
+        },
+        "open_weights": {
+          "type": "boolean"
+        },
+        "license": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "served_quantization": {
+          "default": "unknown",
+          "type": "string",
+          "enum": [
+            "bf16",
+            "fp16",
+            "fp8",
+            "int8",
+            "int4",
+            "unknown"
+          ]
+        },
+        "tokenizer": {
+          "$ref": "#/$defs/TokenizerProfile"
+        },
+        "text_rates": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TextRateProfile"
+          }
+        },
+        "service_tiers": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ServiceTierProfile"
+          }
+        },
+        "vision": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VisionProfile"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "image_gen": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ImageGenProfile"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "video_gen": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VideoGenProfile"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "video_in": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VideoInputProfile"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "hardware": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/HardwareProfile"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "compliance": {
+          "$ref": "#/$defs/ComplianceProfile"
+        },
+        "quality_score": {
+          "default": null,
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "quality_score_source_url": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uri"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "effective_from": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+        },
+        "effective_to": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "deprecation_date": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "model_id",
+        "display_name",
+        "provider",
+        "provider_origin",
+        "tier",
+        "pricing_model",
+        "modalities_in",
+        "modalities_out",
+        "context_window",
+        "max_output",
+        "is_reasoning_model",
+        "supports_tools",
+        "supports_caching",
+        "supports_vision",
+        "open_weights",
+        "license",
+        "tokenizer",
+        "compliance",
+        "effective_from",
+        "effective_to"
       ]
     },
-    "__schema4": {
+    "Tier": {
       "type": "string",
       "enum": [
         "FRONTIER",
@@ -148,22 +288,7 @@
         "LIGHTWEIGHT"
       ]
     },
-    "__schema5": {
-      "type": "string",
-      "enum": [
-        "usage",
-        "subscription",
-        "hybrid"
-      ]
-    },
-    "__schema6": {
-      "minItems": 1,
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/__schema7"
-      }
-    },
-    "__schema7": {
+    "Modality": {
       "type": "string",
       "enum": [
         "text",
@@ -174,60 +299,59 @@
         "embedding"
       ]
     },
-    "__schema8": {
-      "minItems": 1,
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/__schema7"
-      }
-    },
-    "__schema9": {
+    "Provenance": {
       "type": "object",
       "properties": {
-        "value": {
+        "method": {
+          "$ref": "#/$defs/Method"
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence"
+        },
+        "source_class": {
+          "$ref": "#/$defs/SourceClass"
+        },
+        "source_url": {
           "anyOf": [
             {
-              "type": "integer",
-              "exclusiveMinimum": 0,
-              "maximum": 9007199254740991
+              "type": "string",
+              "format": "uri"
             },
             {
               "type": "null"
             }
           ]
         },
-        "provenance": {
-          "$ref": "#/$defs/__schema10"
-        }
-      },
-      "required": [
-        "value",
-        "provenance"
-      ]
-    },
-    "__schema10": {
-      "type": "object",
-      "properties": {
-        "method": {
-          "$ref": "#/$defs/__schema11"
-        },
-        "confidence": {
-          "$ref": "#/$defs/__schema12"
-        },
-        "source_class": {
-          "$ref": "#/$defs/__schema13"
-        },
-        "source_url": {
-          "$ref": "#/$defs/__schema14"
-        },
         "verified_at": {
-          "$ref": "#/$defs/__schema15"
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "verified_by": {
-          "$ref": "#/$defs/__schema16"
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "notes": {
-          "$ref": "#/$defs/__schema17"
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "required": [
@@ -238,7 +362,7 @@
         "verified_at"
       ]
     },
-    "__schema11": {
+    "Method": {
       "type": "string",
       "enum": [
         "EXACT_TOKENIZER",
@@ -254,7 +378,7 @@
         "UNAVAILABLE"
       ]
     },
-    "__schema12": {
+    "Confidence": {
       "type": "string",
       "enum": [
         "HIGH",
@@ -263,7 +387,7 @@
         "NONE"
       ]
     },
-    "__schema13": {
+    "SourceClass": {
       "type": "string",
       "enum": [
         "VENDOR_PAGE",
@@ -274,134 +398,119 @@
         "USER_ENTERED"
       ]
     },
-    "__schema14": {
-      "anyOf": [
-        {
-          "type": "string",
-          "format": "uri"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema15": {
-      "anyOf": [
-        {
-          "type": "string",
-          "format": "date-time",
-          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema16": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema17": {
-      "default": null,
-      "type": [
-        "string",
-        "null"
-      ]
-    },
-    "__schema18": {
+    "TokenizerProfile": {
       "type": "object",
       "properties": {
-        "value": {
+        "availability": {
+          "$ref": "#/$defs/TokenizerAvailability"
+        },
+        "identifier": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "revision_hash": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "proxy_for": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "proxy_basis": {
+          "default": null,
           "anyOf": [
             {
-              "type": "integer",
-              "exclusiveMinimum": 0,
-              "maximum": 9007199254740991
+              "$ref": "#/$defs/ProxyBasis"
             },
             {
               "type": "null"
             }
           ]
         },
-        "provenance": {
-          "$ref": "#/$defs/__schema10"
-        }
-      },
-      "required": [
-        "value",
-        "provenance"
-      ]
-    },
-    "__schema19": {
-      "type": "boolean"
-    },
-    "__schema20": {
-      "type": "boolean"
-    },
-    "__schema21": {
-      "type": "boolean"
-    },
-    "__schema22": {
-      "type": "boolean"
-    },
-    "__schema23": {
-      "type": "boolean"
-    },
-    "__schema24": {
-      "type": [
-        "string",
-        "null"
-      ]
-    },
-    "__schema25": {
-      "default": "unknown",
-      "type": "string",
-      "enum": [
-        "bf16",
-        "fp16",
-        "fp8",
-        "int8",
-        "int4",
-        "unknown"
-      ]
-    },
-    "__schema26": {
-      "type": "object",
-      "properties": {
-        "availability": {
-          "$ref": "#/$defs/__schema27"
-        },
-        "identifier": {
-          "$ref": "#/$defs/__schema28"
-        },
-        "revision_hash": {
-          "$ref": "#/$defs/__schema29"
-        },
-        "proxy_for": {
-          "$ref": "#/$defs/__schema30"
-        },
-        "proxy_basis": {
-          "$ref": "#/$defs/__schema31"
-        },
         "measured_delta_pct": {
-          "$ref": "#/$defs/__schema32"
+          "default": null,
+          "type": [
+            "number",
+            "null"
+          ]
         },
         "tokenizer_multiplier": {
-          "$ref": "#/$defs/__schema33"
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
         },
         "framing_tokens_per_message": {
-          "$ref": "#/$defs/__schema34"
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
         },
         "conversation_preamble_tokens": {
-          "$ref": "#/$defs/__schema35"
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
         }
       },
       "required": [
@@ -413,7 +522,7 @@
         "conversation_preamble_tokens"
       ]
     },
-    "__schema27": {
+    "TokenizerAvailability": {
       "type": "string",
       "enum": [
         "LOCAL_EXACT",
@@ -422,52 +531,202 @@
         "NONE"
       ]
     },
-    "__schema28": {
-      "type": [
-        "string",
-        "null"
+    "ProxyBasis": {
+      "type": "string",
+      "enum": [
+        "SCRIPT_AND_ARCHITECTURE_MATCH",
+        "ARCHITECTURE_ONLY",
+        "UNVALIDATED"
       ]
     },
-    "__schema29": {
-      "type": [
-        "string",
-        "null"
-      ]
-    },
-    "__schema30": {
-      "default": null,
-      "type": [
-        "string",
-        "null"
-      ]
-    },
-    "__schema31": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "enum": [
-            "SCRIPT_AND_ARCHITECTURE_MATCH",
-            "ARCHITECTURE_ONLY",
-            "UNVALIDATED"
-          ]
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema32": {
-      "default": null,
-      "type": [
-        "number",
-        "null"
-      ]
-    },
-    "__schema33": {
+    "TextRateProfile": {
       "type": "object",
       "properties": {
-        "value": {
+        "variant": {
+          "default": "standard",
+          "$ref": "#/$defs/ServiceTier"
+        },
+        "currency": {
+          "$ref": "#/$defs/Currency"
+        },
+        "input_rate_by_modality": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "enum": [
+              "text",
+              "image",
+              "audio",
+              "video"
+            ]
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Rate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "required": [
+            "text",
+            "image",
+            "audio",
+            "video"
+          ]
+        },
+        "output_rate": {
+          "$ref": "#/$defs/Rate"
+        },
+        "reasoning_output_rate": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Rate"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "per_request_fee": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Rate"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "context_tiers": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/ContextTier"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cache": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CacheProfile"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tool_use_system_prompt_tokens": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "tool_choice_mode": {
+                "type": "string"
+              },
+              "tokens": {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "provenance": {
+                    "$ref": "#/$defs/Provenance"
+                  }
+                },
+                "required": [
+                  "value",
+                  "provenance"
+                ]
+              }
+            },
+            "required": [
+              "tool_choice_mode",
+              "tokens"
+            ]
+          }
+        },
+        "server_tool_fees": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ServerToolFee"
+          }
+        }
+      },
+      "required": [
+        "currency",
+        "input_rate_by_modality",
+        "output_rate"
+      ]
+    },
+    "ServiceTier": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "batch",
+        "flex",
+        "priority",
+        "fast",
+        "provisioned"
+      ]
+    },
+    "Currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3
+    },
+    "Rate": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number",
+          "minimum": 0
+        },
+        "unit": {
+          "type": "string",
+          "enum": [
+            "per_1m_tokens",
+            "per_1k_tokens",
+            "per_token",
+            "per_image",
+            "per_megapixel",
+            "per_step",
+            "per_second",
+            "per_request",
+            "per_1k_calls",
+            "per_gb_day",
+            "per_1m_tokens_per_hour",
+            "per_gpu_hour"
+          ]
+        },
+        "list_currency": {
+          "default": "USD",
+          "$ref": "#/$defs/Currency"
+        },
+        "fx_rate_used": {
+          "default": null,
           "anyOf": [
             {
               "type": "number",
@@ -478,309 +737,629 @@
             }
           ]
         },
-        "provenance": {
-          "$ref": "#/$defs/__schema10"
-        }
-      },
-      "required": [
-        "value",
-        "provenance"
-      ]
-    },
-    "__schema34": {
-      "type": "object",
-      "properties": {
-        "value": {
+        "fx_rate_date": {
+          "default": null,
           "anyOf": [
             {
-              "type": "integer",
-              "minimum": 0,
-              "maximum": 9007199254740991
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "provenance": {
-          "$ref": "#/$defs/__schema10"
-        }
-      },
-      "required": [
-        "value",
-        "provenance"
-      ]
-    },
-    "__schema35": {
-      "type": "object",
-      "properties": {
-        "value": {
-          "anyOf": [
-            {
-              "type": "integer",
-              "minimum": 0,
-              "maximum": 9007199254740991
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "provenance": {
-          "$ref": "#/$defs/__schema10"
-        }
-      },
-      "required": [
-        "value",
-        "provenance"
-      ]
-    },
-    "__schema36": {
-      "default": [],
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "variant": {
-            "default": "standard",
-            "$ref": "#/$defs/__schema37"
-          },
-          "currency": {
-            "$ref": "#/$defs/__schema38"
-          },
-          "input_rate_by_modality": {
-            "type": "object",
-            "propertyNames": {
               "type": "string",
-              "enum": [
-                "text",
-                "image",
-                "audio",
-                "video"
-              ]
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
             },
-            "additionalProperties": {
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "fx_source_url": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uri"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "effective_from": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+        },
+        "effective_to": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "time_of_day_variant": {
+          "default": "all_hours",
+          "type": "string",
+          "enum": [
+            "all_hours",
+            "peak",
+            "offpeak"
+          ]
+        },
+        "max_age_days": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "conflict": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RateConflict"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        }
+      },
+      "required": [
+        "amount",
+        "unit",
+        "effective_from",
+        "effective_to",
+        "provenance"
+      ]
+    },
+    "RateConflict": {
+      "type": "object",
+      "properties": {
+        "competing_record_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "competing_amount": {
+          "type": "number",
+          "minimum": 0
+        },
+        "competing_source_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "delta_pct": {
+          "type": "number"
+        },
+        "resolved": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "competing_record_id",
+        "competing_amount",
+        "competing_source_url",
+        "delta_pct"
+      ]
+    },
+    "ContextTier": {
+      "type": "object",
+      "properties": {
+        "upper_bound_tokens": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "input_rate": {
+          "$ref": "#/$defs/Rate"
+        },
+        "output_rate": {
+          "$ref": "#/$defs/Rate"
+        },
+        "cache_read_rate": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Rate"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "applies_to_whole_request": {
+          "default": true,
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "upper_bound_tokens",
+        "input_rate",
+        "output_rate"
+      ]
+    },
+    "CacheProfile": {
+      "type": "object",
+      "properties": {
+        "write_rate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Rate"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "read_rate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Rate"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "write_multipliers_by_ttl": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        },
+        "min_cacheable_tokens": {
+          "type": "object",
+          "properties": {
+            "value": {
               "anyOf": [
                 {
-                  "$ref": "#/$defs/__schema39"
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
                 },
                 {
                   "type": "null"
                 }
               ]
             },
-            "required": [
-              "text",
-              "image",
-              "audio",
-              "video"
-            ]
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
           },
-          "output_rate": {
-            "$ref": "#/$defs/__schema39"
+          "required": [
+            "value",
+            "provenance"
+          ]
+        },
+        "ttl_seconds": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
           },
-          "reasoning_output_rate": {
-            "default": null,
-            "anyOf": [
-              {
-                "$ref": "#/$defs/__schema39"
+          "required": [
+            "value",
+            "provenance"
+          ]
+        },
+        "is_automatic": {
+          "default": null,
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "storage_rate_per_hour": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Rate"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "write_rate",
+        "read_rate",
+        "min_cacheable_tokens",
+        "ttl_seconds"
+      ]
+    },
+    "ServerToolFee": {
+      "type": "object",
+      "properties": {
+        "tool": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rate": {
+          "$ref": "#/$defs/Rate"
+        },
+        "free_allowance_per_month": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "tool",
+        "rate"
+      ]
+    },
+    "ServiceTierProfile": {
+      "type": "object",
+      "properties": {
+        "tier": {
+          "$ref": "#/$defs/ServiceTier"
+        },
+        "multiplier": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        },
+        "available": {
+          "default": true,
+          "type": "boolean"
+        },
+        "excludes": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ServiceTier"
+          }
+        },
+        "unavailable_in_regions": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "tier",
+        "multiplier"
+      ]
+    },
+    "VisionProfile": {
+      "type": "object",
+      "properties": {
+        "geometry": {
+          "$ref": "#/$defs/VisionGeometry"
+        },
+        "low_detail": {
+          "$ref": "#/$defs/LowDetailBehaviour"
+        },
+        "constraints": {
+          "$ref": "#/$defs/VisionConstraints"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        }
+      },
+      "required": [
+        "geometry",
+        "low_detail",
+        "constraints",
+        "provenance"
+      ]
+    },
+    "VisionGeometry": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "geometry": {
+              "type": "string",
+              "const": "PATCH_GRID"
+            },
+            "patch_px": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "provenance": {
+                  "$ref": "#/$defs/Provenance"
+                }
               },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "per_request_fee": {
-            "default": null,
-            "anyOf": [
-              {
-                "$ref": "#/$defs/__schema39"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "context_tiers": {
-            "default": null,
-            "anyOf": [
-              {
-                "type": "array",
-                "items": {
+              "required": [
+                "value",
+                "provenance"
+              ]
+            },
+            "bound": {
+              "oneOf": [
+                {
                   "type": "object",
                   "properties": {
-                    "upper_bound_tokens": {
-                      "anyOf": [
-                        {
-                          "type": "integer",
-                          "exclusiveMinimum": 0,
-                          "maximum": 9007199254740991
+                    "bound_type": {
+                      "type": "string",
+                      "const": "TOKEN_CAP"
+                    },
+                    "token_cap": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         },
-                        {
-                          "type": "null"
+                        "provenance": {
+                          "$ref": "#/$defs/Provenance"
                         }
+                      },
+                      "required": [
+                        "value",
+                        "provenance"
                       ]
-                    },
-                    "input_rate": {
-                      "$ref": "#/$defs/__schema39"
-                    },
-                    "output_rate": {
-                      "$ref": "#/$defs/__schema39"
-                    },
-                    "cache_read_rate": {
-                      "default": null,
-                      "anyOf": [
-                        {
-                          "$ref": "#/$defs/__schema39"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "applies_to_whole_request": {
-                      "default": true,
-                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "upper_bound_tokens",
-                    "input_rate",
-                    "output_rate"
+                    "bound_type",
+                    "token_cap"
                   ]
-                }
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "cache": {
-            "default": null,
-            "anyOf": [
-              {
-                "type": "object",
-                "properties": {
-                  "write_rate": {
-                    "anyOf": [
-                      {
-                        "$ref": "#/$defs/__schema39"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "read_rate": {
-                    "anyOf": [
-                      {
-                        "$ref": "#/$defs/__schema39"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "write_multipliers_by_ttl": {
-                    "default": {},
-                    "type": "object",
-                    "propertyNames": {
-                      "type": "string"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "bound_type": {
+                      "type": "string",
+                      "const": "AREA_CLAMP"
                     },
-                    "additionalProperties": {
-                      "type": "number",
-                      "exclusiveMinimum": 0
+                    "min_area_px": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "provenance": {
+                          "$ref": "#/$defs/Provenance"
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "provenance"
+                      ]
+                    },
+                    "max_area_px": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "provenance": {
+                          "$ref": "#/$defs/Provenance"
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "provenance"
+                      ]
                     }
                   },
-                  "min_cacheable_tokens": {
-                    "type": "object",
-                    "properties": {
-                      "value": {
-                        "anyOf": [
-                          {
-                            "type": "integer",
-                            "exclusiveMinimum": 0,
-                            "maximum": 9007199254740991
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "provenance": {
-                        "$ref": "#/$defs/__schema10"
-                      }
-                    },
-                    "required": [
-                      "value",
-                      "provenance"
-                    ]
-                  },
-                  "ttl_seconds": {
-                    "type": "object",
-                    "properties": {
-                      "value": {
-                        "anyOf": [
-                          {
-                            "type": "integer",
-                            "exclusiveMinimum": 0,
-                            "maximum": 9007199254740991
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "provenance": {
-                        "$ref": "#/$defs/__schema10"
-                      }
-                    },
-                    "required": [
-                      "value",
-                      "provenance"
-                    ]
-                  },
-                  "is_automatic": {
-                    "default": null,
-                    "type": [
-                      "boolean",
-                      "null"
-                    ]
-                  },
-                  "storage_rate_per_hour": {
-                    "default": null,
-                    "anyOf": [
-                      {
-                        "$ref": "#/$defs/__schema39"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  }
-                },
-                "required": [
-                  "write_rate",
-                  "read_rate",
-                  "min_cacheable_tokens",
-                  "ttl_seconds"
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ]
+                  "required": [
+                    "bound_type",
+                    "min_area_px",
+                    "max_area_px"
+                  ]
+                }
+              ]
+            }
           },
-          "tool_use_system_prompt_tokens": {
-            "default": [],
-            "type": "array",
-            "items": {
+          "required": [
+            "geometry",
+            "patch_px",
+            "bound"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "geometry": {
+              "type": "string",
+              "const": "TILE_GRID"
+            },
+            "tile_w": {
               "type": "object",
               "properties": {
-                "tool_choice_mode": {
-                  "type": "string"
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 },
-                "tokens": {
+                "provenance": {
+                  "$ref": "#/$defs/Provenance"
+                }
+              },
+              "required": [
+                "value",
+                "provenance"
+              ]
+            },
+            "tile_h": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "provenance": {
+                  "$ref": "#/$defs/Provenance"
+                }
+              },
+              "required": [
+                "value",
+                "provenance"
+              ]
+            },
+            "base_tokens": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "provenance": {
+                  "$ref": "#/$defs/Provenance"
+                }
+              },
+              "required": [
+                "value",
+                "provenance"
+              ]
+            },
+            "per_tile_tokens": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "provenance": {
+                  "$ref": "#/$defs/Provenance"
+                }
+              },
+              "required": [
+                "value",
+                "provenance"
+              ]
+            },
+            "small_image_flat_tokens": {
+              "default": null,
+              "anyOf": [
+                {
                   "type": "object",
                   "properties": {
                     "value": {
@@ -796,36 +1375,217 @@
                       ]
                     },
                     "provenance": {
-                      "$ref": "#/$defs/__schema10"
+                      "$ref": "#/$defs/Provenance"
                     }
                   },
                   "required": [
                     "value",
                     "provenance"
                   ]
+                },
+                {
+                  "type": "null"
                 }
-              },
-              "required": [
-                "tool_choice_mode",
-                "tokens"
+              ]
+            },
+            "small_image_max_edge_px": {
+              "default": null,
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "exclusiveMinimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "provenance": {
+                      "$ref": "#/$defs/Provenance"
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "provenance"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
               ]
             }
           },
-          "server_tool_fees": {
-            "default": [],
-            "type": "array",
-            "items": {
+          "required": [
+            "geometry",
+            "tile_w",
+            "tile_h",
+            "base_tokens",
+            "per_tile_tokens"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "geometry": {
+              "type": "string",
+              "const": "AREA_BUDGET"
+            },
+            "area_divisor": {
               "type": "object",
               "properties": {
-                "tool": {
-                  "type": "string",
-                  "minLength": 1
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 },
-                "rate": {
-                  "$ref": "#/$defs/__schema39"
+                "provenance": {
+                  "$ref": "#/$defs/Provenance"
+                }
+              },
+              "required": [
+                "value",
+                "provenance"
+              ]
+            },
+            "area_budget_tokens": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 },
-                "free_allowance_per_month": {
-                  "default": null,
+                "provenance": {
+                  "$ref": "#/$defs/Provenance"
+                }
+              },
+              "required": [
+                "value",
+                "provenance"
+              ]
+            }
+          },
+          "required": [
+            "geometry",
+            "area_divisor",
+            "area_budget_tokens"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "geometry": {
+              "type": "string",
+              "const": "FLAT"
+            },
+            "flat_tokens_per_image": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "provenance": {
+                  "$ref": "#/$defs/Provenance"
+                }
+              },
+              "required": [
+                "value",
+                "provenance"
+              ]
+            }
+          },
+          "required": [
+            "geometry",
+            "flat_tokens_per_image"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "geometry": {
+              "type": "string",
+              "const": "BLOCK_GRID_SEP"
+            },
+            "block_px": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "provenance": {
+                  "$ref": "#/$defs/Provenance"
+                }
+              },
+              "required": [
+                "value",
+                "provenance"
+              ]
+            },
+            "per_block_tokens": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "provenance": {
+                  "$ref": "#/$defs/Provenance"
+                }
+              },
+              "required": [
+                "value",
+                "provenance"
+              ]
+            },
+            "sep_tokens_per_row": {
+              "type": "object",
+              "properties": {
+                "value": {
                   "anyOf": [
                     {
                       "type": "integer",
@@ -836,1302 +1596,9 @@
                       "type": "null"
                     }
                   ]
-                }
-              },
-              "required": [
-                "tool",
-                "rate"
-              ]
-            }
-          }
-        },
-        "required": [
-          "currency",
-          "input_rate_by_modality",
-          "output_rate"
-        ]
-      }
-    },
-    "__schema37": {
-      "type": "string",
-      "enum": [
-        "standard",
-        "batch",
-        "flex",
-        "priority",
-        "fast",
-        "provisioned"
-      ]
-    },
-    "__schema38": {
-      "type": "string",
-      "minLength": 3,
-      "maxLength": 3
-    },
-    "__schema39": {
-      "type": "object",
-      "properties": {
-        "amount": {
-          "$ref": "#/$defs/__schema40"
-        },
-        "unit": {
-          "$ref": "#/$defs/__schema41"
-        },
-        "list_currency": {
-          "$ref": "#/$defs/__schema42"
-        },
-        "fx_rate_used": {
-          "$ref": "#/$defs/__schema43"
-        },
-        "fx_rate_date": {
-          "$ref": "#/$defs/__schema44"
-        },
-        "fx_source_url": {
-          "$ref": "#/$defs/__schema45"
-        },
-        "effective_from": {
-          "$ref": "#/$defs/__schema46"
-        },
-        "effective_to": {
-          "$ref": "#/$defs/__schema47"
-        },
-        "time_of_day_variant": {
-          "$ref": "#/$defs/__schema48"
-        },
-        "max_age_days": {
-          "$ref": "#/$defs/__schema49"
-        },
-        "conflict": {
-          "$ref": "#/$defs/__schema50"
-        },
-        "provenance": {
-          "$ref": "#/$defs/__schema10"
-        }
-      },
-      "required": [
-        "amount",
-        "unit",
-        "effective_from",
-        "effective_to",
-        "provenance"
-      ]
-    },
-    "__schema40": {
-      "type": "number",
-      "minimum": 0
-    },
-    "__schema41": {
-      "type": "string",
-      "enum": [
-        "per_1m_tokens",
-        "per_1k_tokens",
-        "per_token",
-        "per_image",
-        "per_megapixel",
-        "per_step",
-        "per_second",
-        "per_request",
-        "per_1k_calls",
-        "per_gb_day",
-        "per_1m_tokens_per_hour",
-        "per_gpu_hour"
-      ]
-    },
-    "__schema42": {
-      "default": "USD",
-      "$ref": "#/$defs/__schema38"
-    },
-    "__schema43": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "number",
-          "exclusiveMinimum": 0
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema44": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "format": "date-time",
-          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema45": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "format": "uri"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema46": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
-    },
-    "__schema47": {
-      "anyOf": [
-        {
-          "type": "string",
-          "format": "date-time",
-          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema48": {
-      "default": "all_hours",
-      "type": "string",
-      "enum": [
-        "all_hours",
-        "peak",
-        "offpeak"
-      ]
-    },
-    "__schema49": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "integer",
-          "exclusiveMinimum": 0,
-          "maximum": 9007199254740991
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema50": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "object",
-          "properties": {
-            "competing_record_id": {
-              "type": "string",
-              "minLength": 1
-            },
-            "competing_amount": {
-              "type": "number",
-              "minimum": 0
-            },
-            "competing_source_url": {
-              "type": "string",
-              "format": "uri"
-            },
-            "delta_pct": {
-              "type": "number"
-            },
-            "resolved": {
-              "default": false,
-              "type": "boolean"
-            }
-          },
-          "required": [
-            "competing_record_id",
-            "competing_amount",
-            "competing_source_url",
-            "delta_pct"
-          ]
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema51": {
-      "default": [],
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "tier": {
-            "$ref": "#/$defs/__schema37"
-          },
-          "multiplier": {
-            "type": "object",
-            "properties": {
-              "value": {
-                "anyOf": [
-                  {
-                    "type": "number",
-                    "exclusiveMinimum": 0
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "provenance": {
-                "$ref": "#/$defs/__schema10"
-              }
-            },
-            "required": [
-              "value",
-              "provenance"
-            ]
-          },
-          "available": {
-            "default": true,
-            "type": "boolean"
-          },
-          "excludes": {
-            "default": [],
-            "type": "array",
-            "items": {
-              "$ref": "#/$defs/__schema37"
-            }
-          },
-          "unavailable_in_regions": {
-            "default": [],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "required": [
-          "tier",
-          "multiplier"
-        ]
-      }
-    },
-    "__schema52": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "object",
-          "properties": {
-            "geometry": {
-              "oneOf": [
-                {
-                  "type": "object",
-                  "properties": {
-                    "geometry": {
-                      "type": "string",
-                      "const": "PATCH_GRID"
-                    },
-                    "patch_px": {
-                      "type": "object",
-                      "properties": {
-                        "value": {
-                          "anyOf": [
-                            {
-                              "type": "integer",
-                              "exclusiveMinimum": 0,
-                              "maximum": 9007199254740991
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "provenance": {
-                          "$ref": "#/$defs/__schema10"
-                        }
-                      },
-                      "required": [
-                        "value",
-                        "provenance"
-                      ]
-                    },
-                    "bound": {
-                      "oneOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "bound_type": {
-                              "type": "string",
-                              "const": "TOKEN_CAP"
-                            },
-                            "token_cap": {
-                              "type": "object",
-                              "properties": {
-                                "value": {
-                                  "anyOf": [
-                                    {
-                                      "type": "integer",
-                                      "minimum": 0,
-                                      "maximum": 9007199254740991
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                },
-                                "provenance": {
-                                  "$ref": "#/$defs/__schema10"
-                                }
-                              },
-                              "required": [
-                                "value",
-                                "provenance"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "bound_type",
-                            "token_cap"
-                          ]
-                        },
-                        {
-                          "type": "object",
-                          "properties": {
-                            "bound_type": {
-                              "type": "string",
-                              "const": "AREA_CLAMP"
-                            },
-                            "min_area_px": {
-                              "type": "object",
-                              "properties": {
-                                "value": {
-                                  "anyOf": [
-                                    {
-                                      "type": "integer",
-                                      "exclusiveMinimum": 0,
-                                      "maximum": 9007199254740991
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                },
-                                "provenance": {
-                                  "$ref": "#/$defs/__schema10"
-                                }
-                              },
-                              "required": [
-                                "value",
-                                "provenance"
-                              ]
-                            },
-                            "max_area_px": {
-                              "type": "object",
-                              "properties": {
-                                "value": {
-                                  "anyOf": [
-                                    {
-                                      "type": "integer",
-                                      "exclusiveMinimum": 0,
-                                      "maximum": 9007199254740991
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                },
-                                "provenance": {
-                                  "$ref": "#/$defs/__schema10"
-                                }
-                              },
-                              "required": [
-                                "value",
-                                "provenance"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "bound_type",
-                            "min_area_px",
-                            "max_area_px"
-                          ]
-                        }
-                      ]
-                    }
-                  },
-                  "required": [
-                    "geometry",
-                    "patch_px",
-                    "bound"
-                  ]
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "geometry": {
-                      "type": "string",
-                      "const": "TILE_GRID"
-                    },
-                    "tile_w": {
-                      "type": "object",
-                      "properties": {
-                        "value": {
-                          "anyOf": [
-                            {
-                              "type": "integer",
-                              "exclusiveMinimum": 0,
-                              "maximum": 9007199254740991
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "provenance": {
-                          "$ref": "#/$defs/__schema10"
-                        }
-                      },
-                      "required": [
-                        "value",
-                        "provenance"
-                      ]
-                    },
-                    "tile_h": {
-                      "type": "object",
-                      "properties": {
-                        "value": {
-                          "anyOf": [
-                            {
-                              "type": "integer",
-                              "exclusiveMinimum": 0,
-                              "maximum": 9007199254740991
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "provenance": {
-                          "$ref": "#/$defs/__schema10"
-                        }
-                      },
-                      "required": [
-                        "value",
-                        "provenance"
-                      ]
-                    },
-                    "base_tokens": {
-                      "type": "object",
-                      "properties": {
-                        "value": {
-                          "anyOf": [
-                            {
-                              "type": "integer",
-                              "minimum": 0,
-                              "maximum": 9007199254740991
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "provenance": {
-                          "$ref": "#/$defs/__schema10"
-                        }
-                      },
-                      "required": [
-                        "value",
-                        "provenance"
-                      ]
-                    },
-                    "per_tile_tokens": {
-                      "type": "object",
-                      "properties": {
-                        "value": {
-                          "anyOf": [
-                            {
-                              "type": "integer",
-                              "exclusiveMinimum": 0,
-                              "maximum": 9007199254740991
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "provenance": {
-                          "$ref": "#/$defs/__schema10"
-                        }
-                      },
-                      "required": [
-                        "value",
-                        "provenance"
-                      ]
-                    },
-                    "small_image_flat_tokens": {
-                      "default": null,
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "value": {
-                              "anyOf": [
-                                {
-                                  "type": "integer",
-                                  "minimum": 0,
-                                  "maximum": 9007199254740991
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "provenance": {
-                              "$ref": "#/$defs/__schema10"
-                            }
-                          },
-                          "required": [
-                            "value",
-                            "provenance"
-                          ]
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "small_image_max_edge_px": {
-                      "default": null,
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "value": {
-                              "anyOf": [
-                                {
-                                  "type": "integer",
-                                  "exclusiveMinimum": 0,
-                                  "maximum": 9007199254740991
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "provenance": {
-                              "$ref": "#/$defs/__schema10"
-                            }
-                          },
-                          "required": [
-                            "value",
-                            "provenance"
-                          ]
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    }
-                  },
-                  "required": [
-                    "geometry",
-                    "tile_w",
-                    "tile_h",
-                    "base_tokens",
-                    "per_tile_tokens"
-                  ]
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "geometry": {
-                      "type": "string",
-                      "const": "AREA_BUDGET"
-                    },
-                    "area_divisor": {
-                      "type": "object",
-                      "properties": {
-                        "value": {
-                          "anyOf": [
-                            {
-                              "type": "number",
-                              "exclusiveMinimum": 0
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "provenance": {
-                          "$ref": "#/$defs/__schema10"
-                        }
-                      },
-                      "required": [
-                        "value",
-                        "provenance"
-                      ]
-                    },
-                    "area_budget_tokens": {
-                      "type": "object",
-                      "properties": {
-                        "value": {
-                          "anyOf": [
-                            {
-                              "type": "integer",
-                              "exclusiveMinimum": 0,
-                              "maximum": 9007199254740991
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "provenance": {
-                          "$ref": "#/$defs/__schema10"
-                        }
-                      },
-                      "required": [
-                        "value",
-                        "provenance"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "geometry",
-                    "area_divisor",
-                    "area_budget_tokens"
-                  ]
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "geometry": {
-                      "type": "string",
-                      "const": "FLAT"
-                    },
-                    "flat_tokens_per_image": {
-                      "type": "object",
-                      "properties": {
-                        "value": {
-                          "anyOf": [
-                            {
-                              "type": "integer",
-                              "exclusiveMinimum": 0,
-                              "maximum": 9007199254740991
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "provenance": {
-                          "$ref": "#/$defs/__schema10"
-                        }
-                      },
-                      "required": [
-                        "value",
-                        "provenance"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "geometry",
-                    "flat_tokens_per_image"
-                  ]
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "geometry": {
-                      "type": "string",
-                      "const": "BLOCK_GRID_SEP"
-                    },
-                    "block_px": {
-                      "type": "object",
-                      "properties": {
-                        "value": {
-                          "anyOf": [
-                            {
-                              "type": "integer",
-                              "exclusiveMinimum": 0,
-                              "maximum": 9007199254740991
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "provenance": {
-                          "$ref": "#/$defs/__schema10"
-                        }
-                      },
-                      "required": [
-                        "value",
-                        "provenance"
-                      ]
-                    },
-                    "per_block_tokens": {
-                      "type": "object",
-                      "properties": {
-                        "value": {
-                          "anyOf": [
-                            {
-                              "type": "integer",
-                              "exclusiveMinimum": 0,
-                              "maximum": 9007199254740991
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "provenance": {
-                          "$ref": "#/$defs/__schema10"
-                        }
-                      },
-                      "required": [
-                        "value",
-                        "provenance"
-                      ]
-                    },
-                    "sep_tokens_per_row": {
-                      "type": "object",
-                      "properties": {
-                        "value": {
-                          "anyOf": [
-                            {
-                              "type": "integer",
-                              "minimum": 0,
-                              "maximum": 9007199254740991
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "provenance": {
-                          "$ref": "#/$defs/__schema10"
-                        }
-                      },
-                      "required": [
-                        "value",
-                        "provenance"
-                      ]
-                    },
-                    "sep_constant": {
-                      "type": "object",
-                      "properties": {
-                        "value": {
-                          "anyOf": [
-                            {
-                              "type": "integer",
-                              "minimum": 0,
-                              "maximum": 9007199254740991
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "provenance": {
-                          "$ref": "#/$defs/__schema10"
-                        }
-                      },
-                      "required": [
-                        "value",
-                        "provenance"
-                      ]
-                    },
-                    "global_view_included": {
-                      "default": true,
-                      "type": "boolean"
-                    },
-                    "max_blocks": {
-                      "type": "integer",
-                      "exclusiveMinimum": 0,
-                      "maximum": 9007199254740991
-                    },
-                    "candidate_resolutions": {
-                      "default": [],
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "w": {
-                            "type": "integer",
-                            "exclusiveMinimum": 0,
-                            "maximum": 9007199254740991
-                          },
-                          "h": {
-                            "type": "integer",
-                            "exclusiveMinimum": 0,
-                            "maximum": 9007199254740991
-                          }
-                        },
-                        "required": [
-                          "w",
-                          "h"
-                        ]
-                      }
-                    },
-                    "tie_break_rule_known": {
-                      "default": false,
-                      "type": "boolean"
-                    }
-                  },
-                  "required": [
-                    "geometry",
-                    "block_px",
-                    "per_block_tokens",
-                    "sep_tokens_per_row",
-                    "sep_constant",
-                    "max_blocks"
-                  ]
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "geometry": {
-                      "type": "string",
-                      "const": "UNAVAILABLE"
-                    },
-                    "reason": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "probe_candidate": {
-                      "default": true,
-                      "type": "boolean"
-                    }
-                  },
-                  "required": [
-                    "geometry",
-                    "reason"
-                  ]
-                }
-              ]
-            },
-            "low_detail": {
-              "oneOf": [
-                {
-                  "type": "object",
-                  "properties": {
-                    "kind": {
-                      "type": "string",
-                      "const": "FLAT"
-                    },
-                    "flat_tokens": {
-                      "type": "object",
-                      "properties": {
-                        "value": {
-                          "anyOf": [
-                            {
-                              "type": "integer",
-                              "minimum": 0,
-                              "maximum": 9007199254740991
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "provenance": {
-                          "$ref": "#/$defs/__schema10"
-                        }
-                      },
-                      "required": [
-                        "value",
-                        "provenance"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "kind",
-                    "flat_tokens"
-                  ]
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "kind": {
-                      "type": "string",
-                      "const": "INHERIT"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "kind": {
-                      "type": "string",
-                      "const": "UNSUPPORTED"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                }
-              ]
-            },
-            "constraints": {
-              "type": "object",
-              "properties": {
-                "max_edge_px": {
-                  "type": "object",
-                  "properties": {
-                    "value": {
-                      "anyOf": [
-                        {
-                          "type": "integer",
-                          "exclusiveMinimum": 0,
-                          "maximum": 9007199254740991
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "provenance": {
-                      "$ref": "#/$defs/__schema10"
-                    }
-                  },
-                  "required": [
-                    "value",
-                    "provenance"
-                  ]
-                },
-                "min_edge_px": {
-                  "type": "object",
-                  "properties": {
-                    "value": {
-                      "anyOf": [
-                        {
-                          "type": "integer",
-                          "exclusiveMinimum": 0,
-                          "maximum": 9007199254740991
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "provenance": {
-                      "$ref": "#/$defs/__schema10"
-                    }
-                  },
-                  "required": [
-                    "value",
-                    "provenance"
-                  ]
-                },
-                "shortest_edge_target_px": {
-                  "type": "object",
-                  "properties": {
-                    "value": {
-                      "anyOf": [
-                        {
-                          "type": "integer",
-                          "exclusiveMinimum": 0,
-                          "maximum": 9007199254740991
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "provenance": {
-                      "$ref": "#/$defs/__schema10"
-                    }
-                  },
-                  "required": [
-                    "value",
-                    "provenance"
-                  ]
-                },
-                "max_bytes": {
-                  "type": "object",
-                  "properties": {
-                    "value": {
-                      "anyOf": [
-                        {
-                          "type": "integer",
-                          "exclusiveMinimum": 0,
-                          "maximum": 9007199254740991
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "provenance": {
-                      "$ref": "#/$defs/__schema10"
-                    }
-                  },
-                  "required": [
-                    "value",
-                    "provenance"
-                  ]
-                },
-                "max_pages": {
-                  "type": "object",
-                  "properties": {
-                    "value": {
-                      "anyOf": [
-                        {
-                          "type": "integer",
-                          "exclusiveMinimum": 0,
-                          "maximum": 9007199254740991
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "provenance": {
-                      "$ref": "#/$defs/__schema10"
-                    }
-                  },
-                  "required": [
-                    "value",
-                    "provenance"
-                  ]
-                },
-                "allowed_mime": {
-                  "default": [],
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "provider_auto_normalizes": {
-                  "default": false,
-                  "type": "boolean"
-                },
-                "min_legible_edge_px": {
-                  "default": [],
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "script": {
-                        "type": "string",
-                        "enum": [
-                          "latin",
-                          "ar_msa",
-                          "ar_dialect",
-                          "ar_vocalized",
-                          "zh_hans",
-                          "zh_hant",
-                          "mixed"
-                        ]
-                      },
-                      "content_density": {
-                        "type": "string",
-                        "enum": [
-                          "sparse",
-                          "normal",
-                          "dense"
-                        ]
-                      },
-                      "px": {
-                        "type": "object",
-                        "properties": {
-                          "value": {
-                            "anyOf": [
-                              {
-                                "type": "integer",
-                                "exclusiveMinimum": 0,
-                                "maximum": 9007199254740991
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          },
-                          "provenance": {
-                            "$ref": "#/$defs/__schema10"
-                          }
-                        },
-                        "required": [
-                          "value",
-                          "provenance"
-                        ]
-                      }
-                    },
-                    "required": [
-                      "script",
-                      "content_density",
-                      "px"
-                    ]
-                  }
-                },
-                "max_context_tokens": {
-                  "type": "object",
-                  "properties": {
-                    "value": {
-                      "anyOf": [
-                        {
-                          "type": "integer",
-                          "exclusiveMinimum": 0,
-                          "maximum": 9007199254740991
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "provenance": {
-                      "$ref": "#/$defs/__schema10"
-                    }
-                  },
-                  "required": [
-                    "value",
-                    "provenance"
-                  ]
-                }
-              },
-              "required": [
-                "max_edge_px",
-                "min_edge_px",
-                "shortest_edge_target_px",
-                "max_bytes",
-                "max_pages",
-                "max_context_tokens"
-              ]
-            },
-            "provenance": {
-              "$ref": "#/$defs/__schema10"
-            }
-          },
-          "required": [
-            "geometry",
-            "low_detail",
-            "constraints",
-            "provenance"
-          ]
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema53": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "object",
-          "properties": {
-            "pricing_dimension": {
-              "type": "string",
-              "enum": [
-                "per_image",
-                "per_megapixel",
-                "per_step",
-                "per_output_token"
-              ]
-            },
-            "supported_classes": {
-              "minItems": 1,
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/__schema54"
-              }
-            },
-            "price_matrix": {
-              "default": [],
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "size": {
-                    "type": "string"
-                  },
-                  "quality": {
-                    "type": "string"
-                  },
-                  "rate": {
-                    "$ref": "#/$defs/__schema39"
-                  }
-                },
-                "required": [
-                  "size",
-                  "quality",
-                  "rate"
-                ]
-              }
-            },
-            "output_tokens_by_resolution": {
-              "default": [],
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "resolution": {
-                    "type": "string"
-                  },
-                  "tokens": {
-                    "type": "object",
-                    "properties": {
-                      "value": {
-                        "anyOf": [
-                          {
-                            "type": "integer",
-                            "exclusiveMinimum": 0,
-                            "maximum": 9007199254740991
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "provenance": {
-                        "$ref": "#/$defs/__schema10"
-                      }
-                    },
-                    "required": [
-                      "value",
-                      "provenance"
-                    ]
-                  }
-                },
-                "required": [
-                  "resolution",
-                  "tokens"
-                ]
-              }
-            },
-            "output_token_rate": {
-              "default": null,
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/__schema39"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "bills_source_as_vision_input": {
-              "type": "boolean"
-            },
-            "inpaint_bills_full_canvas": {
-              "type": "boolean"
-            },
-            "upscale_multiplier": {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "anyOf": [
-                    {
-                      "type": "number",
-                      "exclusiveMinimum": 0
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
                 },
                 "provenance": {
-                  "$ref": "#/$defs/__schema10"
+                  "$ref": "#/$defs/Provenance"
                 }
               },
               "required": [
@@ -2139,12 +1606,175 @@
                 "provenance"
               ]
             },
-            "max_reference_images": {
-              "default": null,
+            "sep_constant": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "provenance": {
+                  "$ref": "#/$defs/Provenance"
+                }
+              },
+              "required": [
+                "value",
+                "provenance"
+              ]
+            },
+            "global_view_included": {
+              "default": true,
+              "type": "boolean"
+            },
+            "max_blocks": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            "candidate_resolutions": {
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "w": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "h": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "w",
+                  "h"
+                ]
+              }
+            },
+            "tie_break_rule_known": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "geometry",
+            "block_px",
+            "per_block_tokens",
+            "sep_tokens_per_row",
+            "sep_constant",
+            "max_blocks"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "geometry": {
+              "type": "string",
+              "const": "UNAVAILABLE"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "probe_candidate": {
+              "default": true,
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "geometry",
+            "reason"
+          ]
+        }
+      ]
+    },
+    "LowDetailBehaviour": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "FLAT"
+            },
+            "flat_tokens": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "provenance": {
+                  "$ref": "#/$defs/Provenance"
+                }
+              },
+              "required": [
+                "value",
+                "provenance"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "flat_tokens"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "INHERIT"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "UNSUPPORTED"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        }
+      ]
+    },
+    "VisionConstraints": {
+      "type": "object",
+      "properties": {
+        "max_edge_px": {
+          "type": "object",
+          "properties": {
+            "value": {
               "anyOf": [
                 {
                   "type": "integer",
-                  "minimum": 0,
+                  "exclusiveMinimum": 0,
                   "maximum": 9007199254740991
                 },
                 {
@@ -2152,76 +1782,278 @@
                 }
               ]
             },
-            "steps_per_second": {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "anyOf": [
-                    {
-                      "type": "number",
-                      "exclusiveMinimum": 0
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                },
-                "provenance": {
-                  "$ref": "#/$defs/__schema10"
-                }
-              },
-              "required": [
-                "value",
-                "provenance"
-              ]
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
             }
           },
           "required": [
-            "pricing_dimension",
-            "supported_classes",
-            "bills_source_as_vision_input",
-            "inpaint_bills_full_canvas",
-            "upscale_multiplier",
-            "steps_per_second"
+            "value",
+            "provenance"
           ]
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema54": {
-      "type": "string",
-      "enum": [
-        "TEXT_TO_IMAGE",
-        "IMAGE_TO_IMAGE",
-        "MASK_INPAINT",
-        "UPSCALE"
-      ]
-    },
-    "__schema55": {
-      "default": null,
-      "anyOf": [
-        {
+        "min_edge_px": {
           "type": "object",
           "properties": {
-            "pricing_dimension": {
-              "type": "string",
-              "enum": [
-                "per_second",
-                "per_clip"
+            "value": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
               ]
             },
-            "rate_matrix": {
-              "default": [],
-              "type": "array",
-              "items": {
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        },
+        "shortest_edge_target_px": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        },
+        "max_bytes": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        },
+        "max_pages": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        },
+        "allowed_mime": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "provider_auto_normalizes": {
+          "default": false,
+          "type": "boolean"
+        },
+        "min_legible_edge_px": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LegibilityFloor"
+          }
+        },
+        "max_context_tokens": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        }
+      },
+      "required": [
+        "max_edge_px",
+        "min_edge_px",
+        "shortest_edge_target_px",
+        "max_bytes",
+        "max_pages",
+        "max_context_tokens"
+      ]
+    },
+    "LegibilityFloor": {
+      "type": "object",
+      "properties": {
+        "script": {
+          "$ref": "#/$defs/Script"
+        },
+        "content_density": {
+          "$ref": "#/$defs/ContentDensity"
+        },
+        "px": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        }
+      },
+      "required": [
+        "script",
+        "content_density",
+        "px"
+      ]
+    },
+    "Script": {
+      "type": "string",
+      "enum": [
+        "latin",
+        "ar_msa",
+        "ar_dialect",
+        "ar_vocalized",
+        "zh_hans",
+        "zh_hant",
+        "mixed"
+      ]
+    },
+    "ContentDensity": {
+      "type": "string",
+      "enum": [
+        "sparse",
+        "normal",
+        "dense"
+      ]
+    },
+    "ImageGenProfile": {
+      "type": "object",
+      "properties": {
+        "pricing_dimension": {
+          "$ref": "#/$defs/ImagePricingDimension"
+        },
+        "supported_classes": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "TEXT_TO_IMAGE",
+              "IMAGE_TO_IMAGE",
+              "MASK_INPAINT",
+              "UPSCALE"
+            ]
+          }
+        },
+        "price_matrix": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "size": {
+                "type": "string"
+              },
+              "quality": {
+                "type": "string"
+              },
+              "rate": {
+                "$ref": "#/$defs/Rate"
+              }
+            },
+            "required": [
+              "size",
+              "quality",
+              "rate"
+            ]
+          }
+        },
+        "output_tokens_by_resolution": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "resolution": {
+                "type": "string"
+              },
+              "tokens": {
                 "type": "object",
                 "properties": {
-                  "resolution_tier": {
-                    "type": "string"
-                  },
-                  "fps": {
+                  "value": {
                     "anyOf": [
                       {
                         "type": "integer",
@@ -2233,292 +2065,297 @@
                       }
                     ]
                   },
-                  "audio_generated": {
-                    "type": "boolean"
-                  },
-                  "rate": {
-                    "$ref": "#/$defs/__schema39"
+                  "provenance": {
+                    "$ref": "#/$defs/Provenance"
                   }
                 },
                 "required": [
-                  "resolution_tier",
-                  "fps",
-                  "audio_generated",
-                  "rate"
+                  "value",
+                  "provenance"
                 ]
               }
             },
-            "max_duration_seconds": {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "anyOf": [
-                    {
-                      "type": "number",
-                      "exclusiveMinimum": 0
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                },
-                "provenance": {
-                  "$ref": "#/$defs/__schema10"
-                }
-              },
-              "required": [
-                "value",
-                "provenance"
-              ]
+            "required": [
+              "resolution",
+              "tokens"
+            ]
+          }
+        },
+        "output_token_rate": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Rate"
             },
-            "generates_native_audio": {
-              "type": "boolean"
-            },
-            "bills_failed_generations": {
-              "default": null,
-              "type": [
-                "boolean",
-                "null"
-              ]
-            },
-            "expected_retry_rate": {
-              "default": null,
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "bills_source_as_vision_input": {
+          "type": "boolean"
+        },
+        "inpaint_bills_full_canvas": {
+          "type": "boolean"
+        },
+        "upscale_multiplier": {
+          "type": "object",
+          "properties": {
+            "value": {
               "anyOf": [
                 {
                   "type": "number",
-                  "minimum": 0,
-                  "maximum": 1
+                  "exclusiveMinimum": 0
                 },
                 {
                   "type": "null"
                 }
               ]
             },
-            "per_request_fee": {
-              "default": null,
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        },
+        "max_reference_images": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "steps_per_second": {
+          "type": "object",
+          "properties": {
+            "value": {
               "anyOf": [
                 {
-                  "$ref": "#/$defs/__schema39"
+                  "type": "number",
+                  "exclusiveMinimum": 0
                 },
                 {
                   "type": "null"
                 }
               ]
             },
-            "credit_conversion": {
-              "default": null,
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        }
+      },
+      "required": [
+        "pricing_dimension",
+        "supported_classes",
+        "bills_source_as_vision_input",
+        "inpaint_bills_full_canvas",
+        "upscale_multiplier",
+        "steps_per_second"
+      ]
+    },
+    "ImagePricingDimension": {
+      "type": "string",
+      "enum": [
+        "per_image",
+        "per_megapixel",
+        "per_step",
+        "per_output_token"
+      ]
+    },
+    "VideoGenProfile": {
+      "type": "object",
+      "properties": {
+        "pricing_dimension": {
+          "type": "string",
+          "enum": [
+            "per_second",
+            "per_clip"
+          ]
+        },
+        "rate_matrix": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "resolution_tier": {
+                "type": "string"
+              },
+              "fps": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "audio_generated": {
+                "type": "boolean"
+              },
+              "rate": {
+                "$ref": "#/$defs/Rate"
+              }
+            },
+            "required": [
+              "resolution_tier",
+              "fps",
+              "audio_generated",
+              "rate"
+            ]
+          }
+        },
+        "max_duration_seconds": {
+          "type": "object",
+          "properties": {
+            "value": {
               "anyOf": [
                 {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        },
+        "generates_native_audio": {
+          "type": "boolean"
+        },
+        "bills_failed_generations": {
+          "default": null,
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "expected_retry_rate": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "per_request_fee": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Rate"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "credit_conversion": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "credits_per_unit": {
                   "type": "object",
                   "properties": {
-                    "credits_per_unit": {
-                      "type": "object",
-                      "properties": {
-                        "value": {
-                          "anyOf": [
-                            {
-                              "type": "number",
-                              "exclusiveMinimum": 0
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
+                    "value": {
+                      "anyOf": [
+                        {
+                          "type": "number",
+                          "exclusiveMinimum": 0
                         },
-                        "provenance": {
-                          "$ref": "#/$defs/__schema10"
+                        {
+                          "type": "null"
                         }
-                      },
-                      "required": [
-                        "value",
-                        "provenance"
                       ]
                     },
-                    "currency_per_credit": {
-                      "type": "object",
-                      "properties": {
-                        "value": {
-                          "anyOf": [
-                            {
-                              "type": "number",
-                              "exclusiveMinimum": 0
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "provenance": {
-                          "$ref": "#/$defs/__schema10"
-                        }
-                      },
-                      "required": [
-                        "value",
-                        "provenance"
-                      ]
+                    "provenance": {
+                      "$ref": "#/$defs/Provenance"
                     }
                   },
                   "required": [
-                    "credits_per_unit",
-                    "currency_per_credit"
+                    "value",
+                    "provenance"
                   ]
                 },
-                {
-                  "type": "null"
+                "currency_per_credit": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "anyOf": [
+                        {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "provenance": {
+                      "$ref": "#/$defs/Provenance"
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "provenance"
+                  ]
                 }
+              },
+              "required": [
+                "credits_per_unit",
+                "currency_per_credit"
               ]
+            },
+            {
+              "type": "null"
             }
-          },
-          "required": [
-            "pricing_dimension",
-            "max_duration_seconds",
-            "generates_native_audio"
           ]
-        },
-        {
-          "type": "null"
         }
+      },
+      "required": [
+        "pricing_dimension",
+        "max_duration_seconds",
+        "generates_native_audio"
       ]
     },
-    "__schema56": {
-      "default": null,
-      "anyOf": [
-        {
+    "VideoInputProfile": {
+      "type": "object",
+      "properties": {
+        "frame_sample_rate_hz": {
           "type": "object",
           "properties": {
-            "frame_sample_rate_hz": {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "anyOf": [
-                    {
-                      "type": "number",
-                      "exclusiveMinimum": 0
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                },
-                "provenance": {
-                  "$ref": "#/$defs/__schema10"
-                }
-              },
-              "required": [
-                "value",
-                "provenance"
-              ]
-            },
-            "user_configurable_fps": {
-              "default": false,
-              "type": "boolean"
-            },
-            "per_frame_uses_vision_geometry": {
-              "default": true,
-              "type": "boolean"
-            },
-            "audio_tokens_per_second": {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "anyOf": [
-                    {
-                      "type": "number",
-                      "minimum": 0
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                },
-                "provenance": {
-                  "$ref": "#/$defs/__schema10"
-                }
-              },
-              "required": [
-                "value",
-                "provenance"
-              ]
-            },
-            "audio_billed_separately": {
-              "type": "boolean"
-            },
-            "max_duration_seconds": {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "anyOf": [
-                    {
-                      "type": "number",
-                      "exclusiveMinimum": 0
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                },
-                "provenance": {
-                  "$ref": "#/$defs/__schema10"
-                }
-              },
-              "required": [
-                "value",
-                "provenance"
-              ]
-            },
-            "max_frames": {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "anyOf": [
-                    {
-                      "type": "integer",
-                      "exclusiveMinimum": 0,
-                      "maximum": 9007199254740991
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                },
-                "provenance": {
-                  "$ref": "#/$defs/__schema10"
-                }
-              },
-              "required": [
-                "value",
-                "provenance"
-              ]
-            },
-            "has_deterministic_formula": {
-              "default": false,
-              "type": "boolean"
-            },
-            "adaptive_mode_available": {
-              "default": false,
-              "type": "boolean"
-            }
-          },
-          "required": [
-            "frame_sample_rate_hz",
-            "audio_tokens_per_second",
-            "audio_billed_separately",
-            "max_duration_seconds",
-            "max_frames"
-          ]
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema57": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "object",
-          "properties": {
-            "params_b_total": {
+            "value": {
               "anyOf": [
                 {
                   "type": "number",
@@ -2529,7 +2366,53 @@
                 }
               ]
             },
-            "params_b_active": {
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        },
+        "user_configurable_fps": {
+          "default": false,
+          "type": "boolean"
+        },
+        "per_frame_uses_vision_geometry": {
+          "default": true,
+          "type": "boolean"
+        },
+        "audio_tokens_per_second": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        },
+        "audio_billed_separately": {
+          "type": "boolean"
+        },
+        "max_duration_seconds": {
+          "type": "object",
+          "properties": {
+            "value": {
               "anyOf": [
                 {
                   "type": "number",
@@ -2540,245 +2423,315 @@
                 }
               ]
             },
-            "is_moe": {
-              "default": false,
-              "type": "boolean"
-            },
-            "layers": {
-              "anyOf": [
-                {
-                  "type": "integer",
-                  "exclusiveMinimum": 0,
-                  "maximum": 9007199254740991
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "kv_heads": {
-              "anyOf": [
-                {
-                  "type": "integer",
-                  "exclusiveMinimum": 0,
-                  "maximum": 9007199254740991
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "attention_heads": {
-              "anyOf": [
-                {
-                  "type": "integer",
-                  "exclusiveMinimum": 0,
-                  "maximum": 9007199254740991
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "head_dim": {
-              "anyOf": [
-                {
-                  "type": "integer",
-                  "exclusiveMinimum": 0,
-                  "maximum": 9007199254740991
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "max_context_tokens": {
-              "anyOf": [
-                {
-                  "type": "integer",
-                  "exclusiveMinimum": 0,
-                  "maximum": 9007199254740991
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "kv_dtype": {
-              "default": null,
-              "anyOf": [
-                {
-                  "type": "string",
-                  "enum": [
-                    "bf16",
-                    "fp16",
-                    "fp8",
-                    "int8"
-                  ]
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "weight_dtype": {
-              "default": null,
-              "anyOf": [
-                {
-                  "type": "string",
-                  "enum": [
-                    "bf16",
-                    "fp16",
-                    "fp8",
-                    "int8",
-                    "int4"
-                  ]
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "supports_flash_attention": {
-              "default": false,
-              "type": "boolean"
-            },
-            "supports_paged_attention": {
-              "default": false,
-              "type": "boolean"
-            },
-            "image_activation_buffer_gb": {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "anyOf": [
-                    {
-                      "type": "number",
-                      "exclusiveMinimum": 0
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                },
-                "provenance": {
-                  "$ref": "#/$defs/__schema10"
-                }
-              },
-              "required": [
-                "value",
-                "provenance"
-              ]
-            },
-            "prefill_throughput_tps": {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "anyOf": [
-                    {
-                      "type": "number",
-                      "exclusiveMinimum": 0
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                },
-                "provenance": {
-                  "$ref": "#/$defs/__schema10"
-                }
-              },
-              "required": [
-                "value",
-                "provenance"
-              ]
-            },
-            "decode_throughput_tps": {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "anyOf": [
-                    {
-                      "type": "number",
-                      "exclusiveMinimum": 0
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                },
-                "provenance": {
-                  "$ref": "#/$defs/__schema10"
-                }
-              },
-              "required": [
-                "value",
-                "provenance"
-              ]
-            },
-            "ttft_seconds": {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "anyOf": [
-                    {
-                      "type": "number",
-                      "minimum": 0
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                },
-                "provenance": {
-                  "$ref": "#/$defs/__schema10"
-                }
-              },
-              "required": [
-                "value",
-                "provenance"
-              ]
-            },
-            "architecture_source_url": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "format": "uri"
-                },
-                {
-                  "type": "null"
-                }
-              ]
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
             }
           },
           "required": [
-            "params_b_total",
-            "params_b_active",
-            "layers",
-            "kv_heads",
-            "attention_heads",
-            "head_dim",
-            "max_context_tokens",
-            "image_activation_buffer_gb",
-            "prefill_throughput_tps",
-            "decode_throughput_tps",
-            "ttft_seconds",
-            "architecture_source_url"
+            "value",
+            "provenance"
           ]
         },
-        {
-          "type": "null"
+        "max_frames": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        },
+        "has_deterministic_formula": {
+          "default": false,
+          "type": "boolean"
+        },
+        "adaptive_mode_available": {
+          "default": false,
+          "type": "boolean"
         }
+      },
+      "required": [
+        "frame_sample_rate_hz",
+        "audio_tokens_per_second",
+        "audio_billed_separately",
+        "max_duration_seconds",
+        "max_frames"
       ]
     },
-    "__schema58": {
+    "HardwareProfile": {
+      "type": "object",
+      "properties": {
+        "params_b_total": {
+          "anyOf": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "params_b_active": {
+          "anyOf": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "is_moe": {
+          "default": false,
+          "type": "boolean"
+        },
+        "layers": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "kv_heads": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "attention_heads": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "head_dim": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "max_context_tokens": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "kv_dtype": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "bf16",
+                "fp16",
+                "fp8",
+                "int8"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "weight_dtype": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "bf16",
+                "fp16",
+                "fp8",
+                "int8",
+                "int4"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "supports_flash_attention": {
+          "default": false,
+          "type": "boolean"
+        },
+        "supports_paged_attention": {
+          "default": false,
+          "type": "boolean"
+        },
+        "image_activation_buffer_gb": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        },
+        "prefill_throughput_tps": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        },
+        "decode_throughput_tps": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        },
+        "ttft_seconds": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        },
+        "architecture_source_url": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uri"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "params_b_total",
+        "params_b_active",
+        "layers",
+        "kv_heads",
+        "attention_heads",
+        "head_dim",
+        "max_context_tokens",
+        "image_activation_buffer_gb",
+        "prefill_throughput_tps",
+        "decode_throughput_tps",
+        "ttft_seconds",
+        "architecture_source_url"
+      ]
+    },
+    "ComplianceProfile": {
       "type": "object",
       "properties": {
         "data_residency_region": {
           "minItems": 1,
           "type": "array",
           "items": {
-            "$ref": "#/$defs/__schema59"
+            "type": "string"
           }
         },
         "is_prc_hosted": {
@@ -2803,7 +2756,7 @@
               ]
             },
             "provenance": {
-              "$ref": "#/$defs/__schema10"
+              "$ref": "#/$defs/Provenance"
             }
           },
           "required": [
@@ -2824,58 +2777,6 @@
         "is_prc_hosted",
         "contractual_dpa_available",
         "residency_uplift_pct"
-      ]
-    },
-    "__schema59": {
-      "type": "string"
-    },
-    "__schema60": {
-      "default": null,
-      "type": [
-        "number",
-        "null"
-      ]
-    },
-    "__schema61": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "format": "uri"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema62": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
-    },
-    "__schema63": {
-      "anyOf": [
-        {
-          "type": "string",
-          "format": "date-time",
-          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema64": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "format": "date-time",
-          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
-        },
-        {
-          "type": "null"
-        }
       ]
     }
   },

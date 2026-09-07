@@ -1,125 +1,142 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "type": "object",
-  "properties": {
-    "workflow_id": {
-      "$ref": "#/$defs/__schema0"
-    },
-    "workflow_label": {
-      "$ref": "#/$defs/__schema1"
-    },
-    "languages": {
-      "$ref": "#/$defs/__schema2"
-    },
-    "parse_meta": {
-      "$ref": "#/$defs/__schema7"
-    },
-    "tasks": {
-      "$ref": "#/$defs/__schema14"
-    },
-    "assumptions": {
-      "$ref": "#/$defs/__schema63"
-    },
-    "ambiguities": {
-      "$ref": "#/$defs/__schema73"
-    },
-    "missing_data": {
-      "$ref": "#/$defs/__schema75"
-    },
-    "confidence": {
-      "$ref": "#/$defs/__schema82"
-    },
-    "needs_human_review": {
-      "$ref": "#/$defs/__schema83"
-    },
-    "analyzer_notes": {
-      "$ref": "#/$defs/__schema84"
-    }
-  },
-  "required": [
-    "languages",
-    "tasks",
-    "assumptions",
-    "ambiguities",
-    "missing_data",
-    "confidence",
-    "needs_human_review"
-  ],
+  "$ref": "#/$defs/WorkflowInput",
   "$defs": {
-    "__schema0": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
+    "WorkflowInput": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
-        {
-          "type": "null"
+        "workflow_label": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "languages": {
+          "$ref": "#/$defs/Languages"
+        },
+        "parse_meta": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParseMeta"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tasks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Task"
+          }
+        },
+        "assumptions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Assumption"
+          }
+        },
+        "ambiguities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ambiguity"
+          }
+        },
+        "missing_data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MissingDatum"
+          }
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence"
+        },
+        "needs_human_review": {
+          "type": "boolean"
+        },
+        "analyzer_notes": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
+      },
+      "required": [
+        "languages",
+        "tasks",
+        "assumptions",
+        "ambiguities",
+        "missing_data",
+        "confidence",
+        "needs_human_review"
       ]
     },
-    "__schema1": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 200
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema2": {
+    "Languages": {
       "type": "object",
       "properties": {
         "ui_language": {
-          "$ref": "#/$defs/__schema3"
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "instruction_language": {
-          "$ref": "#/$defs/__schema4"
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "payload_languages": {
-          "$ref": "#/$defs/__schema5"
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PayloadLanguage"
+          }
         }
       },
       "required": [
         "payload_languages"
       ]
     },
-    "__schema3": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema4": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema5": {
-      "minItems": 1,
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/__schema6"
-      }
-    },
-    "__schema6": {
+    "PayloadLanguage": {
       "type": "object",
       "properties": {
         "code": {
@@ -137,310 +154,394 @@
         "share"
       ]
     },
-    "__schema7": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "object",
-          "properties": {
-            "layer": {
-              "$ref": "#/$defs/__schema8"
-            },
-            "parse_confidence": {
-              "$ref": "#/$defs/__schema9"
-            },
-            "escalated_reason": {
-              "$ref": "#/$defs/__schema10"
-            },
-            "parser_model_id": {
-              "$ref": "#/$defs/__schema11"
-            },
-            "parser_input_tokens": {
-              "$ref": "#/$defs/__schema12"
-            },
-            "parser_output_tokens": {
-              "$ref": "#/$defs/__schema13"
-            }
-          },
-          "required": [
-            "layer",
-            "parse_confidence"
-          ]
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema8": {
-      "type": "string",
-      "enum": [
-        "L1_DETERMINISTIC",
-        "L2_LLM_PARSE"
-      ]
-    },
-    "__schema9": {
-      "type": "number",
-      "minimum": 0,
-      "maximum": 1
-    },
-    "__schema10": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema11": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema12": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 9007199254740991
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema13": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 9007199254740991
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema14": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "task_id": {
-            "$ref": "#/$defs/__schema15"
-          },
-          "sequence_index": {
-            "$ref": "#/$defs/__schema16"
-          },
-          "label": {
-            "$ref": "#/$defs/__schema17"
-          },
-          "type": {
-            "$ref": "#/$defs/__schema18"
-          },
-          "sub_kind": {
-            "$ref": "#/$defs/__schema19"
-          },
-          "volume": {
-            "$ref": "#/$defs/__schema20"
-          },
-          "expands_from": {
-            "$ref": "#/$defs/__schema21"
-          },
-          "execution_probability": {
-            "$ref": "#/$defs/__schema22"
-          },
-          "text_metrics": {
-            "$ref": "#/$defs/__schema23"
-          },
-          "image_metrics": {
-            "$ref": "#/$defs/__schema38"
-          },
-          "media_metrics": {
-            "$ref": "#/$defs/__schema59"
-          },
-          "expected_output_band": {
-            "$ref": "#/$defs/__schema60"
-          },
-          "max_tokens": {
-            "$ref": "#/$defs/__schema61"
-          },
-          "flags": {
-            "$ref": "#/$defs/__schema62"
-          }
-        },
-        "required": [
-          "task_id",
-          "sequence_index",
-          "type",
-          "volume",
-          "flags"
-        ]
-      }
-    },
-    "__schema15": {
-      "type": "string",
-      "minLength": 1
-    },
-    "__schema16": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 9007199254740991
-    },
-    "__schema17": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema18": {
-      "type": "string",
-      "enum": [
-        "READ",
-        "WRITE",
-        "EDIT"
-      ]
-    },
-    "__schema19": {
-      "default": null,
-      "anyOf": [
-        {
+    "ParseMeta": {
+      "type": "object",
+      "properties": {
+        "layer": {
           "type": "string",
           "enum": [
-            "context_ingestion",
-            "vision_ocr",
-            "image_analysis",
-            "document_parsing",
-            "completion",
-            "reasoning",
-            "creative_draft",
-            "structured_generation",
-            "text_rewrite",
-            "image_generate",
-            "image_to_image",
-            "inpaint",
-            "upscale"
+            "L1_DETERMINISTIC",
+            "L2_LLM_PARSE"
           ]
         },
-        {
-          "type": "null"
+        "parse_confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "escalated_reason": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "parser_model_id": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "parser_input_tokens": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "parser_output_tokens": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
+      },
+      "required": [
+        "layer",
+        "parse_confidence"
       ]
     },
-    "__schema20": {
-      "type": "integer",
-      "exclusiveMinimum": 0,
-      "maximum": 9007199254740991
-    },
-    "__schema21": {
-      "default": null,
-      "anyOf": [
-        {
+    "Task": {
+      "type": "object",
+      "properties": {
+        "task_id": {
           "type": "string",
           "minLength": 1
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema22": {
-      "default": 1,
-      "type": "number",
-      "minimum": 0,
-      "maximum": 1
-    },
-    "__schema23": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "object",
-          "properties": {
-            "character_count": {
-              "$ref": "#/$defs/__schema24"
-            },
-            "character_count_source": {
-              "$ref": "#/$defs/__schema25"
-            },
-            "doc_class": {
-              "$ref": "#/$defs/__schema26"
-            },
-            "script_mix": {
-              "$ref": "#/$defs/__schema27"
-            },
-            "arabic_vocalized": {
-              "$ref": "#/$defs/__schema28"
-            },
-            "diacritic_density": {
-              "$ref": "#/$defs/__schema29"
-            },
-            "arabic_register": {
-              "$ref": "#/$defs/__schema30"
-            },
-            "pdf_has_text_layer": {
-              "$ref": "#/$defs/__schema31"
-            },
-            "content_type": {
-              "$ref": "#/$defs/__schema32"
-            },
-            "tool_schemas_present": {
-              "$ref": "#/$defs/__schema33"
-            },
-            "tool_schema_character_count": {
-              "$ref": "#/$defs/__schema34"
-            },
-            "conversation_turns": {
-              "$ref": "#/$defs/__schema35"
-            },
-            "history_strategy": {
-              "$ref": "#/$defs/__schema36"
-            },
-            "history_window_k": {
-              "$ref": "#/$defs/__schema37"
-            }
-          },
-          "required": [
-            "character_count_source"
-          ]
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema24": {
-      "default": null,
-      "anyOf": [
-        {
+        "sequence_index": {
           "type": "integer",
           "minimum": 0,
           "maximum": 9007199254740991
         },
-        {
-          "type": "null"
+        "label": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "READ",
+            "WRITE",
+            "EDIT"
+          ]
+        },
+        "sub_kind": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "context_ingestion",
+                "vision_ocr",
+                "image_analysis",
+                "document_parsing",
+                "completion",
+                "reasoning",
+                "creative_draft",
+                "structured_generation",
+                "text_rewrite",
+                "image_generate",
+                "image_to_image",
+                "inpaint",
+                "upscale"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "volume": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        "expands_from": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "execution_probability": {
+          "default": 1,
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "text_metrics": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TextMetrics"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "image_metrics": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ImageMetrics"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "media_metrics": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MediaMetrics"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "expected_output_band": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "short",
+                "medium",
+                "long",
+                "unbounded"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "max_tokens": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "flags": {
+          "$ref": "#/$defs/CostFlags"
         }
+      },
+      "required": [
+        "task_id",
+        "sequence_index",
+        "type",
+        "volume",
+        "flags"
       ]
     },
-    "__schema25": {
+    "TextMetrics": {
+      "type": "object",
+      "properties": {
+        "character_count": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "character_count_source": {
+          "$ref": "#/$defs/MetricSource"
+        },
+        "doc_class": {
+          "default": "unknown",
+          "type": "string",
+          "enum": [
+            "short_form",
+            "medium_form",
+            "long_form",
+            "unknown"
+          ]
+        },
+        "script_mix": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/ScriptFamily"
+          },
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        "arabic_vocalized": {
+          "default": null,
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "diacritic_density": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "arabic_register": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "msa",
+                "dialect",
+                "mixed"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pdf_has_text_layer": {
+          "default": null,
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "content_type": {
+          "default": "unknown",
+          "type": "string",
+          "enum": [
+            "prose",
+            "code",
+            "structured_json",
+            "tabular",
+            "mixed",
+            "unknown"
+          ]
+        },
+        "tool_schemas_present": {
+          "default": false,
+          "type": "boolean"
+        },
+        "tool_schema_character_count": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "conversation_turns": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "history_strategy": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "FULL_HISTORY",
+                "SLIDING_WINDOW",
+                "SUMMARIZED_ROLLUP"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "history_window_k": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "character_count_source"
+      ]
+    },
+    "MetricSource": {
       "type": "string",
       "enum": [
         "USER_STATED",
@@ -450,552 +551,319 @@
         "MISSING"
       ]
     },
-    "__schema26": {
-      "default": "unknown",
+    "ScriptFamily": {
       "type": "string",
       "enum": [
-        "short_form",
-        "medium_form",
-        "long_form",
-        "unknown"
+        "latin",
+        "arabic",
+        "han",
+        "cyrillic",
+        "other"
       ]
     },
-    "__schema27": {
-      "default": {},
+    "ImageMetrics": {
       "type": "object",
-      "propertyNames": {
-        "type": "string",
-        "enum": [
-          "latin",
-          "arabic",
-          "han",
-          "cyrillic",
-          "other"
-        ]
-      },
-      "additionalProperties": {
-        "type": "number",
-        "minimum": 0,
-        "maximum": 1
-      }
-    },
-    "__schema28": {
-      "default": null,
-      "type": [
-        "boolean",
-        "null"
-      ]
-    },
-    "__schema29": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 1
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema30": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "enum": [
-            "msa",
-            "dialect",
-            "mixed"
+      "properties": {
+        "width_px": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
           ]
         },
-        {
-          "type": "null"
+        "height_px": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "dimensions_source": {
+          "$ref": "#/$defs/MetricSource"
+        },
+        "detail_mode": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "low",
+                "high",
+                "auto"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "image_count": {
+          "default": 1,
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        "operation": {
+          "type": "string",
+          "enum": [
+            "analyze",
+            "generate",
+            "img2img",
+            "inpaint",
+            "upscale"
+          ]
+        },
+        "upscale_multiplier": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "mask_present": {
+          "default": false,
+          "type": "boolean"
+        },
+        "byte_size": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "page_count": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "detected_script": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DetectedScript"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "fidelity_critical": {
+          "default": false,
+          "type": "boolean"
+        },
+        "asset_disposition": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AssetDisposition"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
+      },
+      "required": [
+        "dimensions_source",
+        "operation"
       ]
     },
-    "__schema31": {
-      "default": null,
-      "type": [
-        "boolean",
-        "null"
-      ]
-    },
-    "__schema32": {
-      "default": "unknown",
+    "DetectedScript": {
       "type": "string",
       "enum": [
-        "prose",
-        "code",
-        "structured_json",
-        "tabular",
+        "latin",
+        "arabic",
+        "han",
+        "cyrillic",
+        "other",
         "mixed",
         "unknown"
       ]
     },
-    "__schema33": {
-      "default": false,
-      "type": "boolean"
-    },
-    "__schema34": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 9007199254740991
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema35": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "integer",
-          "exclusiveMinimum": 0,
-          "maximum": 9007199254740991
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema36": {
-      "default": null,
-      "anyOf": [
-        {
+    "AssetDisposition": {
+      "type": "object",
+      "properties": {
+        "rung": {
           "type": "string",
           "enum": [
-            "FULL_HISTORY",
-            "SLIDING_WINDOW",
-            "SUMMARIZED_ROLLUP"
+            "FITS_AS_IS",
+            "PROVIDER_NORMALIZED",
+            "RESIZE_PROPOSED",
+            "RESIZE_SAVES_NOTHING",
+            "FIDELITY_LOCKED",
+            "REROUTED",
+            "BLOCKED"
           ]
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema37": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "integer",
-          "exclusiveMinimum": 0,
-          "maximum": 9007199254740991
+        "violated_constraints": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "max_edge_px",
+              "min_edge_px",
+              "max_bytes",
+              "max_pages",
+              "max_duration_seconds",
+              "max_frames",
+              "allowed_mime"
+            ]
+          }
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema38": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "object",
-          "properties": {
-            "width_px": {
-              "$ref": "#/$defs/__schema39"
-            },
-            "height_px": {
-              "$ref": "#/$defs/__schema40"
-            },
-            "dimensions_source": {
-              "$ref": "#/$defs/__schema25"
-            },
-            "detail_mode": {
-              "$ref": "#/$defs/__schema41"
-            },
-            "image_count": {
-              "$ref": "#/$defs/__schema42"
-            },
-            "operation": {
-              "$ref": "#/$defs/__schema43"
-            },
-            "upscale_multiplier": {
-              "$ref": "#/$defs/__schema44"
-            },
-            "mask_present": {
-              "$ref": "#/$defs/__schema45"
-            },
-            "byte_size": {
-              "$ref": "#/$defs/__schema46"
-            },
-            "page_count": {
-              "$ref": "#/$defs/__schema47"
-            },
-            "detected_script": {
-              "$ref": "#/$defs/__schema48"
-            },
-            "fidelity_critical": {
-              "$ref": "#/$defs/__schema49"
-            },
-            "asset_disposition": {
-              "$ref": "#/$defs/__schema50"
-            }
-          },
-          "required": [
-            "dimensions_source",
-            "operation"
-          ]
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema39": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "integer",
-          "exclusiveMinimum": 0,
-          "maximum": 9007199254740991
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema40": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "integer",
-          "exclusiveMinimum": 0,
-          "maximum": 9007199254740991
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema41": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "enum": [
-            "low",
-            "high",
-            "auto"
-          ]
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema42": {
-      "default": 1,
-      "type": "integer",
-      "exclusiveMinimum": 0,
-      "maximum": 9007199254740991
-    },
-    "__schema43": {
-      "type": "string",
-      "enum": [
-        "analyze",
-        "generate",
-        "img2img",
-        "inpaint",
-        "upscale"
-      ]
-    },
-    "__schema44": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "number",
-          "exclusiveMinimum": 1
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema45": {
-      "default": false,
-      "type": "boolean"
-    },
-    "__schema46": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 9007199254740991
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema47": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "integer",
-          "exclusiveMinimum": 0,
-          "maximum": 9007199254740991
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema48": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "enum": [
-            "latin",
-            "arabic",
-            "han",
-            "cyrillic",
-            "other",
-            "mixed",
-            "unknown"
-          ]
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema49": {
-      "default": false,
-      "type": "boolean"
-    },
-    "__schema50": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "object",
-          "properties": {
-            "rung": {
-              "$ref": "#/$defs/__schema51"
-            },
-            "violated_constraints": {
-              "$ref": "#/$defs/__schema52"
-            },
-            "original_dimensions": {
-              "$ref": "#/$defs/__schema53"
-            },
-            "effective_dimensions": {
-              "$ref": "#/$defs/__schema54"
-            },
-            "transform_rule": {
-              "$ref": "#/$defs/__schema55"
-            },
-            "resize_accepted_by_user": {
-              "$ref": "#/$defs/__schema56"
-            },
-            "recomputed_tile_delta": {
-              "$ref": "#/$defs/__schema57"
-            },
-            "min_legible_edge_px": {
-              "$ref": "#/$defs/__schema58"
-            }
-          },
-          "required": [
-            "rung"
-          ]
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema51": {
-      "type": "string",
-      "enum": [
-        "FITS_AS_IS",
-        "PROVIDER_NORMALIZED",
-        "RESIZE_PROPOSED",
-        "RESIZE_SAVES_NOTHING",
-        "FIDELITY_LOCKED",
-        "REROUTED",
-        "BLOCKED"
-      ]
-    },
-    "__schema52": {
-      "default": [],
-      "type": "array",
-      "items": {
-        "type": "string",
-        "enum": [
-          "max_edge_px",
-          "min_edge_px",
-          "max_bytes",
-          "max_pages",
-          "max_duration_seconds",
-          "max_frames",
-          "allowed_mime"
-        ]
-      }
-    },
-    "__schema53": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 3
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema54": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 3
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema55": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema56": {
-      "default": null,
-      "type": [
-        "boolean",
-        "null"
-      ]
-    },
-    "__schema57": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "integer",
-          "minimum": -9007199254740991,
-          "maximum": 9007199254740991
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema58": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "integer",
-          "exclusiveMinimum": 0,
-          "maximum": 9007199254740991
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema59": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "object",
-          "properties": {
-            "modality": {
+        "original_dimensions": {
+          "default": null,
+          "anyOf": [
+            {
               "type": "string",
-              "enum": [
-                "audio",
-                "video"
-              ]
+              "minLength": 3
             },
-            "duration_seconds": {
-              "default": null,
-              "anyOf": [
-                {
-                  "type": "number",
-                  "minimum": 0
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "duration_source": {
-              "$ref": "#/$defs/__schema25"
-            },
-            "has_audio_track": {
-              "default": false,
-              "type": "boolean"
-            },
-            "frame_sample_rate_hz": {
-              "default": null,
-              "anyOf": [
-                {
-                  "type": "number",
-                  "exclusiveMinimum": 0
-                },
-                {
-                  "type": "null"
-                }
-              ]
+            {
+              "type": "null"
             }
-          },
-          "required": [
-            "modality",
-            "duration_source"
           ]
         },
-        {
-          "type": "null"
+        "effective_dimensions": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 3
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "transform_rule": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "resize_accepted_by_user": {
+          "default": null,
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "recomputed_tile_delta": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "min_legible_edge_px": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
+      },
+      "required": [
+        "rung"
       ]
     },
-    "__schema60": {
-      "default": null,
-      "anyOf": [
-        {
+    "MediaMetrics": {
+      "type": "object",
+      "properties": {
+        "modality": {
           "type": "string",
           "enum": [
-            "short",
-            "medium",
-            "long",
-            "unbounded"
+            "audio",
+            "video"
           ]
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema61": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "integer",
-          "exclusiveMinimum": 0,
-          "maximum": 9007199254740991
+        "duration_seconds": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
-        {
-          "type": "null"
+        "duration_source": {
+          "$ref": "#/$defs/MetricSource"
+        },
+        "has_audio_track": {
+          "default": false,
+          "type": "boolean"
+        },
+        "frame_sample_rate_hz": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
+      },
+      "required": [
+        "modality",
+        "duration_source"
       ]
     },
-    "__schema62": {
+    "CostFlags": {
       "type": "object",
       "properties": {
         "requires_reasoning": {
@@ -1046,97 +914,90 @@
         "requires_tool_calling"
       ]
     },
-    "__schema63": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "$ref": "#/$defs/__schema64"
-          },
-          "task_id": {
-            "$ref": "#/$defs/__schema65"
-          },
-          "field": {
-            "$ref": "#/$defs/__schema66"
-          },
-          "value": {
-            "$ref": "#/$defs/__schema67"
-          },
-          "basis": {
-            "$ref": "#/$defs/__schema68"
-          },
-          "seed_provenance": {
-            "$ref": "#/$defs/__schema69"
-          },
-          "impact_if_wrong": {
-            "$ref": "#/$defs/__schema70"
-          },
-          "user_editable": {
-            "$ref": "#/$defs/__schema71"
-          },
-          "sensitivity_rank": {
-            "$ref": "#/$defs/__schema72"
-          }
-        },
-        "required": [
-          "field",
-          "value",
-          "basis",
-          "impact_if_wrong"
-        ]
-      }
-    },
-    "__schema64": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema65": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema66": {
-      "type": "string",
-      "minLength": 1
-    },
-    "__schema67": {},
-    "__schema68": {
-      "type": "string",
-      "minLength": 1
-    },
-    "__schema69": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "enum": [
-            "SEED_UNCALIBRATED",
-            "CALIBRATED_FROM_OBSERVED",
-            "USER_SUPPLIED_BASELINE"
+    "Assumption": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
           ]
         },
-        {
-          "type": "null"
+        "task_id": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "field": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {},
+        "basis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seed_provenance": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SeedProvenance"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "impact_if_wrong": {
+          "$ref": "#/$defs/ImpactIfWrong"
+        },
+        "user_editable": {
+          "default": true,
+          "type": "boolean"
+        },
+        "sensitivity_rank": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
+      },
+      "required": [
+        "field",
+        "value",
+        "basis",
+        "impact_if_wrong"
       ]
     },
-    "__schema70": {
+    "SeedProvenance": {
+      "type": "string",
+      "enum": [
+        "SEED_UNCALIBRATED",
+        "CALIBRATED_FROM_OBSERVED",
+        "USER_SUPPLIED_BASELINE"
+      ]
+    },
+    "ImpactIfWrong": {
       "type": "string",
       "enum": [
         "LOW",
@@ -1145,166 +1006,110 @@
         "ORDER_OF_MAGNITUDE"
       ]
     },
-    "__schema71": {
-      "default": true,
-      "type": "boolean"
-    },
-    "__schema72": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 9007199254740991
+    "Ambiguity": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "type": "string",
+          "minLength": 1
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema73": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "field": {
+        "readings": {
+          "minItems": 2,
+          "type": "array",
+          "items": {
             "type": "string",
             "minLength": 1
-          },
-          "readings": {
-            "minItems": 2,
-            "type": "array",
-            "items": {
-              "$ref": "#/$defs/__schema74"
+          }
+        },
+        "impact": {
+          "$ref": "#/$defs/Impact"
+        }
+      },
+      "required": [
+        "field",
+        "readings",
+        "impact"
+      ]
+    },
+    "Impact": {
+      "type": "string",
+      "enum": [
+        "COSMETIC",
+        "MATERIAL",
+        "ORDER_OF_MAGNITUDE"
+      ]
+    },
+    "MissingDatum": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "type": "string",
+          "minLength": 1
+        },
+        "task_id": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
             }
-          },
-          "impact": {
-            "type": "string",
-            "enum": [
-              "COSMETIC",
-              "MATERIAL",
-              "ORDER_OF_MAGNITUDE"
-            ]
-          }
+          ]
         },
-        "required": [
-          "field",
-          "readings",
-          "impact"
-        ]
-      }
-    },
-    "__schema74": {
-      "type": "string",
-      "minLength": 1
-    },
-    "__schema75": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "field": {
-            "$ref": "#/$defs/__schema76"
-          },
-          "task_id": {
-            "$ref": "#/$defs/__schema77"
-          },
-          "model_id": {
-            "$ref": "#/$defs/__schema78"
-          },
-          "question": {
-            "$ref": "#/$defs/__schema79"
-          },
-          "why_it_matters": {
-            "$ref": "#/$defs/__schema80"
-          },
-          "blocks_estimate": {
-            "$ref": "#/$defs/__schema81"
-          }
+        "model_id": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
-        "required": [
-          "field",
-          "blocks_estimate"
-        ]
-      }
-    },
-    "__schema76": {
-      "type": "string",
-      "minLength": 1
-    },
-    "__schema77": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
+        "question": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
-        {
-          "type": "null"
+        "why_it_matters": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "blocks_estimate": {
+          "type": "boolean"
         }
+      },
+      "required": [
+        "field",
+        "blocks_estimate"
       ]
     },
-    "__schema78": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema79": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema80": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "__schema81": {
-      "type": "boolean"
-    },
-    "__schema82": {
+    "Confidence": {
       "type": "string",
       "enum": [
         "HIGH",
         "MEDIUM",
         "LOW",
         "NONE"
-      ]
-    },
-    "__schema83": {
-      "type": "boolean"
-    },
-    "__schema84": {
-      "default": null,
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
       ]
     }
   },
