@@ -38,18 +38,29 @@ version from `SPEC.md` when it is needed.
 `packages/contracts` is the only thing built. Nothing consumes it yet — no estimator, no
 tokenizers, no router, no UI.
 
-The toolchain was stood up on 2026-09-07, and as of that date everything here has actually been
-run rather than merely read:
+The toolchain was stood up on 2026-09-07, and everything here has actually been run rather than
+merely read. The authority is a clean-checkout CI run, not a local one —
+[run 34133800389](https://github.com/Ibrahim-newaeon/LLM-Costing/actions/runs/34133800389),
+ubuntu-latest, 12s:
 
-| Command | Result, 2026-09-07 |
+| Step | Result |
 |---|---|
-| `pnpm typecheck` | 0 errors — TypeScript 7.0.2, `strict` |
-| `pnpm test` | 29 passed, 1 file (`src/registry.test.ts`) — first execution ever |
-| `pnpm check:schemas` | green; the four generated targets match the Zod |
-| gate proof | injected `PRETTY_SURE` into the generated `Confidence` enum → red, file named; regenerate → green |
+| `pnpm install --frozen-lockfile` | lockfile up to date, 46 packages, esbuild postinstall ran |
+| `pnpm typecheck` | passed — TypeScript 7.0.2, `strict` |
+| `pnpm test` | 29 passed, 1 file (`src/registry.test.ts`) |
+| `pnpm check:schemas` | `schemas in sync with Zod ✓` |
 
-Resolved versions live in `pnpm-lock.yaml`. Use `corepack pnpm install`. The lockfile is
-portable; `node_modules` is not — it is built for whatever platform ran the install.
+The gate was separately proven to **fail**, which is the half that matters: injecting
+`PRETTY_SURE` into the generated `Confidence` enum turned `check:schemas` red and named the
+offending file; regenerating restored green. That was a local run, not a CI one.
+
+Resolved versions live in `pnpm-lock.yaml`. Run **`corepack enable`** first, then `pnpm install` —
+not `corepack pnpm install`. The root scripts shell out to a bare `pnpm` (`pnpm -r test`), so
+without the shim on `PATH` they fail with `sh: pnpm: command not found` while the outer command
+appears to work. CI does the same thing in its own step.
+
+The lockfile is portable and has been exercised on three platforms — linux-arm64, linux-x64 (CI)
+and darwin-arm64. `node_modules` is not portable; re-run `pnpm install` after changing machine.
 
 Note: `scripts/generate-schemas.ts` uses `__dirname`, so the contracts package is intentionally
 **not** `"type": "module"`.
@@ -70,9 +81,8 @@ Exit 0, four files written, nothing to see. Committed, `check:schemas` would hav
 forever while guarding schemas that validate anything at all. Its *types* were the only thing
 that objected — `tsc` flagged the zod-3-shaped signature, which is how it was caught.
 
-The generator now uses zod 4's built-in `z.toJSONSchema`, which also removes the dependency.
-`zod-to-json-schema` is still declared in `packages/contracts/package.json` and imported by
-nothing; drop it with `pnpm remove zod-to-json-schema -F @tokenomics/contracts`.
+The generator now uses zod 4's built-in `z.toJSONSchema`, and `zod-to-json-schema` has been
+removed from the package entirely — the fix drops a dependency rather than adding one.
 
 Two generator options encode decisions worth revisiting:
 
@@ -81,41 +91,58 @@ Two generator options encode decisions worth revisiting:
   so input and output shapes genuinely differ: under `'output'` every defaulted field would be
   reported as required, which no source document has to satisfy.
 - **`reused: 'ref'`** — shared subschemas are extracted to `$defs` rather than inlined at every
-  use site. Registry renders at 81 KB with 63 defs; inlined it was 429 KB, which no reviewer can
-  read a drift diff of. The cost: zod names them `__schema0…__schemaN` **positionally**, so
-  inserting one field renumbers the rest and a one-line change produces a large diff. Registering
-  ids on the exported schemas would give them real names. Open.
+  use site. Registry inlined was 429 KB, which no reviewer can read a drift diff of.
+
+  Zod names an unregistered def **positionally** (`__schema0…__schemaN`), so inserting one field
+  renumbered every def after it. **Closed 2026-09-07**, in two steps in the generator: every
+  exported schema is registered in `z.globalRegistry` under its export name, and the anonymous
+  leftovers — inline shapes zod saw twice, 2–385 bytes, median 74 — are inlined back afterwards,
+  since the `$ref` cost about as much as the body it replaced.
+
+  `$defs` now holds only the package's real types, **zero** `__schemaN` across all seven files,
+  and the files are *smaller* than before (registry 82.3 → 67.6 KB). A drift diff now names the
+  type that changed. 314 `$ref`s resolve; none dangle, none are unreferenced.
 
 `unrepresentable` is left at its default, `'throw'` — a shape JSON Schema cannot express should
 fail the build, not be silently widened to `{}`.
 
-### The generated set and the authored set are still disjoint
+### The split is closed
 
-`generate-schemas.ts` emits four files. As of 2026-09-07 they exist, are correct, and are gated:
+`generate-schemas.ts` now emits seven files, all gated:
 
 ```
 registry.schema.json   model-row.schema.json   vision-profile.schema.json   provenance.schema.json
+assumption.schema.json   workflow-input.schema.json   estimate-output.schema.json
 ```
 
-`schemas/` also holds three hand-authored files that no generator produces:
+Two of the three hand-authored orphans — `workflow-input` and `estimate-output` — became build
+output on 2026-09-07 and now come from Zod. Regenerating fixed their stale enums in passing:
+`estimate-output`'s `method` went from 6 values to the canonical 11, and `confidence` gained
+`NONE` in both.
 
-```
-estimate-output.schema.json   pricing-record.schema.json   workflow-input.schema.json
-```
+**`pricing-record.schema.json` is the exception, and is not being regenerated.** Its payload —
+`token_rates`, `context_tiers`, `cache_policy`, `vision_profile`, `self_hosted_profile` —
+duplicated `TextRateProfile`, `ContextTier`, `CacheProfile`, `VisionProfile` and
+`HardwareProfile`, which already exist in richer form and where every `Rate` carries its own
+`Provenance` with `source_url` and `verified_at`. Porting it would have been a fifth definition
+of the rate shapes.
 
-No overlap. The gate now guards four real files and still ignores the three the app would
-actually use. `MIGRATION.md`'s instruction to "regenerate" those three cannot be carried out: the
-Zod shapes they describe — `EstimateOutput`, `WorkflowInput`, a pricing record — **do not exist
-in `packages/contracts`**.
-
-That is the real gap. The contracts model *provenance* — where a number came from and how far
-to trust it. They do not yet model the *estimate* itself, its inputs, or its assumptions.
+Checked against `ModelRow`, exactly three things were missing, and all three now live on `Rate`
+where the fact they describe actually is: `DeploymentMode`, `RateConflict` (rule 5's only home in
+the contracts) and `max_age_days` + `rateFreshness()`. The file itself is now superseded and
+should be deleted.
 
 ## Open queue
 
-1. **Add the missing contract layer** — `EstimateOutput`, `WorkflowInput`, a pricing record,
-   and the assumption axis (`Assumption`, `impact_if_wrong`, `sensitivity_rank`, `impact`,
-   `deployment_mode`), then add them to the generator's `TARGETS`. See `docs/drift-sweep.md` §5.
+1. ~~**Add the missing contract layer.**~~ **Closed 2026-09-07.** `Assumption` (one superset type,
+   replacing two drifted copies), `Ambiguity`, `MissingDatum`, `WorkflowInput` and `EstimateOutput`
+   all exist in Zod and are generator targets. `DeploymentMode`, `RateConflict` and the
+   `max_age_days` staleness gate landed on `Rate` rather than on a recreated pricing record — see
+   below. 128 tests.
+
+   Two corrections to `docs/drift-sweep.md` §5c came out of it: the two impact scales are **not**
+   duplicates and must not be reconciled (`impact` is on `Ambiguity`, `impact_if_wrong` on
+   `Assumption`), and its suggested Zod would have dropped `seed_provenance`.
 2. **Four prose fixes in `SPEC.md`** — §A3 (`Method` 5 of 11, `Confidence` missing `NONE`),
    §A3.8 (`SourceClass` missing `VENDOR_CONFIG`, `MEASURED`), §A7 (`per_output_token`),
    §A14 (calibration buckets). Line numbers in `docs/drift-sweep.md`.

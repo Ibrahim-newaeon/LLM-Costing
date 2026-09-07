@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/Assumption",
+  "$defs": {
+    "Assumption": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "task_id": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "field": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {},
+        "basis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seed_provenance": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SeedProvenance"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "impact_if_wrong": {
+          "$ref": "#/$defs/ImpactIfWrong"
+        },
+        "user_editable": {
+          "default": true,
+          "type": "boolean"
+        },
+        "sensitivity_rank": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "field",
+        "value",
+        "basis",
+        "impact_if_wrong"
+      ]
+    },
+    "SeedProvenance": {
+      "type": "string",
+      "enum": [
+        "SEED_UNCALIBRATED",
+        "CALIBRATED_FROM_OBSERVED",
+        "USER_SUPPLIED_BASELINE"
+      ]
+    },
+    "ImpactIfWrong": {
+      "type": "string",
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH",
+        "ORDER_OF_MAGNITUDE"
+      ]
+    }
+  },
+  "title": "Assumption",
+  "$comment": "GENERATED from /packages/contracts/src — do not hand-edit. Run `pnpm generate:schemas`. CI fails if this file differs from the regenerated output (§A2)."
+}

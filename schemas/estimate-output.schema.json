@@ -1,344 +1,1266 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://tokenomics.engine/schemas/estimate-output.schema.json",
-  "title": "EstimateOutput",
-  "description": "Final response of /api/estimate. Every figure carries a method and a confidence. A figure without them is invalid by contract.",
-  "type": "object",
-  "additionalProperties": false,
-  "required": [
-    "estimate_id", "generated_at", "pricing_snapshot_id", "candidates",
-    "assumptions", "evidence", "confidence", "needs_human_review", "missing_data"
-  ],
-  "properties": {
-    "estimate_id": { "type": "string" },
-    "workflow_id": { "type": "string" },
-    "scenario_id": { "type": ["string", "null"] },
-    "generated_at": { "type": "string", "format": "date-time" },
-    "pricing_snapshot_id": {
-      "type": "string",
-      "description": "Pins the exact rate set used. Required for reproducibility of saved scenarios after prices move."
-    },
-
-    "candidates": {
-      "type": "array",
-      "description": "One entry per model that survived the capability + residency gate.",
-      "items": { "$ref": "#/$defs/candidate" }
-    },
-
-    "recommendations": {
+  "$ref": "#/$defs/EstimateOutput",
+  "$defs": {
+    "EstimateOutput": {
       "type": "object",
-      "additionalProperties": false,
       "properties": {
-        "cheapest": { "$ref": "#/$defs/recommendation" },
-        "best_capability": { "$ref": "#/$defs/recommendation" },
-        "balanced": { "$ref": "#/$defs/recommendation" },
-        "split_routing": {
-          "type": ["object", "null"],
-          "additionalProperties": false,
-          "description": "Per-task model assignment. Often beats any single-model choice.",
-          "properties": {
-            "assignments": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": ["task_id", "model_id", "rationale"],
-                "properties": {
-                  "task_id": { "type": "string" },
-                  "model_id": { "type": "string" },
-                  "rationale": { "$ref": "#/$defs/rationale" }
+        "estimate_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "workflow_id": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scenario_id": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "generated_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+        },
+        "pricing_snapshot_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Candidate"
+          }
+        },
+        "recommendations": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Recommendations"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "excluded_models": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ExcludedModel"
+          }
+        },
+        "optimization_report": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Optimization"
+          }
+        },
+        "breakeven": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Breakeven"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "assumptions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Assumption"
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          }
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence"
+        },
+        "needs_human_review": {
+          "type": "boolean"
+        },
+        "missing_data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MissingDatum"
+          }
+        },
+        "warnings": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EstimateWarning"
+          }
+        }
+      },
+      "required": [
+        "estimate_id",
+        "generated_at",
+        "pricing_snapshot_id",
+        "candidates",
+        "assumptions",
+        "evidence",
+        "confidence",
+        "needs_human_review",
+        "missing_data"
+      ]
+    },
+    "Candidate": {
+      "type": "object",
+      "properties": {
+        "model_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provider_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tier": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Tier"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "deployment_mode": {
+          "$ref": "#/$defs/DeploymentMode"
+        },
+        "data_residency_region": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "is_prc_hosted": {
+          "default": null,
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EstimateLine"
+          }
+        },
+        "total_tokens": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "input": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Range"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "output": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Range"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "reasoning": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Range"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "cached": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Range"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               }
             },
-            "total_cost_p50": { "type": "number" },
-            "saving_vs_single_model_pct": { "type": "number" }
-          }
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "total_cost": {
+          "$ref": "#/$defs/Range"
+        },
+        "currency": {
+          "$ref": "#/$defs/Currency"
+        },
+        "display_currency": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Currency"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "fx_rate_ref": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "self_hosted_detail": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SelfHostedDetail"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence"
         }
-      }
+      },
+      "required": [
+        "model_id",
+        "provider_id",
+        "deployment_mode",
+        "lines",
+        "total_cost",
+        "currency",
+        "confidence"
+      ]
     },
-
-    "excluded_models": {
-      "type": "array",
-      "description": "Models removed before ranking, with the reason. Transparency requirement.",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["model_id", "reason"],
-        "properties": {
-          "model_id": { "type": "string" },
-          "reason": {
-            "type": "string",
-            "enum": [
-              "MISSING_MODALITY", "NO_TOOL_SUPPORT", "CONTEXT_TOO_SMALL",
-              "DATA_RESIDENCY_BLOCKED", "RATE_MISSING", "RATE_STALE",
-              "VRAM_INFEASIBLE", "TOKENIZER_UNAVAILABLE", "ASSET_EXCEEDS_CONSTRAINTS"
-            ]
-          },
-          "detail": { "type": "string" }
-        }
-      }
+    "Tier": {
+      "type": "string",
+      "enum": [
+        "FRONTIER",
+        "MID",
+        "LIGHTWEIGHT"
+      ]
     },
-
-    "optimization_report": {
-      "type": "array",
-      "description": "Ranked levers. Each must name the metric that triggered it and the evidence.",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["lever", "projected_saving_pct", "rationale"],
-        "properties": {
-          "lever": {
-            "type": "string",
-            "enum": [
-              "ENABLE_PROMPT_CACHING", "TRIM_CONVERSATION_HISTORY", "SUMMARIZE_ROLLUP",
-              "DOWNSIZE_MODEL_FOR_TASK", "BATCH_REQUESTS", "REDUCE_IMAGE_RESOLUTION",
-              "USE_LOW_DETAIL_VISION", "TRIM_TOOL_SCHEMAS", "LOWER_MAX_TOKENS",
-              "AVOID_CONTEXT_TIER_THRESHOLD", "SWITCH_TO_SELF_HOSTED", "SWITCH_TO_API"
-            ]
-          },
-          "target_task_ids": { "type": "array", "items": { "type": "string" } },
-          "projected_saving_pct": { "type": "number", "minimum": 0, "maximum": 100 },
-          "projected_saving_absolute": { "type": ["number", "null"] },
-          "tradeoff": { "type": "string", "description": "What gets worse. A lever with no stated tradeoff is under-analysed." },
-          "rationale": { "$ref": "#/$defs/rationale" }
-        }
-      }
+    "DeploymentMode": {
+      "type": "string",
+      "enum": [
+        "API_MANAGED",
+        "SELF_HOSTED",
+        "DEDICATED_CAPACITY"
+      ]
     },
-
-    "breakeven": {
-      "type": ["object", "null"],
-      "additionalProperties": false,
-      "description": "Volume at which self-hosted cost crosses below API-managed cost.",
+    "EstimateLine": {
+      "type": "object",
       "properties": {
-        "requests_per_day_crossover": { "type": ["number", "null"] },
-        "assumptions_ref": { "type": "array", "items": { "type": "string" } },
-        "series": {
+        "task_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "component": {
+          "$ref": "#/$defs/CostComponent"
+        },
+        "quantity": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Range"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "unit": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CostUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rate_record_id": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cost": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Range"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "context_safety_quantity": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "method": {
+          "$ref": "#/$defs/Method"
+        },
+        "tier": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 3
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tokenizer_proxy": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TokenizerProxyUse"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cache": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CacheOutcome"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence"
+        },
+        "note": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "task_id",
+        "component",
+        "method",
+        "confidence"
+      ]
+    },
+    "CostComponent": {
+      "type": "string",
+      "enum": [
+        "prompt_input",
+        "framing_overhead",
+        "tool_schema",
+        "conversation_history",
+        "image_tiles",
+        "audio_duration",
+        "video_frames",
+        "completion_output",
+        "reasoning_output",
+        "cache_read",
+        "cache_write",
+        "per_request_fee",
+        "gpu_seconds",
+        "idle_gpu",
+        "storage",
+        "egress",
+        "ops_labour"
+      ]
+    },
+    "Range": {
+      "type": "object",
+      "properties": {
+        "p50": {
+          "type": "number",
+          "minimum": 0
+        },
+        "p90": {
+          "type": "number",
+          "minimum": 0
+        },
+        "p99": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "p50",
+        "p90"
+      ]
+    },
+    "CostUnit": {
+      "type": "string",
+      "enum": [
+        "tokens",
+        "tiles",
+        "images",
+        "megapixels",
+        "seconds",
+        "requests",
+        "gb",
+        "months"
+      ]
+    },
+    "Method": {
+      "type": "string",
+      "enum": [
+        "EXACT_TOKENIZER",
+        "PROVIDER_COUNT_API",
+        "PROVIDER_FORMULA",
+        "MEASURED_PROBE",
+        "MEASURED_BENCHMARK",
+        "TOKENIZER_SCALED",
+        "CALIBRATED_HEURISTIC",
+        "EXACT_PROXY",
+        "USER_SUPPLIED",
+        "DERIVED",
+        "UNAVAILABLE"
+      ]
+    },
+    "TokenizerProxyUse": {
+      "type": "object",
+      "properties": {
+        "target_model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "proxy_model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "basis": {
+          "$ref": "#/$defs/ProxyBasis"
+        },
+        "measured_delta_pct": {
+          "default": null,
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "target_model",
+        "proxy_model",
+        "basis"
+      ]
+    },
+    "ProxyBasis": {
+      "type": "string",
+      "enum": [
+        "SCRIPT_AND_ARCHITECTURE_MATCH",
+        "ARCHITECTURE_ONLY",
+        "UNVALIDATED"
+      ]
+    },
+    "CacheOutcome": {
+      "type": "object",
+      "properties": {
+        "hit": {
+          "type": "boolean"
+        },
+        "key_includes_tokenizer_revision": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "hit",
+        "key_includes_tokenizer_revision"
+      ]
+    },
+    "Confidence": {
+      "type": "string",
+      "enum": [
+        "HIGH",
+        "MEDIUM",
+        "LOW",
+        "NONE"
+      ]
+    },
+    "Currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3
+    },
+    "SelfHostedDetail": {
+      "type": "object",
+      "properties": {
+        "vram_feasible": {
+          "type": "boolean"
+        },
+        "required_vram_gb": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "available_vram_gb": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "request_seconds": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Range"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "utilization_factor": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "idle_cost_per_day": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ops_labour_monthly": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rate_basis": {
+          "type": "string",
+          "enum": [
+            "ON_DEMAND",
+            "SPOT"
+          ]
+        }
+      },
+      "required": [
+        "vram_feasible",
+        "utilization_factor",
+        "rate_basis"
+      ]
+    },
+    "Recommendations": {
+      "type": "object",
+      "properties": {
+        "cheapest": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Recommendation"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "best_capability": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Recommendation"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "balanced": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Recommendation"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "split_routing": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SplitRouting"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "Recommendation": {
+      "type": "object",
+      "properties": {
+        "model_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "deployment_mode": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DeploymentMode"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "total_cost": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Range"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rationale": {
+          "$ref": "#/$defs/Rationale"
+        }
+      },
+      "required": [
+        "model_id",
+        "rationale"
+      ]
+    },
+    "Rationale": {
+      "type": "object",
+      "properties": {
+        "triggering_metric": {
+          "type": "string",
+          "minLength": 1
+        },
+        "observed_value": {},
+        "threshold": {},
+        "evidence_ref": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "triggering_metric",
+        "observed_value",
+        "threshold"
+      ]
+    },
+    "SplitRouting": {
+      "type": "object",
+      "properties": {
+        "assignments": {
           "type": "array",
           "items": {
             "type": "object",
-            "additionalProperties": false,
-            "required": ["requests_per_day", "api_cost", "self_hosted_cost"],
             "properties": {
-              "requests_per_day": { "type": "number", "minimum": 0 },
-              "api_cost": { "type": "number", "minimum": 0 },
-              "self_hosted_cost": { "type": "number", "minimum": 0 }
-            }
-          }
-        }
-      }
-    },
-
-    "assumptions": { "type": "array", "items": { "$ref": "#/$defs/assumption" } },
-    "evidence": { "type": "array", "items": { "$ref": "#/$defs/evidence" } },
-    "confidence": { "$ref": "#/$defs/confidence" },
-    "needs_human_review": { "type": "boolean" },
-    "missing_data": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["field", "why_it_matters", "blocks_estimate"],
-        "properties": {
-          "field": { "type": "string" },
-          "model_id": { "type": ["string", "null"] },
-          "why_it_matters": { "type": "string" },
-          "blocks_estimate": { "type": "boolean" }
-        }
-      }
-    },
-    "warnings": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["code", "message", "severity"],
-        "properties": {
-          "code": {
-            "type": "string",
-            "enum": [
-              "MAX_TOKENS_BELOW_P90", "NEAR_CONTEXT_TIER_THRESHOLD", "PRICE_CHANGED_SINCE_LAST_RUN",
-              "RATE_CONFLICT_UNRESOLVED", "PROXY_TOKENIZER_IN_USE", "LOW_UTILIZATION_SELF_HOSTED",
-              "STALE_FX_RATE", "REASONING_TOKENS_ESTIMATED", "VIDEO_HIGH_VARIANCE",
-              "CALIBRATION_SAMPLE_TOO_SMALL", "ESCALATION_FAILED",
-              "HEURISTIC_ON_UNCALIBRATED_SCRIPT", "PROXY_SCRIPT_MISMATCH",
-              "PROXY_DRIFT_EXCEEDED", "MEDIA_PAYLOAD_NOT_REMOTE_COUNTED",
-              "CACHE_KEY_MISSING_TOKENIZER_REVISION", "ASSET_EXCEEDS_MAX_EDGE",
-              "RESIZE_SAVES_NOTHING", "RESIZE_BELOW_LEGIBILITY_FLOOR",
-              "PROVIDER_WILL_NORMALIZE", "REROUTED_FOR_ASSET_CONSTRAINT",
-              "REROUTE_BLOCKED_BY_RESIDENCY"
+              "task_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "model_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "rationale": {
+                "$ref": "#/$defs/Rationale"
+              }
+            },
+            "required": [
+              "task_id",
+              "model_id",
+              "rationale"
             ]
-          },
-          "message": { "type": "string" },
-          "severity": { "type": "string", "enum": ["INFO", "WARN", "BLOCKING"] }
-        }
-      }
-    }
-  },
-
-  "$defs": {
-    "confidence": { "type": "string", "enum": ["HIGH", "MEDIUM", "LOW"] },
-    "method": {
-      "type": "string",
-      "enum": ["EXACT_TOKENIZER", "PROVIDER_COUNT_API", "CALIBRATED_HEURISTIC", "USER_SUPPLIED", "MEASURED_BENCHMARK", "UNAVAILABLE"],
-      "description": "How this figure was produced. Mandatory on every line."
-    },
-    "range": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["p50", "p90"],
-      "description": "Point estimates are forbidden for non-deterministic quantities.",
-      "properties": {
-        "p50": { "type": "number", "minimum": 0 },
-        "p90": { "type": "number", "minimum": 0 },
-        "p99": { "type": ["number", "null"], "minimum": 0 }
-      }
-    },
-    "rationale": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["triggering_metric", "observed_value", "threshold"],
-      "description": "No recommendation renders without one.",
-      "properties": {
-        "triggering_metric": { "type": "string" },
-        "observed_value": {},
-        "threshold": {},
-        "evidence_ref": { "type": ["string", "null"] }
-      }
-    },
-    "candidate": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["model_id", "provider_id", "deployment_mode", "lines", "total_cost", "currency", "confidence"],
-      "properties": {
-        "model_id": { "type": "string" },
-        "provider_id": { "type": "string" },
-        "tier": { "type": "string", "enum": ["FRONTIER", "MID", "LIGHTWEIGHT"] },
-        "deployment_mode": { "type": "string", "enum": ["API_MANAGED", "SELF_HOSTED", "DEDICATED_CAPACITY"] },
-        "data_residency_region": { "type": ["string", "null"] },
-        "is_prc_hosted": { "type": ["boolean", "null"] },
-        "lines": { "type": "array", "items": { "$ref": "#/$defs/estimateLine" } },
-        "total_tokens": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "input": { "$ref": "#/$defs/range" },
-            "output": { "$ref": "#/$defs/range" },
-            "reasoning": { "$ref": "#/$defs/range" },
-            "cached": { "$ref": "#/$defs/range" }
           }
         },
-        "total_cost": { "$ref": "#/$defs/range" },
-        "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
-        "display_currency": { "type": ["string", "null"], "pattern": "^[A-Z]{3}$" },
-        "fx_rate_ref": { "type": ["string", "null"], "description": "Dated FX record id. Required whenever display_currency differs from currency." },
-        "self_hosted_detail": {
-          "type": ["object", "null"],
-          "additionalProperties": false,
-          "properties": {
-            "vram_feasible": { "type": "boolean" },
-            "required_vram_gb": { "type": ["number", "null"] },
-            "available_vram_gb": { "type": ["number", "null"] },
-            "request_seconds": { "$ref": "#/$defs/range" },
-            "utilization_factor": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
-            "idle_cost_per_day": { "type": ["number", "null"] },
-            "ops_labour_monthly": { "type": ["number", "null"] },
-            "rate_basis": { "type": "string", "enum": ["ON_DEMAND", "SPOT"] }
-          }
-        },
-        "confidence": { "$ref": "#/$defs/confidence" }
-      }
-    },
-    "estimateLine": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["task_id", "component", "method", "confidence"],
-      "properties": {
-        "task_id": { "type": "string" },
-        "component": {
-          "type": "string",
-          "enum": [
-            "prompt_input", "framing_overhead", "tool_schema", "conversation_history",
-            "image_tiles", "audio_duration", "video_frames",
-            "completion_output", "reasoning_output",
-            "cache_read", "cache_write", "per_request_fee",
-            "gpu_seconds", "idle_gpu", "storage", "egress", "ops_labour"
+        "total_cost_p50": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
           ]
         },
-        "quantity": { "$ref": "#/$defs/range" },
-        "unit": { "type": "string", "enum": ["tokens", "tiles", "images", "megapixels", "seconds", "requests", "gb", "months"] },
-        "rate_record_id": { "type": ["string", "null"], "description": "Null only when method is UNAVAILABLE." },
-        "cost": { "$ref": "#/$defs/range" },
-        "context_safety_quantity": {
-          "type": ["number", "null"],
-          "description": "Padded token quantity for context-overflow and max_tokens checks ONLY. Tier 3 sets this to quantity x (1 + HEURISTIC_SAFETY_PAD_PCT); higher tiers leave it equal to quantity. It must NEVER reach a price — padding a quote overcharges the client."
+        "saving_vs_single_model_pct": {
+          "default": null,
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "assignments"
+      ]
+    },
+    "ExcludedModel": {
+      "type": "object",
+      "properties": {
+        "model_id": {
+          "type": "string",
+          "minLength": 1
         },
-        "method": { "$ref": "#/$defs/method" },
-        "tier": {
-          "type": ["integer", "null"],
+        "reason": {
+          "$ref": "#/$defs/ExclusionReason"
+        },
+        "detail": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "model_id",
+        "reason"
+      ]
+    },
+    "ExclusionReason": {
+      "type": "string",
+      "enum": [
+        "MISSING_MODALITY",
+        "NO_TOOL_SUPPORT",
+        "CONTEXT_TOO_SMALL",
+        "DATA_RESIDENCY_BLOCKED",
+        "RATE_MISSING",
+        "RATE_STALE",
+        "VRAM_INFEASIBLE",
+        "TOKENIZER_UNAVAILABLE",
+        "ASSET_EXCEEDS_CONSTRAINTS"
+      ]
+    },
+    "Optimization": {
+      "type": "object",
+      "properties": {
+        "lever": {
+          "$ref": "#/$defs/OptimizationLever"
+        },
+        "target_task_ids": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "projected_saving_pct": {
+          "type": "number",
           "minimum": 0,
-          "maximum": 3,
-          "description": "The tier that ACTUALLY produced this number, never the tier requested. 0 cache, 1 remote count API, 2 local/proxy tokenizer, 3 calibrated heuristic. A silent downgrade is the same class of bug as a hardcoded rate."
+          "maximum": 100
         },
-        "tokenizer_proxy": {
-          "type": ["object", "null"],
-          "additionalProperties": false,
-          "description": "Present only when a closed-tier model was counted with a substitute vocabulary. The proxy must match the SCRIPT as well as the architecture — a Chinese model proxied to a Western-trained tokenizer is wrong in a consistent direction.",
-          "properties": {
-            "target_model": { "type": "string" },
-            "proxy_model": { "type": "string" },
-            "basis": { "type": "string", "enum": ["SCRIPT_AND_ARCHITECTURE_MATCH", "ARCHITECTURE_ONLY", "UNVALIDATED"] },
-            "measured_delta_pct": { "type": ["number", "null"], "description": "From Tier 1 drift capture. Null = unvalidated, forces LOW confidence." }
-          }
+        "projected_saving_absolute": {
+          "default": null,
+          "type": [
+            "number",
+            "null"
+          ]
         },
-        "cache": {
-          "type": ["object", "null"],
-          "additionalProperties": false,
-          "properties": {
-            "hit": { "type": "boolean" },
-            "key_includes_tokenizer_revision": { "type": "boolean", "description": "Must be true. A hash-only key serves one model's count for another." }
-          }
+        "tradeoff": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
-        "confidence": { "$ref": "#/$defs/confidence" },
-        "note": { "type": ["string", "null"] }
-      }
+        "rationale": {
+          "$ref": "#/$defs/Rationale"
+        }
+      },
+      "required": [
+        "lever",
+        "projected_saving_pct",
+        "rationale"
+      ]
     },
-    "recommendation": {
-      "type": ["object", "null"],
-      "additionalProperties": false,
-      "required": ["model_id", "rationale"],
-      "properties": {
-        "model_id": { "type": "string" },
-        "deployment_mode": { "type": "string", "enum": ["API_MANAGED", "SELF_HOSTED", "DEDICATED_CAPACITY"] },
-        "total_cost": { "$ref": "#/$defs/range" },
-        "rationale": { "$ref": "#/$defs/rationale" }
-      }
+    "OptimizationLever": {
+      "type": "string",
+      "enum": [
+        "ENABLE_PROMPT_CACHING",
+        "TRIM_CONVERSATION_HISTORY",
+        "SUMMARIZE_ROLLUP",
+        "DOWNSIZE_MODEL_FOR_TASK",
+        "BATCH_REQUESTS",
+        "REDUCE_IMAGE_RESOLUTION",
+        "USE_LOW_DETAIL_VISION",
+        "TRIM_TOOL_SCHEMAS",
+        "LOWER_MAX_TOKENS",
+        "AVOID_CONTEXT_TIER_THRESHOLD",
+        "SWITCH_TO_SELF_HOSTED",
+        "SWITCH_TO_API"
+      ]
     },
-    "assumption": {
+    "Breakeven": {
       "type": "object",
-      "additionalProperties": false,
-      "required": ["field", "value", "basis", "impact_if_wrong", "user_editable"],
       "properties": {
-        "id": { "type": "string" },
-        "task_id": { "type": ["string", "null"] },
-        "field": { "type": "string" },
+        "requests_per_day_crossover": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "assumptions_ref": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "series": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BreakevenPoint"
+          }
+        }
+      }
+    },
+    "BreakevenPoint": {
+      "type": "object",
+      "properties": {
+        "requests_per_day": {
+          "type": "number",
+          "minimum": 0
+        },
+        "api_cost": {
+          "type": "number",
+          "minimum": 0
+        },
+        "self_hosted_cost": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "requests_per_day",
+        "api_cost",
+        "self_hosted_cost"
+      ]
+    },
+    "Assumption": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "task_id": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "field": {
+          "type": "string",
+          "minLength": 1
+        },
         "value": {},
-        "basis": { "type": "string" },
-        "impact_if_wrong": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "ORDER_OF_MAGNITUDE"] },
-        "user_editable": { "type": "boolean" },
-        "sensitivity_rank": { "type": ["integer", "null"], "minimum": 1, "description": "1 = moves total cost most. Drives the tornado chart." }
-      }
+        "basis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seed_provenance": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SeedProvenance"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "impact_if_wrong": {
+          "$ref": "#/$defs/ImpactIfWrong"
+        },
+        "user_editable": {
+          "default": true,
+          "type": "boolean"
+        },
+        "sensitivity_rank": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "field",
+        "value",
+        "basis",
+        "impact_if_wrong"
+      ]
     },
-    "evidence": {
+    "SeedProvenance": {
+      "type": "string",
+      "enum": [
+        "SEED_UNCALIBRATED",
+        "CALIBRATED_FROM_OBSERVED",
+        "USER_SUPPLIED_BASELINE"
+      ]
+    },
+    "ImpactIfWrong": {
+      "type": "string",
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH",
+        "ORDER_OF_MAGNITUDE"
+      ]
+    },
+    "Evidence": {
       "type": "object",
-      "additionalProperties": false,
-      "required": ["ref", "kind", "source_url"],
       "properties": {
-        "ref": { "type": "string" },
-        "kind": { "type": "string", "enum": ["PRICING_RECORD", "TOKENIZER_RUN", "COUNT_API_RESPONSE", "CALIBRATION_ROW", "BENCHMARK", "VENDOR_DOC", "MODEL_CARD"] },
-        "source_url": { "type": ["string", "null"], "format": "uri" },
-        "verified_at": { "type": ["string", "null"], "format": "date-time" },
-        "sample_size": { "type": ["integer", "null"], "minimum": 1 }
-      }
+        "ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "PRICING_RECORD",
+            "TOKENIZER_RUN",
+            "COUNT_API_RESPONSE",
+            "CALIBRATION_ROW",
+            "BENCHMARK",
+            "VENDOR_DOC",
+            "MODEL_CARD"
+          ]
+        },
+        "source_url": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uri"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "verified_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sample_size": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "ref",
+        "kind",
+        "source_url",
+        "verified_at"
+      ]
+    },
+    "MissingDatum": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "type": "string",
+          "minLength": 1
+        },
+        "task_id": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "model_id": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "question": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "why_it_matters": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "blocks_estimate": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "field",
+        "blocks_estimate"
+      ]
+    },
+    "EstimateWarning": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/WarningCode"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "INFO",
+            "WARN",
+            "BLOCKING"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "severity"
+      ]
+    },
+    "WarningCode": {
+      "type": "string",
+      "enum": [
+        "MAX_TOKENS_BELOW_P90",
+        "NEAR_CONTEXT_TIER_THRESHOLD",
+        "PRICE_CHANGED_SINCE_LAST_RUN",
+        "RATE_CONFLICT_UNRESOLVED",
+        "PROXY_TOKENIZER_IN_USE",
+        "LOW_UTILIZATION_SELF_HOSTED",
+        "STALE_FX_RATE",
+        "REASONING_TOKENS_ESTIMATED",
+        "VIDEO_HIGH_VARIANCE",
+        "CALIBRATION_SAMPLE_TOO_SMALL",
+        "ESCALATION_FAILED",
+        "HEURISTIC_ON_UNCALIBRATED_SCRIPT",
+        "PROXY_SCRIPT_MISMATCH",
+        "PROXY_DRIFT_EXCEEDED",
+        "MEDIA_PAYLOAD_NOT_REMOTE_COUNTED",
+        "CACHE_KEY_MISSING_TOKENIZER_REVISION",
+        "ASSET_EXCEEDS_MAX_EDGE",
+        "RESIZE_SAVES_NOTHING",
+        "RESIZE_BELOW_LEGIBILITY_FLOOR",
+        "PROVIDER_WILL_NORMALIZE",
+        "REROUTED_FOR_ASSET_CONSTRAINT",
+        "REROUTE_BLOCKED_BY_RESIDENCY"
+      ]
     }
-  }
+  },
+  "title": "EstimateOutput",
+  "$comment": "GENERATED from /packages/contracts/src — do not hand-edit. Run `pnpm generate:schemas`. CI fails if this file differs from the regenerated output (§A2)."
 }

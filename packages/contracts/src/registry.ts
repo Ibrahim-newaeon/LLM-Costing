@@ -22,6 +22,17 @@ export const Modality = z.enum(['text', 'code', 'image', 'video', 'audio', 'embe
 export const Tier = z.enum(['FRONTIER', 'MID', 'LIGHTWEIGHT']);
 export const TokenizerAvailability = z.enum(['LOCAL_EXACT', 'REMOTE_API', 'PROXY', 'NONE']);
 
+/**
+ * How far a substitute vocabulary can be trusted. Exported because the estimate
+ * line reports the same fact per figure — it must not get its own copy.
+ */
+export const ProxyBasis = z.enum([
+  'SCRIPT_AND_ARCHITECTURE_MATCH',
+  'ARCHITECTURE_ONLY',
+  'UNVALIDATED',
+]);
+export type ProxyBasis = z.infer<typeof ProxyBasis>;
+
 /* ─────────────────────── tokenizer ─────────────────────── */
 
 export const TokenizerProfile = z
@@ -36,10 +47,7 @@ export const TokenizerProfile = z
      * direction, which makes it look stable and keeps it from being noticed.
      */
     proxy_for: z.string().nullable().default(null),
-    proxy_basis: z
-      .enum(['SCRIPT_AND_ARCHITECTURE_MATCH', 'ARCHITECTURE_ONLY', 'UNVALIDATED'])
-      .nullable()
-      .default(null),
+    proxy_basis: ProxyBasis.nullable().default(null),
     /** From Tier-1 drift capture. Null = unvalidated ⇒ LOW. */
     measured_delta_pct: z.number().nullable().default(null),
     /** Calibrated, never published. A vendor's "~30%" is not a number you bill against. */
