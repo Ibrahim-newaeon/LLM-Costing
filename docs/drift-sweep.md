@@ -231,6 +231,38 @@ export const Assumption = z.object({
 Reconcile the two impact scales while you are there — three levels in one place and four in
 another, sharing a member, is the same two-definitions problem one level down.
 
+### 5d. CORRECTIONS to 5c, 2026-09-07 — recorded after the layer was built
+
+Two of §5c's recommendations were wrong. Both are withdrawn.
+
+**1. Do not reconcile the two impact scales.** They are not two versions of one thing. Checked
+against where each actually attaches:
+
+| | attaches to | answers |
+|---|---|---|
+| `impact` — COSMETIC / MATERIAL / ORDER_OF_MAGNITUDE | `ambiguities[]` | the input admits more than one reading; how much does picking wrong cost? |
+| `impact_if_wrong` — LOW / MEDIUM / HIGH / ORDER_OF_MAGNITUDE | `assumption` | the input was silent and we supplied a value; how far does the total move if it is wrong? |
+
+They share `ORDER_OF_MAGNITUDE` and nothing else. An ambiguity is a question for the user; an
+assumption is an answer we gave ourselves. One gets asked, the other gets rendered with an edit
+control. Merging the scales merges those. `assumption.ts` keeps both, and four tests fail if a
+later cleanup collapses them.
+
+**2. The suggested Zod drops `seed_provenance`.** The sketch above uses `value` +
+`sensitivity_rank`, which is the `estimate-output` shape. `workflow-input`'s shape also carried
+`seed_provenance` (`SEED_UNCALIBRATED` | `CALIBRATED_FROM_OBSERVED` | `USER_SUPPLIED_BASELINE`),
+and `SEED_UNCALIBRATED` is what forces LOW and carries the standing task to replace a baseline
+from observed runs. Taking the sketch literally would have deleted the seed-calibration ladder
+while closing a drift ticket. The shipped `Assumption` is the **superset**: keyed on `value`,
+carrying both `seed_provenance` and `sensitivity_rank`.
+
+**Status of the three files this section is about.** `workflow-input.schema.json` and
+`estimate-output.schema.json` are now generated from Zod and gated. `pricing-record.schema.json`
+was **deleted rather than regenerated**: its payload duplicated `TextRateProfile`, `ContextTier`,
+`CacheProfile`, `VisionProfile` and `HardwareProfile`, and the three things it had that the
+contracts lacked — `DeploymentMode`, `RateConflict`, `max_age_days` — now live on `Rate`. So the
+stale-enum row for it in §5a above is historical; the file is gone.
+
 ## 6. `reference/tokenomics-reference.html` — 8 sites, and it is published
 
 The reference page carries the stalest lists in the repo, including `Method` at **4 of 11**
