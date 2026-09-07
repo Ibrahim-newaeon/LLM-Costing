@@ -1,0 +1,103 @@
+{
+  "reviewed": "2026-09-06",
+  "sources": [
+    {
+      "name": "OpenAI API pricing",
+      "url": "https://openai.com/api/pricing/",
+      "checks": ["$0.40", "$10.00", "$12.50", "$1.00"]
+    },
+    {
+      "name": "Anthropic SDK docs — pricing",
+      "url": "https://docs.anthropic.com/en/docs/about-claude/pricing",
+      "checks": ["$10.00", "$25.00", "$1.00", "$0.20"]
+    }
+  ],
+  "chat": [
+    {
+      "id": "gpt-6-astra",
+      "input": 10,
+      "output": 50,
+      "cachedInput": 1,
+      "cacheWriteInput": 12.5,
+      "longInput": 20,
+      "longOutput": 75,
+      "note": "Long-context window (>128K) bills at 2x input / 1.5x output for the whole request."
+    },
+    {
+      "id": "gpt-5.6-sol",
+      "input": 4,
+      "output": 20,
+      "cachedInput": 0.4,
+      "longInput": 8,
+      "longOutput": 30,
+      "note": "Promotional rate through at least Nov 21, 2026."
+    },
+    { "id": "gpt-5.6-terra", "input": 2, "output": 12, "cachedInput": 0.2, "longInput": 4, "longOutput": 18 },
+    { "id": "gpt-5.6-luna", "input": 0.2, "output": 1.2, "cachedInput": 0.02, "longInput": 0.4, "longOutput": 1.8 },
+    { "id": "gpt-4o", "input": 2.5, "output": 10, "cachedInput": 1.25 },
+    { "id": "gpt-4o-mini", "input": 0.15, "output": 0.6, "cachedInput": 0.075 },
+    { "id": "gpt-4.1", "input": 2, "output": 8, "cachedInput": 0.5 },
+    { "id": "claude-fable-5", "input": 10, "output": 50, "cachedInput": 1 },
+    { "id": "claude-mythos-5", "input": 10, "output": 50, "cachedInput": 1 },
+    { "id": "claude-opus-5", "input": 5, "output": 25, "cachedInput": 0.5 },
+    { "id": "claude-opus-4.8", "input": 5, "output": 25, "cachedInput": 0.5 },
+    { "id": "claude-opus-4.7", "input": 5, "output": 25, "cachedInput": 0.5 },
+    { "id": "claude-sonnet-5", "input": 2, "output": 10, "cachedInput": 0.2 },
+    { "id": "claude-sonnet-4.6", "input": 3, "output": 15, "cachedInput": 0.3 },
+    { "id": "claude-sonnet-4.5", "input": 3, "output": 15, "cachedInput": 0.3 },
+    { "id": "claude-haiku-4.5", "input": 1, "output": 5, "cachedInput": 0.1 },
+    { "id": "open-llama3.1-8b", "input": 0.05, "output": 0.05, "cachedInput": 0.05 },
+    { "id": "open-llama3.1-70b", "input": 0.6, "output": 2.5, "cachedInput": 0.6 },
+    { "id": "open-mistral", "input": 0.2, "output": 0.6, "cachedInput": 0.2 }
+  ],
+  "gen": [
+    {
+      "id": "gpt-image-2",
+      "input": 5,
+      "imageInput": 8,
+      "imageOutput": 30,
+      "cachedInput": 1.25,
+      "perImage": {
+        "low": { "square": 0.006, "wide": 0.005 },
+        "medium": { "square": 0.053, "wide": 0.041 },
+        "high": { "square": 0.211, "wide": 0.165 }
+      }
+    },
+    {
+      "id": "gpt-image-1.5",
+      "input": 5,
+      "imageInput": 8,
+      "imageOutput": 32,
+      "cachedInput": 1.25,
+      "perImage": {
+        "low": { "square": 0.009, "wide": 0.0135 },
+        "medium": { "square": 0.034, "wide": 0.051 },
+        "high": { "square": 0.133, "wide": 0.2 }
+      }
+    },
+    {
+      "id": "gpt-image-1",
+      "input": 5,
+      "imageInput": 10,
+      "imageOutput": 40,
+      "cachedInput": 1.25,
+      "perImage": {
+        "low": { "square": 0.011, "wide": 0.016 },
+        "medium": { "square": 0.042, "wide": 0.063 },
+        "high": { "square": 0.167, "wide": 0.25 }
+      }
+    },
+    {
+      "id": "gpt-image-1-mini",
+      "input": 2,
+      "imageInput": 2.5,
+      "imageOutput": 8,
+      "cachedInput": 0.5,
+      "perImage": {
+        "low": { "square": 0.005, "wide": 0.0075 },
+        "medium": { "square": 0.011, "wide": 0.0165 },
+        "high": { "square": 0.036, "wide": 0.052 }
+      }
+    }
+  ]
+}

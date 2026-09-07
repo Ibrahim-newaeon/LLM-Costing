@@ -22,18 +22,16 @@ error bars — and a refusal where a number would be a guess.
 | `packages/contracts/` | Zod contracts — the canonical shapes. The only code that exists today |
 | `schemas/` | Three hand-authored JSON Schemas. **Not** produced by the generator — see below |
 | `prompts/analyzer.system.md` | Runtime analyzer system prompt; ships at `/prompts/` in the built app |
+| `prototype/` | Working Vite/React prototype recovered from `~/llm-token-calculator`. Reference only — see `docs/prototype-salvage.md` |
+| `reference/` | The published reference page. **Stale** — 8 drift sites, no generator. Kept so it is not lost, not because it is current |
 | `docs/` | Findings from the 2026-09-07 review pass |
 
-### Deliberately left behind
+### Dropped
 
-Both live in the old `Token Cost Calculator` folder and were not carried over:
-
-- **`TOKENOMICS_MEGA_PROMPT_PART_A.md`** — a copy of `SPEC.md`'s §A0–§A14 with no generator
-  and no gate. Every drift site found in the review appeared in both files at a constant
-  six-line offset. One source now; regenerate the paste when it is needed.
-- **`reference/tokenomics-reference.html`** — 142 KB, published, and carrying the stalest enum
-  lists in the project (8 drift sites). Carrying it forward would import that drift. Regenerate
-  it from `SPEC.md` when there is a generator, or stamp it with the commit it came from.
+**`TOKENOMICS_MEGA_PROMPT_PART_A.md`** was not carried over. Checked line by line against
+`SPEC.md` before the old folder was deleted: of its 1,106 lines, 20 were unique, and all 20 were
+the preamble describing what Part A is. No spec content was lost. Regenerate the single-paste
+version from `SPEC.md` when it is needed.
 
 ## State, honestly
 
@@ -83,7 +81,10 @@ to trust it. They do not yet model the *estimate* itself, its inputs, or its ass
    watch `check:schemas` go red. A gate nobody has seen fail is a gate nobody trusts.
 6. **Then** delete the superseded files per `MIGRATION.md`, re-point `verify-rates.ts` /
    `calibrate-scripts.ts` / the probe at `@tokenomics/contracts`, and start `/packages/estimator`.
-7. **Optional, high leverage** — `docs/mcp-surface-a16.md` specs an MCP server so an agent can
+7. **Mine the prototype** — `docs/prototype-salvage.md`. The image geometry math and the rate
+   refresh pipeline are built and worth porting; the Claude tokenizer path is a legacy proxy
+   presented as exact and must be tagged honestly before it moves.
+8. **Optional, high leverage** — `docs/mcp-surface-a16.md` specs an MCP server so an agent can
    price its own call before dispatching it.
 
 ## Build order

@@ -1,0 +1,2259 @@
+<title>Tokenomics Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+
+<style>
+:root{
+  --paper:#EDF0F2; --surface:#FFFFFF; --surface-2:#F4F7F8; --slab:#0F1519; --slab-ink:#D9E3E9;
+  --ink:#101A20; --ink-2:#374A55; --muted:#66757F; --rule:#D2DAE0; --rule-soft:#E2E8EC;
+  --accent:#0F5F5C; --accent-soft:#DCEBE9; --accent-ink:#0A413F;
+  --warn:#8A5300; --warn-soft:#FAEEDA; --warn-rule:#E0BE84;
+  --high:#175E3C; --med:#8A5300; --low:#93261F;
+  --high-soft:#DFEDE4; --med-soft:#FAEEDA; --low-soft:#F7E2DF;
+  --shadow:0 1px 2px rgba(16,26,32,.05), 0 8px 24px -16px rgba(16,26,32,.35);
+  --display:'Archivo','Helvetica Neue',Arial,sans-serif;
+  --body:'Source Serif 4',Georgia,'Times New Roman',serif;
+  --mono:'IBM Plex Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0C1317; --surface:#131C21; --surface-2:#18232A; --slab:#080D10; --slab-ink:#D2DFE6;
+    --ink:#E5ECF0; --ink-2:#B2C1C9; --muted:#83959F; --rule:#27343B; --rule-soft:#1E2A31;
+    --accent:#4FB3AC; --accent-soft:#0F2E2D; --accent-ink:#9CD6D1;
+    --warn:#DDA74A; --warn-soft:#2B2214; --warn-rule:#5A4520;
+    --high:#63C08D; --med:#DDA74A; --low:#E58B80;
+    --high-soft:#122720; --med-soft:#2B2214; --low-soft:#2C1917;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.9);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0C1317; --surface:#131C21; --surface-2:#18232A; --slab:#080D10; --slab-ink:#D2DFE6;
+  --ink:#E5ECF0; --ink-2:#B2C1C9; --muted:#83959F; --rule:#27343B; --rule-soft:#1E2A31;
+  --accent:#4FB3AC; --accent-soft:#0F2E2D; --accent-ink:#9CD6D1;
+  --warn:#DDA74A; --warn-soft:#2B2214; --warn-rule:#5A4520;
+  --high:#63C08D; --med:#DDA74A; --low:#E58B80;
+  --high-soft:#122720; --med-soft:#2B2214; --low-soft:#2C1917;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.9);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:var(--body); font-size:clamp(15px,.55vw + 13.6px,16.5px); line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1180px; margin:0 auto; padding:0 clamp(16px,4vw,40px) 96px;}
+.col{max-width:74ch}
+
+/* ---------- masthead ---------- */
+header.mast{padding:clamp(40px,7vw,80px) 0 0}
+.eyebrow{
+  font-family:var(--mono); font-size:11.5px; font-weight:500; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--accent); margin:0 0 18px;
+}
+h1{
+  font-family:var(--display); font-weight:700; letter-spacing:-.028em; line-height:.98;
+  font-size:clamp(38px,6.4vw,74px); margin:0; text-wrap:balance;
+}
+h1 em{font-style:normal; color:var(--muted)}
+.lede{font-size:clamp(17px,1.1vw + 14px,20px); color:var(--ink-2); margin:22px 0 0; max-width:62ch; text-wrap:pretty}
+
+/* the meter scale — one flourish, drawn from the subject */
+.scale{
+  margin:34px 0 0; height:26px; position:relative;
+  border-bottom:1px solid var(--rule);
+  background-image:repeating-linear-gradient(to right, var(--rule) 0 1px, transparent 1px 100%);
+  background-size:14px 9px; background-position:bottom left; background-repeat:repeat-x;
+}
+.scale::after{
+  content:""; position:absolute; left:0; bottom:0; height:17px; width:38%;
+  background-image:repeating-linear-gradient(to right, var(--accent) 0 1px, transparent 1px 100%);
+  background-size:14px 17px;
+}
+.metastrip{
+  display:flex; flex-wrap:wrap; gap:10px 26px; margin:16px 0 0;
+  font-family:var(--mono); font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums;
+}
+.metastrip b{color:var(--ink-2); font-weight:500}
+
+/* ---------- nav ---------- */
+nav.top{
+  position:sticky; top:0; z-index:40; margin-top:44px;
+  background:color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter:blur(10px);
+  border-top:1px solid var(--rule); border-bottom:1px solid var(--rule);
+}
+nav.top ul{display:flex; gap:0; list-style:none; margin:0; padding:0; max-width:1180px; margin:0 auto}
+nav.top a{
+  display:flex; align-items:center; min-height:56px; padding:0 clamp(14px,3vw,26px);
+  font-family:var(--mono); font-size:12px; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--muted); text-decoration:none; border-right:1px solid var(--rule-soft);
+}
+nav.top a:hover,nav.top a:focus-visible{color:var(--ink); background:var(--surface-2)}
+
+/* ---------- progress dots ---------- */
+.rail{
+  position:fixed; left:max(10px,calc((100vw - 1180px)/2 - 42px)); top:50%; transform:translateY(-50%);
+  z-index:30; display:none; flex-direction:column; gap:14px;
+}
+@media (min-width:1320px){.rail{display:flex}}
+.rail button{
+  width:9px; height:9px; padding:0; border-radius:50%; border:1px solid var(--rule);
+  background:transparent; cursor:pointer; position:relative;
+}
+.rail button::before{content:""; position:absolute; inset:-14px}
+.rail button[aria-current="true"]{background:var(--accent); border-color:var(--accent); transform:scale(1.35)}
+.rail button:focus-visible{outline:2px solid var(--accent); outline-offset:4px}
+
+/* ---------- sections ---------- */
+section{padding:clamp(48px,6vw,84px) 0 0; scroll-margin-top:70px}
+h2{
+  font-family:var(--display); font-weight:700; letter-spacing:-.02em; line-height:1.06;
+  font-size:clamp(25px,2.6vw,36px); margin:0 0 6px; text-wrap:balance;
+}
+h3{font-family:var(--display); font-weight:600; font-size:clamp(17px,1.2vw,20px); letter-spacing:-.01em; margin:36px 0 8px}
+h4{font-family:var(--mono); font-weight:600; font-size:12px; letter-spacing:.11em; text-transform:uppercase; color:var(--muted); margin:26px 0 8px}
+.sub{color:var(--muted); font-family:var(--mono); font-size:12.5px; letter-spacing:.05em; margin:0 0 26px}
+p{margin:0 0 15px; text-wrap:pretty}
+a{color:var(--accent-ink); text-underline-offset:3px}
+
+/* ---------- tables ---------- */
+.tablewrap{overflow-x:auto; border:1px solid var(--rule); border-radius:3px; background:var(--surface); margin:18px 0 26px}
+table{border-collapse:collapse; width:100%; min-width:560px; font-size:14px}
+th{
+  font-family:var(--mono); font-weight:600; font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--muted); text-align:left; padding:12px 16px; border-bottom:1px solid var(--rule); white-space:nowrap;
+}
+td{padding:12px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; color:var(--ink-2)}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{color:var(--ink); font-weight:600}
+td.num,th.num{font-family:var(--mono); font-variant-numeric:tabular-nums}
+td code{font-size:12.5px}
+
+/* ---------- badges ---------- */
+.badge{
+  display:inline-block; font-family:var(--mono); font-size:10.5px; font-weight:600; letter-spacing:.09em;
+  text-transform:uppercase; padding:3px 7px; border-radius:2px; white-space:nowrap;
+}
+.b-high{background:var(--high-soft); color:var(--high)}
+.b-med{background:var(--med-soft); color:var(--med)}
+.b-low{background:var(--low-soft); color:var(--low)}
+.b-acc{background:var(--accent-soft); color:var(--accent-ink)}
+
+/* ---------- callouts ---------- */
+.flag{
+  border:1px solid var(--warn-rule); border-left-width:3px; background:var(--warn-soft);
+  border-radius:2px; padding:16px 18px; margin:0 0 14px;
+}
+.flag h5{font-family:var(--display); font-size:16px; font-weight:600; margin:0 0 6px; color:var(--ink)}
+.flag p{font-size:14.5px; color:var(--ink-2); margin:0 0 8px}
+.flag p:last-child{margin:0}
+.flag .fix{font-family:var(--mono); font-size:12.5px; color:var(--warn); display:block; margin-top:8px}
+
+/* ---------- formula slabs ---------- */
+pre{
+  font-family:var(--mono); font-size:12.5px; line-height:1.62; margin:0;
+  overflow-x:auto; -webkit-overflow-scrolling:touch; tab-size:2;
+}
+.formula{
+  background:var(--surface); border:1px solid var(--rule); border-radius:3px;
+  padding:18px 20px; margin:0 0 22px; overflow-x:auto;
+}
+.formula .lbl{
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--accent); display:block; margin-bottom:10px;
+}
+.formula pre{color:var(--ink-2)}
+
+/* ---------- copy blocks ---------- */
+.block{border:1px solid var(--rule); border-radius:3px; overflow:hidden; margin:0 0 14px; background:var(--slab)}
+.block .bar{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  background:var(--surface-2); border-bottom:1px solid var(--rule); padding:0 8px 0 16px; min-height:52px;
+}
+.block .bar span{font-family:var(--mono); font-size:11.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--muted)}
+.block pre{background:var(--slab); color:var(--slab-ink); padding:20px; max-height:440px; overflow:auto}
+button.copy{
+  min-height:40px; min-width:96px; padding:0 14px; cursor:pointer;
+  font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; text-transform:uppercase;
+  background:transparent; color:var(--accent-ink); border:1px solid var(--rule); border-radius:2px;
+}
+button.copy:hover{background:var(--accent-soft); border-color:var(--accent)}
+button.copy:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+button.copy[data-done="1"]{background:var(--accent); color:var(--surface); border-color:var(--accent)}
+
+/* ---------- mega prompt bar ---------- */
+.mega{
+  display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;
+  border:1px solid var(--accent); border-left-width:3px; background:var(--accent-soft);
+  border-radius:3px; padding:16px 18px; margin:0 0 18px;
+}
+.mega strong{font-family:var(--display); font-size:16px; font-weight:600; color:var(--ink); display:block}
+.mega p{font-size:14px; color:var(--ink-2); margin:5px 0 0; max-width:58ch}
+.mega button.copy{min-height:48px; min-width:120px; border-color:var(--accent); background:var(--surface)}
+
+/* ---------- accordions ---------- */
+details.acc{border:1px solid var(--rule); border-radius:3px; background:var(--surface); margin:0 0 10px}
+details.acc summary{
+  list-style:none; cursor:pointer; display:flex; align-items:center; gap:14px;
+  min-height:56px; padding:8px 18px; font-family:var(--display); font-weight:600; font-size:16px;
+}
+details.acc summary::-webkit-details-marker{display:none}
+details.acc summary::after{
+  content:"+"; margin-left:auto; font-family:var(--mono); font-size:17px; color:var(--muted); line-height:1;
+}
+details.acc[open] summary::after{content:"–"}
+details.acc summary:focus-visible{outline:2px solid var(--accent); outline-offset:-2px}
+details.acc .accbody{padding:0 14px 14px}
+details.acc .tag{
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--muted); border:1px solid var(--rule); border-radius:2px; padding:3px 7px;
+}
+
+/* ---------- tabs ---------- */
+.tabs{display:flex; gap:0; border-bottom:1px solid var(--rule); margin:0 0 22px; overflow-x:auto}
+.tabs button{
+  min-height:56px; padding:0 20px; cursor:pointer; white-space:nowrap;
+  background:transparent; border:0; border-bottom:2px solid transparent; margin-bottom:-1px;
+  font-family:var(--mono); font-size:12px; letter-spacing:.09em; text-transform:uppercase; color:var(--muted);
+}
+.tabs button[aria-selected="true"]{color:var(--ink); border-bottom-color:var(--accent)}
+.tabs button:focus-visible{outline:2px solid var(--accent); outline-offset:-4px}
+
+/* ---------- checklist ---------- */
+ul.check{list-style:none; margin:16px 0 0; padding:0; display:flex; flex-direction:column; gap:2px}
+ul.check li{border-bottom:1px solid var(--rule-soft)}
+ul.check label{
+  display:flex; gap:14px; align-items:flex-start; min-height:56px; padding:14px 4px; cursor:pointer;
+  font-size:14.5px; color:var(--ink-2);
+}
+ul.check input{width:20px; height:20px; margin:2px 0 0; accent-color:var(--accent); flex:none}
+ul.check input:checked + span{color:var(--muted); text-decoration:line-through; text-decoration-color:var(--rule)}
+
+/* ---------- misc ---------- */
+ul.plain{margin:0 0 18px; padding-left:20px}
+ul.plain li{margin:0 0 7px; color:var(--ink-2)}
+code{font-family:var(--mono); font-size:.88em; background:var(--surface-2); border:1px solid var(--rule-soft); border-radius:2px; padding:1px 5px}
+.grid2{display:grid; grid-template-columns:repeat(auto-fit,minmax(272px,1fr)); gap:14px; margin:0 0 24px}
+footer{
+  margin-top:80px; padding-top:26px; border-top:1px solid var(--rule);
+  font-family:var(--mono); font-size:12px; color:var(--muted); line-height:1.9;
+}
+footer b{color:var(--accent-ink); font-weight:500}
+@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+</style>
+
+<div class="rail" aria-label="Section progress">
+  <button type="button" data-dot="delta" aria-current="true" aria-label="What changed"></button>
+  <button type="button" data-dot="flags" aria-label="Verify flags"></button>
+  <button type="button" data-dot="layer0" aria-label="Layer 0 parser"></button>
+  <button type="button" data-dot="tiers" aria-label="Counting tiers"></button>
+  <button type="button" data-dot="geometries" aria-label="Vision geometries"></button>
+  <button type="button" data-dot="beyond" aria-label="Beyond the token"></button>
+  <button type="button" data-dot="blueprint" aria-label="Blueprint"></button>
+  <button type="button" data-dot="prompts" aria-label="Prompts"></button>
+  <button type="button" data-dot="schemas" aria-label="Schemas"></button>
+  <button type="button" data-dot="checklist" aria-label="Checklist"></button>
+</div>
+
+<div class="wrap">
+<header class="mast">
+  <div class="col">
+    <p class="eyebrow">Master build prompt · v1.0</p>
+    <h1>Tokenomics<br>Engine <em>—</em></h1>
+    <p class="lede">A rewrite of your orchestration prompt into something buildable: a multi-provider token &amp; compute cost estimator that states its error bars, refuses to guess a missing rate, and prices API-managed against self-hosted on the same page.</p>
+  </div>
+  <div class="scale" aria-hidden="true"></div>
+  <div class="metastrip">
+    <span><b>Scope</b> Build prompt + runtime system prompt</span>
+    <span><b>Stack</b> Next.js 15 · TS strict · Zod · Postgres</span>
+    <span><b>Providers</b> Global + Chinese + self-hosted</span>
+    <span><b>Rule</b> Zero hardcoded rates</span>
+  </div>
+</header>
+
+<nav class="top" aria-label="Sections">
+  <ul>
+    <li><a href="#blueprint">Blueprint</a></li>
+    <li><a href="#prompts">Prompts</a></li>
+    <li><a href="#schemas">Schemas</a></li>
+  </ul>
+</nav>
+
+<!-- ============ DELTA ============ -->
+<section id="delta">
+  <div class="col">
+    <h2>What your draft was missing</h2>
+    <p class="sub">Ten gaps, each one a wrong invoice</p>
+    <p>Your original prompt named the right dimensions. What it did not do was tell the builder what to do when a number isn't available — which, for a cost estimator, is the entire product. Everything below is additive to what you already wrote.</p>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Gap</th><th>Why it breaks the estimate</th><th>What the new prompt adds</th></tr></thead>
+      <tbody>
+        <tr><td>Missing-rate behaviour</td><td>Undefined. An agent will happily substitute a similar model's price.</td><td>Refuse-don't-guess rule: <code>needs_human_review</code> + <code>missing_data[]</code>, never a substitution.</td></tr>
+        <tr><td>Point estimates</td><td>Output and reasoning length are distributions. A single number is a false quote.</td><td>P50 / P90 mandatory on every non-deterministic quantity. Monte Carlo scenario.</td></tr>
+        <tr><td>Framing overhead</td><td>Chat-template scaffolding, role markers, BOS/EOS are billed and invisible.</td><td>Separate line item, derived empirically per model, not assumed constant.</td></tr>
+        <tr><td>Utilization</td><td>Self-hosted maths without it flatters GPUs by orders of magnitude.</td><td>Utilization factor + idle cost + a breakeven-volume chart as a primary screen.</td></tr>
+        <tr><td>VRAM feasibility</td><td>You can cost a deployment that physically cannot load the weights.</td><td>Hard gate: weights + KV cache + activation vs available VRAM before any cost runs.</td></tr>
+        <tr><td>Split routing</td><td>Prompt asked for "optimal model" — singular.</td><td>Per-task assignment as a first-class output, with saving vs single-model.</td></tr>
+        <tr><td>Image generation</td><td>Forced into a token formula. It isn't token-priced.</td><td>Separate pricing dimension: per-image / per-megapixel / per-step.</td></tr>
+        <tr><td>Data residency</td><td>Absent. A Chinese-hosted model can be cheapest and still disqualified.</td><td>Hard capability filter on residency/PRC-hosting <em>before</em> price ranking.</td></tr>
+        <tr><td>Currency</td><td>CNY rates converted at a stale FX rate misprice every Chinese provider.</td><td>Store native currency as source of truth; convert at display via a dated FX record.</td></tr>
+        <tr><td>Source conflict</td><td>Two aggregators disagreeing gets silently averaged.</td><td>Surface both, flag for review, never average.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ FLAGS ============ -->
+<section id="flags">
+  <div class="col">
+    <h2>Three corrections to your sourcing plan</h2>
+    <p class="sub">Two of them change the architecture</p>
+    <p>Your hybrid sourcing strategy is the right shape — local tokenizers for speed, aggregator feeds for prices, manual overrides for enterprise and Chinese clouds. Three specifics need verifying before you commit, because "zero network latency" doesn't hold for all of them.</p>
+  </div>
+  <div class="col">
+    <div class="flag">
+      <h5>⚠️ Verify 1 — Anthropic has no public local tokenizer</h5>
+      <p>Claude token counting is a <strong>network API call</strong> (<code>POST /v1/messages/count_tokens</code>), not a local library. There is no published Claude tokenizer to load the way you load <code>tiktoken</code>. Treating it as local will silently break the latency and rate-limit budget for every Claude estimate.</p>
+      <span class="fix">→ Architect as a remote, rate-limited adapter cached by content hash, with a CALIBRATED_HEURISTIC fallback tagged MEDIUM confidence for offline/preview mode.</span>
+    </div>
+    <div class="flag">
+      <h5>⚠️ Verify 2 — Gemini <code>countTokens</code> is primarily remote</h5>
+      <p>The Generative AI SDK's <code>countTokens</code> is an API call. A local text-token path does exist via the Vertex AI SDK, but confirm current coverage — particularly whether it handles multimodal inputs or text only — before you rely on it.</p>
+      <span class="fix">→ Treat local-Gemini as an optimization, not the default. Ship the remote adapter first.</span>
+    </div>
+    <div class="flag">
+      <h5>⚠️ Verify 3 — Chinese closed tiers may publish no tokenizer</h5>
+      <p>Open-weight Qwen, GLM and DeepSeek tokenizers are downloadable from Hugging Face or ModelScope. Baidu ERNIE and Tencent Hunyuan <em>hosted</em> tiers may not ship matching tokenizer files. A nearest-architecture substitute is a proxy, and must say so.</p>
+      <span class="fix">→ Mark the model <code>tokenizer_availability: PROXY</code>, force <span class="badge b-low">Low</span> confidence, and surface a PROXY_TOKENIZER_IN_USE warning on the estimate.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ LAYER 0 ============ -->
+<section id="layer0">
+  <div class="col">
+    <h2>Layer 0 — reading the sentence</h2>
+    <p class="sub">EN · AR · ZH → a task graph, before any cost math runs</p>
+    <p>Everything in the blueprint assumes a structured task graph already exists. This is the layer that produces one from a sentence a human typed — and it is where naive implementations lose the most money.</p>
+  </div>
+
+  <div class="formula">
+    <span class="lbl">Two layers, deterministic first</span>
+<pre>[free text · any language]
+      ↓
+[L1 Deterministic Router]   lexicon + normalizer + regex · free · ~0ms · 0 tokens
+      ↓   parse_confidence ≥ floor ? emit : escalate
+[L2 Structured LLM Parse]   cheapest capable model, JSON mode — the FALLBACK
+      ↓
+[WorkflowInput]             workflow-input.schema.json</pre>
+  </div>
+
+  <div class="col">
+    <p><strong>The recursion nobody meters:</strong> L2 is itself a billable call. A cost calculator that doesn't count its own parser reports a total cost of ownership that is wrong by the size of its own bill. It goes on the estimate as a <code>system_overhead</code> line, and the L1 hit-rate becomes an operating metric — it is the one lever on your own gross margin.</p>
+
+    <h3>Your action matrix has two misclassifications</h3>
+    <p>Both undercount, and one of them is in your own worked example.</p>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Verb</th><th>Your matrix</th><th>Actually</th><th>Consequence</th></tr></thead>
+      <tbody>
+        <tr><td>translate<br><span style="font-weight:400">ترجم · 翻译</span></td><td>READ only</td><td><strong>READ + WRITE</strong> — ingests the whole source <em>and</em> emits a full-length target</td><td>Undercounts output by roughly one whole document. On a contract, that's the dominant term.</td></tr>
+        <tr><td>summarize<br><span style="font-weight:400">لخّص · 总结</span></td><td>WRITE only</td><td><strong>READ + WRITE</strong> — ingests the whole source, emits a short output</td><td>Undercounts <em>input</em> by the whole document. Your "summarize it" example hits this.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col">
+    <p>So the lexicon doesn't map verb → task. It maps <strong>verb → task sequence</strong>, and expanded tasks carry <code>expands_from</code> so the UI can show one intent as its two billable halves. <code>review</code>, <code>audit</code> and <code>compare</code> expand the same way.</p>
+
+    <h3>Normalize before you match</h3>
+    <p>A lexicon lookup against raw text works for English and quietly fails for the other two.</p>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Script</th><th>What breaks</th><th>Required normalization</th></tr></thead>
+      <tbody>
+        <tr><td>العربية</td><td>Heavy inflection and orthographic variance — the same verb appears in a dozen surface forms</td><td>Strip tashkeel → unify alef forms <code>أ إ آ ٱ → ا</code> and <code>ة → ه</code> → strip prefixes <code>و ف ب ك ال</code> and pronominal suffixes → match on roots</td></tr>
+        <tr><td>中文</td><td>No whitespace, so segmenting the <em>instruction</em> is its own problem</td><td>Traditional → Simplified, longest-match segmentation against the lexicon, measure words <code>份 篇 张 个 页</code> as the quantity signal</td></tr>
+        <tr><td>Numerals</td><td>A <code>[0-9]+</code> regex sees zero numbers in <code>٥ عقود</code> or <code>五份合同</code></td><td>Convert Arabic-Indic <code>٠-٩</code> and Chinese <code>一二三…两</code> to Western <em>before</em> any quantity extraction</td></tr>
+        <tr><td>Mixed</td><td>One script label is wrong for a Gulf contract with English legal terms and a Chinese counterparty</td><td>Report <code>script_mix</code> as proportions — the tokenizer follows the mix, not the majority</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="col">
+    <h3>The defaults engine, and the line it must not cross</h3>
+    <p>Your instinct is right — refusing to estimate without pixel dimensions makes the product useless. But it collides with the refuse-don't-guess rule. One clean line resolves it:</p>
+  </div>
+  <div class="col">
+    <div class="flag" style="border-color:var(--accent); background:var(--accent-soft)">
+      <h5>Guess quantities. Never guess rates.</h5>
+      <p>A missing <strong>rate</strong> — price, tile constant, throughput — <strong>blocks</strong> the estimate. There is no honest default for what a vendor charges.</p>
+      <p>A missing <strong>quantity</strong> — document length, image size, turn count — gets a <strong>labeled, editable default</strong> that downgrades confidence and never fires when a real asset is attached.</p>
+    </div>
+  </div>
+  <div class="col">
+    <p>Your baselines enter the DB as <code>SEED_UNCALIBRATED</code> at <span class="badge b-low">Low</span> confidence, each with a standing task to replace it from observed runs. They are starting points, not facts — and they never appear in the UI as a measured figure.</p>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Asset class</th><th>Trigger phrases</th><th class="num">Seed input</th><th class="num">Seed output</th></tr></thead>
+      <tbody>
+        <tr><td>Short form</td><td>tweet, email, post · تغريدة، منشور · 推文、帖子</td><td class="num">300</td><td class="num">200</td></tr>
+        <tr><td>Medium form</td><td>article, report · مقال، تقرير · 文章、报告</td><td class="num">2,000</td><td class="num">800</td></tr>
+        <tr><td>Long form</td><td>book, contract, multi-page PDF · عقد، كتاب · 合同</td><td class="num">25,000</td><td class="num">2,000</td></tr>
+        <tr><td>Image, unspecified</td><td>image, picture · صورة · 图片</td><td class="num">1024 × 1024</td><td class="num">—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="col">
+    <h3>Three problems with the Chinese multiplier</h3>
+    <ul class="plain">
+      <li><strong>Multiplier relative to what?</strong> <code>1.5–2.5×</code> has no stated baseline. Written properly it's <code>tokens ≈ chars × ratio[model, script]</code> — one <em>measured</em> ratio per pair, never a multiplier on an unnamed English assumption.</li>
+      <li><strong>That band is a ±25% cost swing</strong> before anything else varies. It isn't a range you pick from — it's a distribution. Emit P50 and P90 or the user reads the low end as the price.</li>
+      <li><strong>You will almost never need it.</strong> Qwen, GLM, DeepSeek and the OpenAI families all have local exact tokenizers. Ratios are for <code>PROXY</code> tokenizers, offline preview and pre-upload estimates only. Applying one when an exact count is available is a self-inflicted error.</li>
+    </ul>
+
+    <h3>And Arabic is missing from your spec entirely</h3>
+    <p>It needs its own measured ratio plus three rules the Chinese path doesn't have:</p>
+    <ul class="plain">
+      <li><strong>Tashkeel is billable.</strong> Fully vocalized text — Qur'anic, liturgical, formal legal — carries a diacritic on nearly every consonant, and most tokenizers count them. Detect diacritic density and branch; one Arabic ratio for both is wrong.</li>
+      <li><strong>Morphology, not spaces.</strong> Arabic packs article, conjunction, preposition and pronoun into one orthographic word. Calibrate on characters, per model — word-based ratios behave much worse.</li>
+      <li><strong>Dialect ≠ MSA.</strong> Gulf and Levantine content tokenizes worse on MSA-weighted models. If your Jordan/KSA/Kuwait workloads include chat or social, that's a separate bucket from contracts.</li>
+    </ul>
+    <p>Corpus buckets become <code>en</code>, <code>ar_msa</code>, <code>ar_dialect</code>, <code>ar_vocalized</code>, <code>zh_hans</code>, <code>zh_hant</code>, <code>code</code>, <code>json</code>, <code>mixed</code> — each with its own sample count, mean, p90 and stddev.</p>
+
+    <h3>Three language fields, not one</h3>
+    <p>Your example is written in <strong>English</strong>, about a <strong>Chinese</strong> payload, possibly from an <strong>Arabic</strong> UI. Collapsing those into one field is a direct mispricing.</p>
+  </div>
+  <div class="formula">
+    <span class="lbl">Only payload enters the cost math</span>
+<pre>"languages": {
+  "ui_language":          "ar",       // layout only — costs nothing
+  "instruction_language": "en",       // selects the parser lexicon
+  "payload_languages": [              // the BILLED content
+    { "code": "zh-Hans", "share": 0.95 },
+    { "code": "en",      "share": 0.05 }
+  ]
+}</pre>
+  </div>
+
+  <div class="col">
+    <h3>What your example still hides</h3>
+    <p>"Upload a Chinese contract PDF" is two completely different cost models, and the sentence doesn't say which.</p>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th></th><th>Text-layer PDF</th><th>Scanned PDF</th></tr></thead>
+      <tbody>
+        <tr><td>Task type</td><td>READ · context ingestion</td><td>READ · <strong>vision OCR</strong></td></tr>
+        <tr><td>Cost driver</td><td>text tokens</td><td><strong>image tiles, per page</strong></td></tr>
+        <tr><td>Magnitude</td><td>baseline</td><td>far higher, and scales with page count</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col">
+    <p>The parser must not choose silently. Detect it when the asset is present; when it isn't, it goes into <code>missing_data[]</code> as a <em>blocking</em> question — no default is defensible across a gap that size. Same question for images inside DOCX and for photographed documents, which are near-universal in Gulf contract workflows.</p>
+  </div>
+
+  <div class="formula">
+    <span class="lbl">Your example, traced through a correct Layer 0</span>
+<pre>"I want to upload a Chinese contract PDF, summarize it,
+ and generate a featured image for the article"
+
+→ languages: instruction=en · payload=[zh-Hans] · ui=&lt;session&gt;
+
+→ t1  READ   context_ingestion   long_form · zh-Hans
+         ⚠ BLOCKING  text-layer or scanned?  (→ vision_ocr if scanned)
+         ⚠ default   25,000 input tokens   [SEED_UNCALIBRATED · editable]
+→ t2  READ   context_ingestion   expands_from=summarize   ← your matrix missed this
+→ t3  WRITE  completion          expands_from=summarize
+                                 ratio_hint=OUTPUT_MUCH_SMALLER_THAN_INPUT
+→ t4  EDIT   image_generate      per-image pricing, NOT tokens
+         ⚠ default   1024×1024              [SEED_UNCALIBRATED · editable]
+
+→ confidence: LOW  ·  needs_human_review: true
+→ missing_data: [pdf_has_text_layer, image_dimensions, target_summary_length]</pre>
+  </div>
+  <div class="col">
+    <p>Four tasks from three verbs, two blocking questions, and <span class="badge b-low">Low</span> confidence — from a sentence that reads as completely unambiguous. That gap is the whole reason Layer 0 exists.</p>
+  </div>
+</section>
+
+<!-- ============ TIERS ============ -->
+<section id="tiers">
+  <div class="col">
+    <h2>Four ways to count</h2>
+    <p class="sub">Cache → remote → local → heuristic, each with its own honesty tag</p>
+    <p>Your tiered architecture is now <code>§A4.5</code>. <code>/packages/tokenizers</code> exposes one function — <code>estimateTokens(payload, model, mode)</code> — and the tier it actually used is part of the return value, never a hidden detail.</p>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Tier</th><th>Method tag</th><th>Latency</th><th>Confidence</th><th>Use when</th></tr></thead>
+      <tbody>
+        <tr><td class="num">0</td><td><em>inherits cached tier</em></td><td>~0</td><td>inherits</td><td>Cache hit on an identical payload</td></tr>
+        <tr><td class="num">1</td><td><code>PROVIDER_COUNT_API</code></td><td>network</td><td><span class="badge b-high">High</span></td><td>Media payloads, near a context or price boundary, committing a quote</td></tr>
+        <tr><td class="num">2</td><td><code>EXACT_TOKENIZER</code> / proxy</td><td>sub-ms</td><td><span class="badge b-high">High</span> · <span class="badge b-low">Low</span> if proxy</td><td>Text-only on a model with a local vocabulary</td></tr>
+        <tr><td class="num">3</td><td><code>CALIBRATED_HEURISTIC</code></td><td>0</td><td><span class="badge b-med">Med</span> → <span class="badge b-low">Low</span></td><td>Offline preview, live typing indicator, pre-upload sizing</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="col">
+    <h3>The cache key is where this design usually breaks</h3>
+    <p>Content-hashing is right, but the hash alone is not the key.</p>
+  </div>
+  <div class="formula">
+    <span class="lbl">Composite key — all five parts required</span>
+<pre>cacheKey = sha256(canonicalizeMessages(messages))
+         + ':' + model_id                // ← omit this and you serve one
+         + ':' + tokenizer_revision      //   model's count for another
+         + ':' + chat_template_version   //   forever, at HIGH confidence
+         + ':' + tenant_id</pre>
+  </div>
+  <div class="col">
+    <p>A revision bump must invalidate <em>by construction</em>, never by a manual flush. And <code>canonicalizeMessages</code> has to be byte-stable — stable key order, no incidental whitespace, deterministic tool-schema serialization — or you get a 0% hit rate that looks like a working cache.</p>
+  </div>
+
+  <div class="col">
+    <h3>Three corrections to the tier spec</h3>
+    <div class="flag">
+      <h5>⚠️ The ~3.5–4 chars/token figure is English prose only</h5>
+      <p>Applying it to Arabic or Chinese is confident, silent, and wrong by a large factor — exactly the failure the whole section exists to prevent. No bootstrap constant for those scripts appears anywhere in this spec, and inventing one is forbidden.</p>
+      <span class="fix">→ Tier 3 returns <code>UNAVAILABLE</code> for an uncalibrated script and the UI shows a live <em>character</em> count. A blank token field is honest; a wrong one isn't.</span>
+    </div>
+    <div class="flag">
+      <h5>⚠️ The +15% safety pad is directional — it needs two numbers, not one</h5>
+      <p>Overflow checks want to over-estimate so a wrong guess fails safe. A cost quote wants to be centred, because padding inflates what you tell the client. One padded number serving both means you either overquote or overflow.</p>
+      <span class="fix">→ <code>cost_estimate</code> (raw, feeds pricing) and <code>context_safety_estimate</code> (padded, feeds limit checks) stay separate all the way to the UI. Padding never touches a price, and never applies above Tier 3.</span>
+    </div>
+    <div class="flag">
+      <h5>⚠️ A proxy must match the script, not just the architecture</h5>
+      <p>"Map to a LLaMA/Qwen baseline" treats those as interchangeable. For Chinese they aren't — a Chinese-native vocabulary and an older Western-trained one fragment Hanzi very differently. Proxying a Chinese closed tier to a Western tokenizer is wrong in a <em>consistent direction</em>, which makes it look stable and keeps it from being noticed.</p>
+      <span class="fix">→ Chinese models proxy to Chinese-native open tokenizers. Record <code>basis</code> and <code>measured_delta_pct</code>; a null delta forces LOW confidence, and exceeding <code>PROXY_DRIFT_MAX_PCT</code> disables the proxy entirely.</span>
+    </div>
+  </div>
+
+  <div class="col">
+    <h3>Two additions worth wiring on day one</h3>
+    <ul class="plain">
+      <li><strong>Every Tier 1 call is a free calibration sample.</strong> When the remote count returns, compute what Tiers 2 and 3 <em>would have said</em> and store the deltas. The heuristic improves as a by-product of normal operation, and proxy drift surfaces as a widening delta before it becomes a wrong invoice. Retrofitting this means discarding every sample you already paid for.</li>
+      <li><strong>Gemini's local path must detect media and refuse.</strong> Multimodal weight depends on resolution downscaling and frame sampling that the local path doesn't replicate — a counter that quietly counts only the text produces a large, confident undercount. Local Gemini is a text-only optimization; media always escalates.</li>
+    </ul>
+  </div>
+
+  <div class="formula">
+    <span class="lbl">The invariant that holds all four tiers together</span>
+<pre>The `method` and `confidence` on a returned line describe the tier that
+ACTUALLY produced the number — never the tier that was requested.
+
+On a 429, a timeout, or an offline fallback: drop one tier, RE-TAG the line,
+raise ESCALATION_FAILED. Never present a fallback number wearing the
+confidence of the tier you wanted.
+
+A silent downgrade is the same class of bug as a hardcoded rate.</pre>
+  </div>
+</section>
+
+<!-- ============ GEOMETRIES ============ -->
+<section id="geometries">
+  <div class="col">
+    <h2>Six ways an image becomes tokens</h2>
+    <p class="sub">The single biggest correction in this revision</p>
+    <p>Earlier drafts of this spec gave one vision formula — <code>base + per_tile × ⌈w/tw⌉ × ⌈h/th⌉</code> — as <em>the</em> formula. Annex A15's vendor-page pass shows it is one geometry among at least six in production. Implementing it as a universal misprices most non-OpenAI vision models, silently and in a consistent direction, which is the hardest kind of error to notice.</p>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>ID</th><th>Geometry</th><th>Shape</th><th>Distinguishing behaviour</th></tr></thead>
+      <tbody>
+        <tr><td>G1a</td><td>Patch grid · <strong>token cap</strong></td><td><code>⌈w/P⌉ × ⌈h/P⌉</code>, scaled until under the cap</td><td><strong>Cost saturates.</strong> Above the cap a bigger image costs the same and loses detail.</td></tr>
+        <tr><td>G1b</td><td>Patch grid · <strong>area clamp</strong></td><td>round dims up to a multiple of P, clamp area, <code>(w/P) × (h/P)</code></td><td><strong>Cost does not saturate.</strong> Large images stay expensive and stay faithful.</td></tr>
+        <tr><td>G2</td><td>Tile grid</td><td><code>base + per_tile × tiles</code></td><td>Discrete steps at tile boundaries.</td></tr>
+        <tr><td>G3</td><td>Area budget</td><td><code>min(budget, area / divisor)</code></td><td><strong>Smooth in pixels.</strong> Resize savings are continuous here, discrete under G1/G2.</td></tr>
+        <tr><td>G4</td><td>Flat</td><td><code>flat_tokens_per_image</code></td><td>Constant. Resize proposals must be <strong>suppressed entirely</strong>.</td></tr>
+        <tr><td>G5</td><td>Block grid + separators</td><td><code>(h·w+1)×per_block + (w+1)×sep + c</code></td><td>Global-view term plus <strong>width-dependent</strong> separators. No Western analogue.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="col">
+    <div class="flag">
+      <h5>⚠️ Same patch size, order-of-magnitude different answer</h5>
+      <p>Per Annex A15 §3 (vendor pages, verified 2026-09-06), Claude, Qwen-VL and GLM-4.1V all use a <strong>28-px patch grid</strong>. Claude bounds on a <em>token cap</em>; the two Chinese models bound on a <em>pixel-area range</em>. On the same oversized scan the annex records Claude saturating in the low thousands of tokens while Qwen-VL runs to five figures — from a formula that is identical on paper.</p>
+      <span class="fix">→ <code>bound_type ∈ TOKEN_CAP | AREA_CLAMP</code> is a required field. A router comparing those two on price alone, without the source dimensions, will be wrong about which is cheaper.</span>
+    </div>
+    <div class="flag">
+      <h5>⚠️ Token cost is not monotonic in pixel count</h5>
+      <p>Under G5 the annex documents a case where a <em>larger</em> image costs <em>fewer</em> tokens, because the block-selection rule lands on a cheaper grid. Any "smaller is cheaper" shortcut gives wrong advice on that model.</p>
+      <span class="fix">→ Independent confirmation that rung 4 of the disposition ladder must <strong>actually recompute</strong> rather than reason about direction. The rule was right for a reason we hadn't seen yet.</span>
+    </div>
+    <div class="flag">
+      <h5>⚠️ Resolve <code>detail</code> before geometry, not after</h5>
+      <p><code>detail: low</code> is a <strong>flat rate on every Chinese VLM checked</strong> — a constant regardless of dimensions. So on those models low-detail mode <em>is</em> geometry G4, and resolving geometry first produces a number wrong by a large factor on exactly the models where the setting is most attractive.</p>
+      <span class="fix">→ And note what that makes it: on a large scan, a very large token reduction <em>and</em> the setting that destroys Arabic dot placement first. A quality decision wearing a cost decision's clothes — surface both numbers, never auto-select it.</span>
+    </div>
+    <p><strong>Wire compatibility predicted nothing.</strong> Every Chinese VLM checked speaks the OpenAI protocol and accepts the same <code>detail</code> parameter — and not one uses OpenAI's geometry. The warning was in the spec before the evidence was; it now has the evidence.</p>
+  </div>
+</section>
+
+<!-- ============ BEYOND THE TOKEN ============ -->
+<section id="beyond">
+  <div class="col">
+    <h2>What the token identity misses</h2>
+    <p class="sub">Three layers vendor pages carry that §A5.8 did not</p>
+    <p>These belong on the <strong>request</strong>, not the model row — the same model under two service tiers is two different answers from one registry entry.</p>
+  </div>
+  <div class="formula">
+    <span class="lbl">The corrected identity</span>
+<pre>FINAL_COST = ( TOKEN_TERMS(§A5.8)
+             + cache_storage_tokens × storage_rate_per_1m_per_hour × hours_held
+             + tool_use_system_prompt_tokens × input_rate
+             + Σ server_tool_calls × per_call_fee )
+           × service_tier_multiplier
+           × (1 + residency_uplift_pct)</pre>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Term</th><th>What it is</th><th>Why a token-only estimator misses it</th></tr></thead>
+      <tbody>
+        <tr><td>Service tier</td><td>Batch / flex / fast / priority scale the whole bill</td><td>A <em>request</em> attribute — a row-level registry has nowhere to put it. ⚠️ Multipliers are <strong>not shared across vendors</strong>; the annex records one premium tier at 1.8× where two others use 2×.</td></tr>
+        <tr><td>Residency uplift</td><td>Regional endpoints add a % on all categories, cache included</td><td><strong>Binds directly on Gulf routing.</strong> The compliant option is not the same price as the default, so filtering on residency without applying the uplift understates the compliant path.</td></tr>
+        <tr><td>Cache storage / hour</td><td>At least one provider bills cached content hourly <em>whether or not you call it</em></td><td>Every cache model here assumed write + read only. A long-lived cache on low traffic can cost more than it saves.</td></tr>
+        <tr><td>Tool-use system prompt</td><td>Published per-model tokens for merely <em>enabling</em> tools</td><td>Separate from and additional to the tool schema JSON. Two meters, both real.</td></tr>
+        <tr><td>Server-tool fees</td><td>Web search, file search, containers — <strong>not token-priced at all</strong></td><td>Per thousand calls, per GB-day, per session. A token-only estimator returns zero; an agentic workflow with search can have most of its cost here.</td></tr>
+        <tr><td>Failed generations</td><td><code>bills_failed_generations</code> is published on at least one video model</td><td>Assuming either way is a guess.</td></tr>
+        <tr><td>Re-rolls</td><td>N candidates generated per accepted image — every one bills</td><td><code>candidates_per_accepted_image</code> defaults to 1 and is almost never 1.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col">
+    <p><strong>Two shape corrections that follow.</strong> Not every model has context tiers — at least one provider includes its full long context at the standard rate, so <code>context_tiers</code> is <em>null</em> for that family, not a single-entry array. And a tier can rebill the <em>whole request</em> rather than the overflow, which makes the step far larger than a marginal reading suggests.</p>
+
+    <h3>Two rules the evidence hardened</h3>
+    <div class="flag" style="border-color:var(--accent); background:var(--accent-soft)">
+      <h5>Confidence propagates by minimum — it is computed, never typed</h5>
+      <p><code>line = min(quantity, rate)</code> → <code>task = min over lines</code> → <code>estimate = min over tasks</code>. A HIGH token count multiplied by an UNAVAILABLE rate is not a HIGH estimate. It isn't an estimate at all.</p>
+    </div>
+    <div class="flag" style="border-color:var(--accent); background:var(--accent-soft)">
+      <h5>An aggregator rate may never validate at HIGH</h5>
+      <p>Enforced as a schema refinement, not a code convention — unrepresentable rather than merely documented. This is empirical: on one verification pass against vendor pages, roughly <strong>one aggregator rate in three</strong> was wrong. Several stale by a price change; one off by 5×.</p>
+    </div>
+
+    <h3>When documentation runs out, measure</h3>
+    <p>Four quantities have no documentary source anywhere: chat-template framing overhead, per-script token ratios, real throughput, and — newly — <strong>vision geometry for the providers that publish rates without a formula</strong>. The geometry probe closes the last one: one call per probe point, minus a text-only baseline, gives the visual-token count directly.</p>
+    <p>Two rules make it trustworthy. <strong>Run a control model whose geometry is already published, and refuse to trust the run if the harness can't recover it</strong> — a mis-subtracted baseline or a silently ignored <code>detail</code> flag produces plausible numbers and a wrong formula. And <strong>never return a best guess</strong>: a candidate explaining most points is a coincidence with counterexamples, so anything short of a zero residual on every observation comes back <code>UNKNOWN</code> with the misses listed.</p>
+    <p>The decisive measurement is a <strong>transposed pair</strong>. Patch grids, tile grids, area budgets and flat rates are all commutative, so <code>w×h</code> and <code>h×w</code> agree; a width-dependent term does not. One pair of calls halves the candidate set.</p>
+  </div>
+</section>
+
+<!-- ============ BLUEPRINT ============ -->
+<section id="blueprint">
+  <div class="col">
+    <h2>The blueprint</h2>
+    <p class="sub">Two cost formulas, one honesty contract</p>
+  </div>
+
+  <div class="col"><h3>Costing split: managed API vs self-hosted</h3>
+  <p>The deployment choice doesn't change the number — it changes the <em>unit</em>. Managed API is per token. Self-hosted is per second of GPU wall-clock, whether or not it is doing anything.</p></div>
+
+  <div class="grid2">
+    <div class="formula">
+      <span class="lbl">API-managed cost</span>
+<pre>API_COST =
+    (billable_input  × input_rate(tier))
+  + (billable_output × output_rate)
+      // billable_output INCLUDES reasoning tokens
+  + (image_tokens    × tile_or_image_rate)
+  + (audio_seconds   × audio_rate)
+  − (cached_tokens   × (input_rate − cache_read_rate))
+  + (cache_write     × cache_write_rate)
+  + per_request_fees</pre>
+    </div>
+    <div class="formula">
+      <span class="lbl">Self-hosted compute cost</span>
+<pre>request_seconds = ttft
+  + input_tokens  / prefill_tps
+  + output_tokens / decode_tps
+
+effective_seconds =
+  request_seconds / concurrency_factor
+
+SELF_HOSTED_COST = effective_seconds
+  × (hourly_rate / 3600)
+  × (1 + regional_tax)
+  ÷ utilization_factor</pre>
+    </div>
+  </div>
+
+  <div class="col">
+    <p><strong>The gate that runs first.</strong> Before either formula, feasibility: <code>weights_bytes + kv_cache_bytes + activation_overhead ≤ gpu_count × vram_per_gpu × usable_fraction</code>. If a model-architecture field is missing from the model card, the answer is <code>UNAVAILABLE</code> — not an estimate.</p>
+    <p><strong>The number that decides it.</strong> Utilization, not hardware. A GPU billed around the clock at low utilization loses to any API. The breakeven-volume chart — where self-hosted crosses below managed API as requests/day rises — is the single most valuable screen in the product, and the prompt says to build it first.</p>
+  </div>
+
+  <div class="col">
+    <h3>Oversized assets — the disposition ladder</h3>
+    <p>The pre-flight calculator <em>detects</em> a violation; this is what happens next. Constraints are per-model DB fields, never literals.</p>
+    <div class="flag">
+      <h5>⚠️ An estimator must not mutate the asset it's estimating</h5>
+      <p>Scaling down locally before the payload stage is right for a production request path and wrong here. Silent downscaling quotes a price for a file the user didn't upload — and <strong>resolution is a quality decision, not a cost decision</strong>. Losing OCR fidelity on a dense contract to save tokens is the client's call.</p>
+      <span class="fix">→ Compute both scenarios, propose, record which one the user chose.</span>
+    </div>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th class="num">#</th><th>Rung</th><th>Trigger</th><th>Behaviour</th></tr></thead>
+      <tbody>
+        <tr><td class="num">0</td><td>Measure</td><td>always</td><td>True dimensions, bytes, page/frame count, MIME by magic bytes → <code>MEASURED_FROM_ASSET</code></td></tr>
+        <tr><td class="num">1</td><td>Fits as-is</td><td>within every constraint</td><td>Estimate normally, no flag</td></tr>
+        <tr><td class="num">2</td><td>Provider normalizes</td><td>provider scales it before billing</td><td>Tile on the <em>post</em>-normalization dimensions → <code>DERIVED_FROM_ASSET</code></td></tr>
+        <tr><td class="num">3</td><td>Resize proposed</td><td>over max edge, fidelity free</td><td>Both estimates side by side; pre-select only if it truly saves</td></tr>
+        <tr><td class="num">4</td><td>Resize saves nothing</td><td>tile grid unchanged or larger</td><td>Don't propose it — and say why</td></tr>
+        <tr><td class="num">5</td><td>Fidelity locked</td><td>OCR-critical, or script floor</td><td>Skip resize, force high-detail tiling, price the truth</td></tr>
+        <tr><td class="num">6</td><td>Reroute</td><td>no disposition fits</td><td>Capability-gate exclusion; §A7 picks a model that accepts it</td></tr>
+        <tr><td class="num">7</td><td>Blocked</td><td>cost unknowable</td><td><code>missing_data[]</code> + review. No number.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col">
+    <p><strong>Rung 4 needs its own rule, because "downscale = cheaper" is often false.</strong> Tiles are a ceiling function, so a resize that doesn't cross a boundary changes nothing — and several providers <em>upscale</em> anything below their shortest-edge target, so shrinking too far can raise the tile count.</p>
+  </div>
+  <div class="formula">
+    <span class="lbl">Only propose a saving you actually recomputed</span>
+<pre>propose_resize ONLY IF
+    tiles(scaled_w, scaled_h) &lt; tiles(original_w, original_h)
+    AND scaled_shortest_edge &gt;= shortest_edge_target_px</pre>
+  </div>
+  <div class="col">
+    <p><strong>Fidelity floors are per script.</strong> Arabic loses diacritics and dot placement first — <span dir="rtl">ب ت ث ن ي</span> differ only by dots — and CJK loses stroke separation early. Latin prose is the most tolerant, and the other two must not be derived from it. Mixed content takes the <em>strictest</em> floor present, never the average.</p>
+    <div class="flag">
+      <h5>⚠️ Capacity never outranks residency</h5>
+      <p>"Send the oversized document to whichever model has the largest capacity" is exactly how a KSA client's contract reaches a PRC-hosted endpoint because it was a few hundred pixels too wide. Residency and <code>is_prc_hosted</code> are evaluated <strong>before</strong> capacity, always — and a reroute no permitted model can absorb is rung 7, not a quiet exception.</p>
+    </div>
+    <p>Every reroute writes an assumption and shows the substitution <em>inline</em> in the results table. The user asked about model X and is being quoted model Y; that must never be discoverable only via a tooltip.</p>
+  </div>
+
+  <div class="col"><h3>Sourcing matrix</h3>
+  <p>Your two-tier pipeline, with a guardrail column added — the guardrail is what stops a bad upstream row silently mispricing a quarter's forecast.</p></div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Data type</th><th>Method</th><th>Frequency</th><th>Risk</th><th>Guardrail</th></tr></thead>
+      <tbody>
+        <tr><td>Global tokenizers</td><td>Local libs — <code>tiktoken</code></td><td>On new model family</td><td><span class="badge b-high">Low</span></td><td>Pin artifacts by revision hash at build</td></tr>
+        <tr><td>Chinese tokenizers</td><td>HF / ModelScope configs</td><td>On new architecture</td><td><span class="badge b-med">Med</span></td><td>Golden-string regression tests</td></tr>
+        <tr><td>Claude / Gemini counts</td><td>Remote count API + cache</td><td>Per request</td><td><span class="badge b-med">Med</span></td><td>Rate limit, content-hash cache, heuristic fallback</td></tr>
+        <tr><td>Managed API costs</td><td>LiteLLM JSON + OpenRouter</td><td>Daily cron</td><td><span class="badge b-low">High</span></td><td>Two-source diff; conflict → review queue</td></tr>
+        <tr><td>Enterprise / CN cloud</td><td>Manual admin entry</td><td>Monthly review</td><td><span class="badge b-low">High</span></td><td>Staleness badge; expired rate blocks the estimate</td></tr>
+        <tr><td>Self-hosted instances</td><td>Cloud GPU price sheets</td><td>Quarterly</td><td><span class="badge b-med">Med</span></td><td>Spot and on-demand stored separately, never blended</td></tr>
+        <tr><td>FX rates</td><td>Dated rate record</td><td>Daily</td><td><span class="badge b-med">Med</span></td><td>Native currency is the source of truth</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="col"><h3>Task taxonomy and its cost driver</h3></div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Type</th><th>Sub-kinds</th><th>Dominant driver</th></tr></thead>
+      <tbody>
+        <tr><td>READ</td><td>context ingestion · vision OCR · image analysis · doc parsing</td><td>Input tokens, image tiles</td></tr>
+        <tr><td>WRITE</td><td>completion · reasoning · creative draft · structured JSON</td><td>Output + <em>reasoning</em> tokens</td></tr>
+        <tr><td>EDIT</td><td>rewrite · inpaint · img2img · upscale</td><td>Input + output, plus per-operation image pricing</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="col"><h3>The honesty contract</h3>
+  <p>Every figure the UI renders carries a method and a confidence. A figure without both is invalid by contract, not by convention — the output schema rejects it.</p></div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Method</th><th>Source</th><th>Default confidence</th></tr></thead>
+      <tbody>
+        <tr><td><code>EXACT_TOKENIZER</code></td><td>Local library, pinned revision</td><td><span class="badge b-high">High</span></td></tr>
+        <tr><td><code>PROVIDER_COUNT_API</code></td><td>Remote count endpoint, cached</td><td><span class="badge b-high">High</span></td></tr>
+        <tr><td><code>MEASURED_BENCHMARK</code></td><td>Throughput measured on the stated hardware</td><td><span class="badge b-med">Medium</span></td></tr>
+        <tr><td><code>CALIBRATED_HEURISTIC</code></td><td>Ratio back-fit from observed usage payloads</td><td><span class="badge b-med">Medium</span></td></tr>
+        <tr><td><code>USER_SUPPLIED</code></td><td>Entered as an assumption in the panel</td><td><span class="badge b-med">Medium</span></td></tr>
+        <tr><td><code>UNAVAILABLE</code></td><td>Nothing. Blocks the estimate.</td><td><span class="badge b-low">Low</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="col">
+    <h4>Calibration, not invention</h4>
+    <p>Character-to-token ratios are <strong>generated from observed API responses</strong>, never authored by hand — each row storing sample size, mean, p90 and standard deviation, with confidence downgrading automatically when the sample is thin or the calibration is stale. The corpus buckets are <code>en</code>, <code>ar</code>, <code>zh-Hans</code>, <code>code</code>, <code>json</code>, <code>mixed</code>. Arabic is a first-class bucket, not an afterthought — its inflation behaviour sits nowhere near either English or Chinese.</p>
+  </div>
+</section>
+
+<!-- ============ PROMPTS ============ -->
+<section id="prompts">
+  <div class="col">
+    <h2>The prompts</h2>
+    <p class="sub">Part A builds the app · Part B runs inside it</p>
+    <p>Part A goes to Claude Code at the repo root. Part B ships as <code>/prompts/analyzer.system.md</code> and runs on every workflow submission — it deconstructs prose into a task graph and <em>never</em> prices anything, because pricing belongs to deterministic code, not to a model.</p>
+  </div>
+
+  <div class="tabs" role="tablist" aria-label="Prompt parts">
+    <button type="button" role="tab" id="tab-a" aria-controls="panel-a" aria-selected="true">Part A — Build prompt</button>
+    <button type="button" role="tab" id="tab-b" aria-controls="panel-b" aria-selected="false">Part B — Runtime prompt</button>
+  </div>
+
+  <div id="panel-a" role="tabpanel" aria-labelledby="tab-a">
+    <div class="mega">
+      <div>
+        <strong>Mega prompt — all of Part A, A0 → A14</strong>
+        <p>Every section below concatenated in order, as one continuous paste. Use this if you want to hand the whole spec over in a single message rather than section by section.</p>
+      </div>
+      <button class="copy" id="copyall" type="button">Copy all</button>
+    </div>
+
+    <details class="acc" open>
+      <summary>Foundation <span class="tag">A0–A3</span></summary>
+      <div class="accbody">
+        <div class="block">
+          <div class="bar"><span>Objective · skills · stack · integrity rules</span><button class="copy" type="button">Copy</button></div>
+<pre># TOKENOMICS ENGINE — MASTER BUILD PROMPT v1.0
+
+## A0. OBJECTIVE
+Build Tokenomics Engine: a multi-provider, multi-modal LLM/LMM cost estimation and
+routing platform that ingests a described workflow, deconstructs it into typed
+sub-requests, estimates token/compute consumption with explicit uncertainty bands,
+and returns a ranked model recommendation with a transparent API-managed vs
+self-hosted cost comparison.
+
+The product's core promise is "approximately, with stated error bars" — not
+"exactly." Every number the UI renders must carry a `confidence` and a `method`
+tag. A number with no traceable method is a bug, not a feature.
+
+## A1. SKILLS APPLIED (enforce all — do not ask which)
+ZOD  — every form, API route, env var and ingested JSON validated at the boundary
+SEC  — Helmet.js headers, JWT + refresh tokens, rate limiting on EVERY endpoint
+SQL  — parameterized queries only via Prisma; zero string concatenation
+TS   — strict: true, noUncheckedIndexedAccess: true, no `any`
+RSC  — React Server Components by default, 'use client' only for interactive islands
+A11Y — ARIA labels, keyboard nav, visible focus, 56px minimum touch targets
+TEST — Playwright Page Object Model, positive AND negative, data-testid everywhere
+LOAD — k6 scripts for the /api/estimate hot path
+DOCK — multi-stage build, /healthz endpoint, non-root user
+OBS  — structured logs; every estimate persisted with its full evidence chain
+
+## A2. STACK (locked)
+Next.js 15 App Router · TypeScript strict · Zod · PostgreSQL + Prisma · Redis
+js-tiktoken + @huggingface/transformers (or sidecar) · Recharts · Playwright + Vitest + k6
+
+Monorepo:
+  /apps/web                    Next.js app
+  /packages/contracts          Zod schemas + generated types (single source of truth)
+  /packages/tokenizers         tokenizer adapters, one per family
+  /packages/pricing            ingestion adapters + resolver
+  /packages/estimator          PURE cost math, zero I/O, 100% unit-tested
+  /packages/router             recommendation engine
+  /prompts/analyzer.system.md  PART B, verbatim
+  /schemas/*.json              JSON Schema mirrors of the Zod contracts
+
+HARD RULE: /packages/estimator is pure functions only. No DB, no fetch, no Date.now().
+Everything it needs arrives as arguments. That is what makes the math auditable.
+
+## A3. NON-NEGOTIABLE DATA INTEGRITY RULES (violating these is a P0)
+1. ZERO HARDCODED RATES. No price, no tile constant, no tokens-per-second value
+   appears in source. All of it lives in the DB with source_url, verified_at,
+   effective_from, effective_to.
+2. REFUSE, DON'T GUESS. Missing, expired or stale rate => needs_human_review: true
+   and an entry in missing_data[]. NEVER substitute a similar model's price.
+3. EVERY NUMBER IS TRACEABLE. Each EstimateLine carries method in
+   {EXACT_TOKENIZER | PROVIDER_COUNT_API | CALIBRATED_HEURISTIC | USER_SUPPLIED |
+   MEASURED_BENCHMARK | UNAVAILABLE} and confidence in {HIGH | MEDIUM | LOW}.
+4. ASSUMPTIONS ARE LABELED, NEVER SILENT. Reasoning overhead, cache-hit ratio,
+   output length, GPU utilization are all assumptions. They render in an editable
+   Assumptions panel; every edit re-runs the estimate.
+5. CONFLICTS ARE REPORTED, NOT MERGED. If two sources disagree beyond tolerance,
+   surface both, mark needs_human_review, and do not average them.
+6. RANGES, NOT POINTS. Any estimate touching a non-deterministic quantity returns
+   P50 and P90, not a single figure.</pre>
+        </div>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary>Sourcing pipeline <span class="tag">A4</span></summary>
+      <div class="accbody">
+        <div class="block">
+          <div class="bar"><span>Tokenizers local · rates two-tier · matrix</span><button class="copy" type="button">Copy</button></div>
+<pre>## A4. PRICING &amp; TOKENIZER SOURCING (hybrid pipeline)
+
+### A4.1 Tokenizer logic — LOCAL, deterministic, zero network
+Run tokenizers in-process on the server. Never count words or characters as a
+primary method.
+
+  OpenAI            cl100k_base / o200k_base       tiktoken / js-tiktoken
+  DeepSeek V3, R1   official HF repo files         HF tokenizers
+  Qwen (Alibaba)    Hugging Face OR ModelScope     HF tokenizers
+  GLM (Zhipu)       Hugging Face                   HF tokenizers
+  ERNIE (Baidu)     HF or vendor — VARIES by tier  HF tokenizers, else fallback
+  Hunyuan (Tencent) HF or vendor — VARIES by tier  HF tokenizers, else fallback
+  Llama / Mistral   Hugging Face                   HF tokenizers
+
+VERIFY #1 — ANTHROPIC: Claude ships NO public local tokenizer. Counting is a
+network call to POST /v1/messages/count_tokens. Architect it as a remote,
+rate-limited adapter cached by content hash — not a local library — with a
+CALIBRATED_HEURISTIC fallback tagged MEDIUM confidence for offline/preview mode.
+
+VERIFY #2 — GEMINI: countTokens in the Generative AI SDK is primarily a REMOTE
+call. A local text-token path exists via the Vertex AI SDK; confirm current
+coverage (multimodal vs text-only) before relying on it. Local = optimization,
+not default.
+
+VERIFY #3 — CHINESE CLOSED TIERS: where ERNIE/Hunyuan hosted tiers publish no
+tokenizer files, mark tokenizer_availability: PROXY, use a nearest-architecture
+tokenizer EXPLICITLY labeled as a proxy, and force confidence: LOW.
+
+VENDORING RULE: pin tokenizer artifacts by revision hash into the image at build
+time. Never download at runtime. A silently updated tokenizer.json = silently
+wrong invoices.
+
+CALIBRATION HARNESS (required). For every model where method is not
+EXACT_TOKENIZER, maintain a golden corpus and back-fit the heuristic:
+
+  /packages/tokenizers/calibration/
+    corpus/                  en, ar, zh-Hans, code, json, mixed (min 200 each)
+    observed/                real usage.* payloads captured from live responses
+    ratios.generated.json    char→token ratio + stddev per (model, script, type)
+
+The ratio table is GENERATED FROM OBSERVATIONS, never authored by hand. Each row
+stores n_samples, mean, p90, stddev, calibrated_at. Confidence downgrades
+automatically when n_samples is below threshold or calibrated_at is stale.
+Arabic is a first-class calibration bucket, not an afterthought — its inflation
+ratio differs sharply from both English and Chinese.
+
+### A4.2 Financial rates — TWO-TIER INGESTION
+TIER A — automated aggregators (primary, daily cron):
+  - LiteLLM model_prices_and_context_window.json (GitHub) — daily pull
+  - OpenRouter pricing endpoint — daily pull
+Each pull writes a NEW immutable PricingSnapshot row. Never UPDATE a rate — insert
+a new version and close the prior row's effective_to. Diff each pull against the
+previous snapshot; emit a PriceChangeEvent when a rate moves and show a "prices
+changed since your last estimate" banner.
+
+TIER B — manual vendor override table (enterprise + Chinese clouds):
+Baidu AI Cloud (Qianfan), Tencent Cloud (Hunyuan), Alibaba Cloud (Model Studio),
+and dedicated-capacity tiers publish no machine-readable pricing. Build an
+admin-only override UI writing to pricing_manual_override with MANDATORY fields:
+source_url, screenshot_ref, verified_by, verified_at, currency, region. Manual
+rows OUTRANK aggregator rows for the same (model, region, tier). Show a
+staleness_days badge on every manual row and a monthly review reminder.
+
+CURRENCY + REGION: store the vendor's NATIVE currency (CNY is common for Chinese
+clouds) and convert at display time via a dated FX record that is itself sourced.
+Never store a converted price as the primary value.
+
+TIER C — self-hosted hardware: cloud GPU price sheets (AWS, GCP, Azure, RunPod,
+Lambda, regional Gulf providers). Quarterly refresh. Store on_demand and spot
+SEPARATELY — never blend. Regional tax/VAT is a separate multiplier field.
+
+### A4.3 Sourcing matrix (implement exactly)
+  Global tokenizers      local libs           on new family     LOW    pin by hash
+  Chinese tokenizers     HF / ModelScope      on new arch       MED    golden tests
+  Claude/Gemini counts   remote API + cache   per request       MED    limit+fallback
+  Managed API costs      LiteLLM+OpenRouter   daily cron        HIGH   two-source diff
+  Enterprise / CN cloud  manual admin entry   monthly           HIGH   staleness blocks
+  Self-hosted instances  cloud price sheets   quarterly         MED    spot ≠ on-demand
+  FX rates               dated rate record    daily             MED    native is truth</pre>
+        </div>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary>Layer 0 — intent parser &amp; defaults <span class="tag">A4.4</span></summary>
+      <div class="accbody">
+        <div class="block">
+          <div class="bar"><span>Trilingual lexicon · compound verbs · defaults engine · language triple</span><button class="copy" type="button">Copy</button></div>
+<pre>## A4.4 LAYER 0 — INTENT PARSER &amp; THE DEFAULTS ENGINE
+
+Everything in A5 assumes a structured task graph already exists. This section builds
+the thing that produces it, from a sentence a human typed in ENGLISH, ARABIC or
+CHINESE — and it is where most naive implementations go wrong.
+
+### A4.4.1 Two layers, deterministic first
+  [free text, any language]
+        v
+  [L1 Deterministic Router]  lexicon + normalizer + regex. Free, ~0ms, no tokens.
+        v   parse_confidence &gt;= PARSE_CONFIDENCE_FLOOR ? emit : escalate
+  [L2 Structured LLM Parse]  PART B prompt, cheapest capable model, JSON mode
+        v
+  [WorkflowInput]            workflow-input.schema.json
+
+L1 handles the ~70% of inputs that are imperative and well-formed. L2 is the
+FALLBACK, not the default.
+
+THE RECURSION NOBODY ACCOUNTS FOR: THE PARSER COSTS MONEY. L2 is itself an LLM call
+with input, output and (if you pick a reasoning model — don't) reasoning tokens. A
+cost calculator that doesn't meter its own parser is lying about total cost of
+ownership. Emit the parse as a `system_overhead` line on every estimate, and expose
+L1 hit-rate as an operating metric — it is the single lever on your gross margin.
+
+### A4.4.2 Normalize before you match (where Arabic and Chinese break)
+ARABIC — apply in order before any lexicon lookup:
+  1. Strip tashkeel/diacritics — the same verb appears with and without them
+  2. Normalize alef forms: أ إ آ ٱ -&gt; ا
+  3. Normalize ة -&gt; ه, ى -&gt; ي per your matcher's tolerance
+  4. Strip prefixes و ف ب ك ال ولل and pronominal suffixes ه ها هم ني نا ك
+  5. Convert Arabic-Indic numerals ٠١٢٣٤٥٦٧٨٩ to Western BEFORE any quantity regex.
+     A regex that only matches [0-9] silently drops every number in an Arabic
+     prompt; the dropped quantity becomes a default, and the default becomes a
+     confident wrong estimate.
+  6. Match against a normalized-root lexicon, not surface forms
+
+CHINESE — no whitespace, so segmenting the INSTRUCTION is its own problem:
+  1. Normalize Traditional -&gt; Simplified (or match both) before lookup
+  2. Longest-match segmentation against the verb lexicon, not char-by-char
+  3. Convert Chinese numerals 一二三四五六七八九十百千万 and 两 to Western integers
+     before quantity extraction — 五份合同 is FIVE contracts, and [0-9]+ sees zero
+  4. Measure words 份 篇 张 个 页 条 follow a count and are your strongest
+     quantity signal
+
+ALL SCRIPTS — detect script by Unicode range PROPORTIONS, not one label. Gulf
+documents are routinely mixed: an Arabic contract with English legal terms, Western
+numerals and a Chinese counterparty name. Emit
+script_mix: { arabic: 0.71, latin: 0.24, han: 0.05 } — the tokenizer follows the
+mix, not the majority.
+
+### A4.4.3 The action lexicon (seed — extend from real usage logs)
+READ   EN upload, read, analyze, scan, extract, parse, OCR, ingest, classify,
+          compare, search
+       AR ارفع، حمّل، اقرأ، حلّل، افحص، استخرج، صنّف، قارن، ابحث
+       ZH 上传、读取、阅读、分析、扫描、提取、解析、分类、对比
+WRITE  EN write, draft, generate, create, compose, brainstorm, outline, expand, reply
+       AR اكتب، صغ، أنشئ، ولّد، اقترح، خطّط، وسّع
+       ZH 写、撰写、起草、生成、创建、头脑风暴、扩写
+EDIT   EN fix, rewrite, modify, update, change, refine, polish, inpaint, upscale
+       AR عدّل، أصلح، أعد صياغة، حدّث، غيّر، نقّح، حسّن
+       ZH 修改、修复、改写、更新、润色、重绘、放大
+
+TWO MISCLASSIFICATIONS TO FIX — BOTH UNDERCOUNT:
+  translate / ترجم / 翻译   NOT read-only. READ + WRITE: ingests the entire source
+      AND emits a full-length target. Classifying it as READ undercounts output by
+      roughly one whole document. On a long contract that is the dominant term.
+  summarize / لخّص / 总结    NOT write-only. READ + WRITE: ingests the entire source,
+      emits a short output. Classifying it as WRITE undercounts INPUT by the whole
+      document.
+
+So the lexicon maps VERB -&gt; TASK SEQUENCE, not verb -&gt; task:
+  // /packages/router/lexicon.ts
+  const COMPOUND = {
+    translate: [ {type:'READ',  sub_kind:'context_ingestion'},
+                 {type:'WRITE', sub_kind:'completion',
+                  ratio_hint:'OUTPUT_APPROX_EQUALS_INPUT'} ],
+    summarize: [ {type:'READ',  sub_kind:'context_ingestion'},
+                 {type:'WRITE', sub_kind:'completion',
+                  ratio_hint:'OUTPUT_MUCH_SMALLER_THAN_INPUT'} ],
+    review:  [ /* READ + WRITE — findings are output */ ],
+    audit:   [ /* READ + WRITE */ ],
+    compare: [ /* READ x n sources + WRITE */ ],
+  }
+Expanded tasks carry expands_from: "&lt;parent_task_id&gt;" so the UI can show one user
+intent as its two billable halves. That display — "you said summarize, here are the
+two things you are paying for" — is the product's best explanation of itself.
+
+ALSO HANDLE:
+  NEGATION    "don't summarize, just extract" / "لا تلخّص" / "不要总结". A bare keyword
+              matcher scores a summarize hit inside a negation. Scan a negation
+              window before accepting a match; escalate to L2 on ambiguity.
+  CONDITIONALS "summarize it if it's over 10 pages" is a probabilistic branch. Record
+              execution_probability and multiply volume. Never treat it as certain.
+  ITERATION   "for each", "لكل", "每个", "batch of", and bare plurals all set volume.
+              Missing iteration language is the most common cause of a 100x
+              underestimate.
+
+### A4.4.4 The defaults engine — and the line it must not cross
+Users don't supply pixel dimensions in casual prompts, and refusing to estimate
+without them makes the product useless. But that collides with A3 rule 2. One clean
+line resolves it:
+
+  GUESS QUANTITIES. NEVER GUESS RATES.
+  A missing RATE (price, tile constant, throughput) BLOCKS the estimate — there is
+  no honest default for what a vendor charges.
+  A missing QUANTITY (document length, image size, turn count) gets a LABELED,
+  EDITABLE default that downgrades confidence.
+
+Every default that fires must:
+  1. emit an assumptions[] entry with basis "DEFAULT_APPLIED" and an impact rating
+  2. render in the Assumptions panel as an editable field, pre-focused when it is
+     the top sensitivity driver
+  3. downgrade the task to at most MEDIUM confidence; LOW when two or more defaults
+     stack on one task
+  4. NEVER fire when a real asset is attached — a measured value always beats a
+     default. Defaults are for pre-upload and hypothetical estimation only.
+
+SEED BASELINES — enter the DB tagged provenance: SEED_UNCALIBRATED, confidence: LOW,
+with a standing task to replace each from observed runs. Starting points, not facts.
+Store in `defaults_seed` with source "USER_SUPPLIED_BASELINE" — not in code, and
+never shown in the UI as a measured figure.
+  short_form   tweet, email, post · تغريدة، منشور · 推文、帖子     300 in /   200 out
+  medium_form  article, report   · مقال، تقرير  · 文章、报告   2,000 in /   800 out
+  long_form    book, contract, multi-page PDF · عقد · 合同    25,000 in / 2,000 out
+  image        unspecified image · صورة · 图片              1024x1024, detail=high
+
+### A4.4.5 Language-inflation defaults — three corrections
+The rule "if Chinese, multiply character count by 1.5-2.5x" has three problems:
+  1. MULTIPLIER RELATIVE TO WHAT? No stated baseline. Written properly the heuristic
+     is tokens ~= chars * ratio[model, script] — one MEASURED ratio per (model,
+     script) pair. Store the ratio; never a multiplier-of-a-multiplier.
+  2. A 1.5-2.5x BAND IS A +/-25% COST SWING before anything else varies. That is not
+     a range you pick from — it is a distribution. Emit P50 and P90 or the user
+     reads the low end as the price.
+  3. YOU WILL ALMOST NEVER NEED IT. Qwen, GLM, DeepSeek and the OpenAI families all
+     have local exact tokenizers. The ratio path is only for PROXY tokenizers,
+     offline preview and pre-upload estimates. Applying a ratio when an exact count
+     is available is a self-inflicted error.
+
+ARABIC NEEDS ITS OWN MEASURED RATIO plus three rules the Chinese path lacks:
+  TASHKEEL IS BILLABLE. Fully vocalized Arabic (Qur'anic, liturgical, pedagogical,
+     formal legal) carries a diacritic on nearly every consonant and most tokenizers
+     treat them as separate tokens. Detect diacritic density and BRANCH — do not use
+     one Arabic ratio for both.
+  MORPHOLOGY, NOT SPACES. Arabic packs article, conjunction, preposition and pronoun
+     into one orthographic word. Calibrate on characters, per model; word-based
+     ratios behave much worse.
+  DIALECT vs MSA. Gulf and Levantine content tokenizes worse on MSA-weighted models.
+     If Jordan/KSA/Kuwait workloads include chat or social content, that is a
+     separate calibration bucket from contracts.
+
+CORPUS BUCKETS become: en, ar_msa, ar_dialect, ar_vocalized, zh_hans, zh_hant, code,
+json, mixed — each with its own n_samples, mean, p90, stddev.
+
+### A4.4.6 Three language fields, not one
+"I want to upload a Chinese contract PDF, summarize it, and generate a featured
+image" is written in ENGLISH about a CHINESE payload, possibly from an ARABIC UI.
+Conflating them is a direct mispricing.
+  "languages": {
+    "ui_language":          "ar",     // interface locale — costs nothing, drives RTL
+    "instruction_language": "en",     // language of the request — lexicon selection
+    "payload_languages": [            // language of the BILLED CONTENT
+      { "code": "zh-Hans", "share": 0.95 },
+      { "code": "en",      "share": 0.05 }
+    ]
+  }
+ONLY payload_languages enters the cost math.
+
+### A4.4.7 Is the PDF scanned? (the question that example hides)
+"Upload a Chinese contract PDF" is two completely different cost models:
+                  TEXT-LAYER PDF              SCANNED PDF
+  Task type       READ · context ingestion    READ · VISION OCR
+  Cost driver     text tokens                 IMAGE TILES, PER PAGE
+  Formula         A5.1                        A5.2, once per page
+  Magnitude       baseline                    far higher, scales with page count
+The parser MUST NOT choose silently. Detect it when the asset is present (text layer
++ character count); when absent, put it in missing_data[] as a BLOCKING question —
+"Is the PDF searchable text or a scan?" — because no default is defensible across a
+gap this size. Same question for images inside DOCX and for photographed documents,
+which are near-universal in Gulf contract workflows.
+
+WORKED TRACE, once Layer 0 is correct:
+  "I want to upload a Chinese contract PDF, summarize it,
+   and generate a featured image for the article"
+  -&gt; languages: instruction=en, payload=[zh-Hans], ui=&lt;session&gt;
+  -&gt; t1 READ  context_ingestion | doc_class=long_form | zh-Hans
+        BLOCKING: text-layer or scanned? (-&gt; vision_ocr if scanned)
+        default:  25,000 input tokens   [SEED_UNCALIBRATED · editable]
+  -&gt; t2 READ  context_ingestion | expands_from=summarize   &lt;- commonly missed
+  -&gt; t3 WRITE completion        | expands_from=summarize
+                                  ratio_hint=OUTPUT_MUCH_SMALLER_THAN_INPUT
+  -&gt; t4 EDIT  image_generate    | per-image pricing, NOT tokens (A7)
+        default:  1024x1024              [SEED_UNCALIBRATED · editable]
+  -&gt; confidence: LOW · needs_human_review: true
+  -&gt; missing_data: [pdf_has_text_layer, image_dimensions, target_summary_length]
+
+FOUR TASKS FROM THREE VERBS, TWO BLOCKING QUESTIONS, AND LOW CONFIDENCE — from a
+sentence that looks completely unambiguous. That gap is why Layer 0 exists.</pre>
+        </div>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary>Tiered token estimation <span class="tag">A4.5</span></summary>
+      <div class="accbody">
+        <div class="block">
+          <div class="bar"><span>Tier 0→3 · cache key · escalation · padding split · drift capture</span><button class="copy" type="button">Copy</button></div>
+<pre>## A4.5 TIERED TOKEN ESTIMATION ENGINE (Tier 0 → Tier 3)
+
+No single counting method is right for every request. Four tiers, each mapping to a
+declared `method` tag, a default confidence, and an explicit escalation trigger.
+/packages/tokenizers exposes ONE function — estimateTokens(payload, model, mode) —
+and the tier it used is part of the return value, never a hidden detail.
+
+  TIER 0  inherits cached tier    ~0        inherits   cache hit on identical payload
+  TIER 1  PROVIDER_COUNT_API      network   HIGH       media payloads; near a context
+                                                       or price boundary; committing
+                                                       a quote
+  TIER 2  EXACT_TOKENIZER/PROXY   sub-ms    HIGH/LOW   text-only, local vocabulary
+  TIER 3  CALIBRATED_HEURISTIC    0         MED→LOW    offline preview, typing
+                                                       indicator, pre-upload sizing
+
+### A4.5.1 Tier 0 — cache, and the key that makes it safe
+Content-hash the payload, but THE HASH ALONE IS NOT THE KEY:
+
+  // /packages/tokenizers/cache-key.ts
+  cacheKey = sha256(canonicalizeMessages(messages))
+           + ':' + model_id
+           + ':' + tokenizer_revision       // the pinned artifact hash from A4.1
+           + ':' + chat_template_version    // framing overhead changes with it
+           + ':' + tenant_id                // never share a cache across tenants
+
+OMITTING model_id OR tokenizer_revision IS THE SINGLE MOST LIKELY BUG IN THIS DESIGN.
+The same message array tokenizes differently on different models, and differently on
+the SAME model after a tokenizer artifact bump. A hash-only key silently serves one
+model's count for another, forever, with HIGH confidence attached. Bumping
+tokenizer_revision must invalidate BY CONSTRUCTION — never by a manual flush.
+
+canonicalizeMessages must be byte-stable: stable key order, no incidental whitespace,
+deterministic tool-schema serialization. An unstable canonicalizer gives a 0% hit
+rate that looks like a working cache.
+
+Payload content is hashed, not stored. Where a tenant's policy forbids even hashed
+derivatives of regulated content leaving their boundary, the cache is per-tenant and
+co-located — which is why tenant_id is IN the key, not a namespace bolted on later.
+
+### A4.5.2 Tier 1 — remote count API is ground truth
+Use for: any payload containing media; any estimate within TIER_PROXIMITY_WARN_PCT of
+a context-window or price-tier boundary; any figure the user commits as a quote.
+
+GEMINI: multimodal token weight depends on resolution downscaling and temporal frame
+sampling, which the local path does not replicate. The local path must DETECT MEDIA
+AND REFUSE — not silently count the text portion, which produces a large, confident
+undercount. Local Gemini is a text-only optimization; media always escalates.
+
+ANTHROPIC: rate-limit the adapter on its own bucket (A10), cache by the key above,
+and treat a 429 as a DOWNGRADE to Tier 3 with a visible badge — never a silent zero.
+
+EVERY TIER 1 CALL IS ALSO A FREE CALIBRATION SAMPLE. When the remote count returns,
+compute what Tier 2 and Tier 3 WOULD HAVE SAID for the same payload and write the
+deltas to the calibration store. The heuristic improves as a by-product of normal
+operation, and proxy drift surfaces as a widening delta before it becomes a wrong
+invoice. Wire this from day one — retrofitting means discarding every sample you
+already paid for.
+
+### A4.5.3 Tier 2 — local and proxy tokenizers
+Exact local vocabularies (A4.1) run here at HIGH confidence. Proxies do not.
+
+PROXY SELECTION RULE — MATCH THE SCRIPT, NOT JUST THE ARCHITECTURE. "Map to a standard
+LLaMA/Qwen baseline" treats those two as interchangeable; for Chinese they are not. A
+Chinese-native vocabulary and an older Western-trained vocabulary fragment Hanzi very
+differently, so proxying a Chinese closed-tier model (ERNIE, Hunyuan) to a
+Western-trained tokenizer is wrong in a CONSISTENT DIRECTION — the worst kind of
+error, because it looks stable. Proxy Chinese to Chinese-native; Western to Western.
+
+  "tokenizer_proxy": {
+    "target_model": "&lt;closed-tier model&gt;",
+    "proxy_model":  "&lt;script-matched open-weight model&gt;",
+    "basis": "SCRIPT_AND_ARCHITECTURE_MATCH",
+    "measured_delta_pct": null   // from Tier 1 drift capture; null = unvalidated
+  }
+
+Until measured_delta_pct has samples, every proxy count is confidence: LOW and raises
+PROXY_TOKENIZER_IN_USE. A proxy whose measured delta exceeds PROXY_DRIFT_MAX_PCT is
+DISABLED and that model falls back to Tier 1 only.
+
+### A4.5.4 Tier 3 — heuristics, and the constant you may not generalize
+Bootstrap value, COLD START ONLY: approximately 3.5-4 characters per token for ENGLISH
+PROSE, plus per-model fixed offsets for media blocks. It enters defaults_seed tagged
+provenance: SEED_UNCALIBRATED, confidence: MEDIUM, and is REPLACED AUTOMATICALLY by the
+calibration table (A4.1) once n_samples crosses threshold. Never written into source.
+
+THAT FIGURE IS ENGLISH PROSE ONLY. DO NOT GENERALIZE IT.
+  English prose         bootstrap ratio permitted, MEDIUM
+  Code / JSON / tabular own calibration bucket — tokenizes very differently
+  Arabic (any register) NO BOOTSTRAP VALUE EXISTS HERE. Unavailable until calibrated.
+  Chinese (Hans/Hant)   NO BOOTSTRAP VALUE EXISTS HERE. Unavailable until calibrated.
+
+Applying the English ratio to Arabic or Chinese is the failure this section exists to
+prevent — confident, silent, and wrong by a large factor. When a script has no
+calibration row, Tier 3 returns UNAVAILABLE with a specific missing_data[] entry ("no
+calibration samples for ar_vocalized on this model") and the UI shows a live CHARACTER
+count instead of a fake token count. A blank token field is honest; a wrong one is not.
+
+### A4.5.5 Two numbers, not one — padding is directional
+A +15% safety buffer is correct for one consumer and wrong for the other:
+  CONTEXT-OVERFLOW CHECK  wants to OVER-estimate; a wrong guess must fail safe  + buffer
+  COST ESTIMATE / QUOTE   wants to be CENTRED; padding inflates the quote       none
+
+So Tier 3 emits BOTH, separate all the way to the UI:
+  cost_estimate           = raw heuristic → P50/P90, feeds A5.8
+  context_safety_estimate = raw x (1 + HEURISTIC_SAFETY_PAD_PCT)
+                            → feeds context-window and max_tokens checks ONLY
+
+HEURISTIC_SAFETY_PAD_PCT is a config value, not a literal, and applies to TIER 3 ONLY
+— padding a Tier 1 ground-truth count is just overquoting. The padded number must
+NEVER reach a price.
+
+### A4.5.6 Processing flow (implement exactly)
+  estimateTokens(payload, model, mode)
+
+  1. Tier 0 — cache lookup on the composite key. Hit -&gt; return with the CACHED tier's
+     method and confidence. Never re-tag a cached Tier 3 value as Tier 1.
+
+  2. mode == LIVE_UI or OFFLINE
+       -&gt; Tier 2 if a local exact vocabulary exists AND payload is text-only
+       -&gt; else Tier 3, if a calibration row exists for (model, script, content_type)
+       -&gt; else UNAVAILABLE + missing_data[]. Show a CHARACTER count, not a token count.
+
+  3. mode == ESTIMATE or COMMIT, or ANY of:
+       - payload contains image / audio / video
+       - result is within TIER_PROXIMITY_WARN_PCT of a context window or price tier
+       - tokenizer_availability is PROXY and measured_delta_pct is null
+       - the user is committing this figure as a quote
+     -&gt; escalate to Tier 1. On 429 / timeout / offline, fall back ONE tier, RE-TAG the
+        line with the tier actually used, and raise ESCALATION_FAILED. Never present a
+        fallback number wearing the confidence of the tier you wanted.
+
+  4. Write through to cache. If Tier 1 ran, compute the Tier 2 and Tier 3
+     counterfactuals and append the deltas to the calibration store (A4.5.2).
+
+THE INVARIANT ACROSS ALL FOUR TIERS: the method and confidence on the returned line
+describe the tier that ACTUALLY PRODUCED THE NUMBER, never the tier that was
+requested. Every downgrade is visible in the UI. A silent downgrade is the same class
+of bug as a hardcoded rate.</pre>
+        </div>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary>Measurement, multipliers &amp; VLM sizing <span class="tag">A4.6 · A5.9.1 · A5.10</span></summary>
+      <div class="accbody">
+        <div class="block">
+          <div class="bar"><span>Geometry probe · request-level fees · visual tokens → VRAM</span><button class="copy" type="button">Copy</button></div>
+<pre>## A4.6 MEASURING WHAT DOCUMENTATION DOES NOT PUBLISH
+
+Three quantities in this spec have NO documentary source at any vendor, and a fourth
+exists only for some. Reading harder will not produce them:
+  framing_tokens_per_message   artifact of the chat template, never published
+  script ratios per (model, script, content_type)   vendor pages quote English
+  prefill / decode throughput  vendor claims are marketing; your hardware counts
+  VISION GEOMETRY, where unpublished — several providers publish vision RATES with
+  no geometry, or an architecture with no token count
+
+### A4.6.1 THE GEOMETRY PROBE
+Where a provider publishes no formula, one API call per probe point returns
+usage.prompt_tokens; subtract a text-only baseline and the remainder is the visual-
+token count. That settles in an afternoon what documentation has failed to settle,
+and turns an UNAVAILABLE row into a sourced one.
+
+DESIGN RULES — the honesty contract applied to measurement:
+1. SPEND MONEY ONLY ON PURPOSE. --dry-run is the DEFAULT and prints a deliberately
+   pessimistic cost upper bound; --confirm is required to make a call; --max-calls is
+   a hard stop. Cache every result to disk so a crash costs nothing twice. Pin
+   max_tokens:1 — you are measuring the INPUT side; paying for output buys nothing.
+2. RUN A CONTROL MODEL FIRST, AND REFUSE TO TRUST THE RUN WITHOUT IT. Pick a model
+   whose geometry IS published, with known worked answers, and probe it in the same
+   harness. A wrongly subtracted baseline, a provider silently re-encoding the
+   upload, a `detail` parameter being ignored — every one produces PLAUSIBLE NUMBERS
+   AND A WRONG FORMULA. If the harness cannot recover the control's known geometry,
+   EVERY OTHER RESULT IN THE RUN IS WORTHLESS. This is the most important line here.
+3. CHOOSE PROBE POINTS TO DISCRIMINATE, NOT TO SAMPLE. Every candidate geometry is
+   roughly monotonic in area, so most sizes agree and teach nothing. The information
+   sits at boundaries where candidates disagree: one pixel either side of each
+   candidate's block/tile size, exact multiples of each candidate patch size, and the
+   extremes that exercise caps and clamps.
+4. INCLUDE A TRANSPOSED PAIR — THE DECISIVE MEASUREMENT. Patch grids, tile grids,
+   area budgets and flat rates are all commutative, so w×h and h×w return the same
+   count. A geometry with a width-dependent term does not. EQUAL COUNTS RULE OUT
+   EVERY ASYMMETRIC FORMULA IN ONE COMPARISON; unequal counts prove any tile-grid
+   implementation is wrong for that model. One pair of calls halves the candidate set.
+5. NEVER RETURN A BEST GUESS. A candidate explaining most points is a coincidence
+   with counterexamples. Report a fit only when the residual is ZERO across EVERY
+   observation; anything else is UNKNOWN with the misses listed. Two exact fits is
+   also not a result — it means the grid does not discriminate: add sizes that
+   straddle their differing boundaries and re-run.
+6. A MEASUREMENT IS EVIDENCE, NOT A REGISTRY ENTRY. The probe writes a generated JSON
+   file for a human to review. It does not write to the pricing registry. A3 applies
+   to measured constants exactly as to sourced ones.
+7. FAIL LOUDLY AND SPECIFICALLY. A provider that does not report prompt tokens cannot
+   be probed by this method — say so rather than inferring a number from something
+   else in the response. Context overruns recorded as skipped, errors as errors, both
+   with the message. Do not retry an auth failure or a rejected image; retrying spends
+   money on a request that will fail identically.
+
+PROBE IMAGES MUST BE DETERMINISTIC AND BYTE-IDENTICAL ACROSS MACHINES — that is what
+makes the cache key honest on a resumed or shared run. Generate them WITHOUT an image
+library: a library may silently re-encode, strip or resample, and when the entire
+question is "what pixel dimensions did the provider actually see", a library between
+you and the bytes is an uncontrolled variable. Avoid a flat fill (a provider may
+short-circuit on trivial content, and byte size is unrealistic) and avoid per-pixel
+noise (incompressible — the largest and most informative probe point will fail on a
+FILE SIZE limit rather than on geometry). Deterministic coloured blocks sit between.
+
+Test the fitter against SYNTHETIC data generated from geometries you already know, so
+tests run offline and cost nothing. The NEGATIVE cases matter more than the positive
+ones: a fitter that always returns something is worse than useless, because it
+launders a guess into a measurement.
+
+## A5.9.1 THE VLM CHAIN — VISUAL TOKENS HAVE TWO DESTINATIONS
+
+Vision geometry and VRAM sizing are usually written as separate concerns, and that
+split is where VLM estimates go wrong. THE GEOMETRY OUTPUT IS THE SIZING INPUT:
+
+  pixels --[A5.2 geometry]--> visual_tokens --+--> hosted:      x input_rate
+                                              +--> self-hosted: x KV bytes/token -> VRAM
+
+  kv_cache = 2 * layers * kv_heads * head_dim * bytes_per_param(kv_dtype)
+                * MIN(visual_tokens + text_context_tokens, max_context)
+
+One quantity, two destinations — SO A GEOMETRY ERROR PROPAGATES INTO BOTH. A 34%
+visual-token undercount is a 34% KV-cache undercount, which turns a "fits
+comfortably" cell into an out-of-memory crash under load.
+
+VISUAL TOKENS MUST ALSO FEED THE CONTEXT-WINDOW GATE, NOT JUST THE COST LINE. The
+annex documents a VLM whose max context is small enough that a SINGLE ordinary-
+resolution image consumes roughly HALF of it — two images plus a prompt do not fit at
+all. That is a CAPABILITY LIMIT WEARING A COST LIMIT'S CLOTHES, and it is invisible in
+a VRAM table (the KV cache clamps to a reassuringly small number, which is exactly
+backwards). So: carry max_context on every vision row and compute
+image_share_of_context; raise CONTEXT_TOO_SMALL from the VISUAL token count, not only
+from text; clamp the KV term by MIN(tokens, max_context).
+
+PREFILL DOMINATES DECODE ON DOCUMENT WORK. A multi-thousand-token image answered in a
+couple hundred tokens makes prefill the overwhelming majority of compute — the
+OPPOSITE of a chat workload. For document VLM sizing the bottleneck is
+prefill_throughput_tps, not decode_throughput_tps.
+
+FOUR ERRORS AVAILABLE IN THE VRAM GATE, DESCENDING BY SIZE:
+1. kv_heads, NOT attention heads. Under GQA a model may expose many query heads and
+   few KV heads; using the query count can overstate KV cache by ~7x. Not every model
+   HAS GQA — where num_key_value_heads == num_attention_heads it makes no difference,
+   which is why the code must READ the field rather than assume the architecture. A
+   smaller model with full MHA can hold MORE KV per token than a larger GQA model.
+   Nothing in a parameter count predicts that.
+2. MIXTURE-OF-EXPERTS WEIGHTS USE TOTAL PARAMETERS, NOT ACTIVE. Every expert stays
+   resident; only THROUGHPUT reflects the active subset. Sizing on active params
+   understates weight VRAM by roughly the expert ratio.
+3. FLASHATTENTION DOES NOT REDUCE THE KV CACHE. It avoids materialising the attention
+   matrix, cutting ACTIVATION memory. What does reduce KV cache: grouped-query
+   attention (architectural, already in the formula), paged attention (removes
+   fragmentation waste rather than compressing), and KV QUANTIZATION — set kv_dtype
+   independently of weight quantization. Keep supports_flash_attention away from the
+   kv_cache term in code, or the next person will reintroduce this.
+4. gpu_memory_utilization CAPS THE ENGINE'S TOTAL FOOTPRINT — weights plus KV plus
+   activations — not a reserve earmarked for anything. The remainder covers CUDA
+   context and fragmentation.
+
+And one rule of thumb that does NOT generalise: "GB per 32k tokens" figures are
+model-specific. A deep model with few KV heads and a shallow one with many differ by
+an order of magnitude for the same context. COMPUTE THE TERM; never carry the
+constant across model sizes.
+
+served_quantization MATTERS FOR PRICE COMPARISON, NOT JUST SIZING. A provider serving
+a model at FP8 or INT4 is not serving the same artifact as one serving it at BF16,
+even under the same model name. A comparison ignoring quantization compares different
+models.
+
+## A5.10 REQUEST-LEVEL MULTIPLIERS AND NON-TOKEN FEES
+
+The identity in A5.8 covers what is metered per token. Vendor pages carry three more
+layers that it does not, and each moves a real invoice. THESE BELONG ON THE REQUEST,
+NOT THE MODEL ROW — the same model under two service tiers is two different answers
+from one registry entry.
+
+  FINAL_COST = ( TOKEN_TERMS(A5.8)
+               + cache_storage_tokens * storage_rate_per_1m_per_hour * hours_held
+               + tool_use_system_prompt_tokens * input_rate
+               + SUM(server_tool_calls * per_call_fee) )
+             * service_tier_multiplier
+             * (1 + residency_uplift_pct)
+
+  SERVICE TIER MULTIPLIER  batch/flex/fast/priority scale the WHOLE bill. It is a
+    REQUEST attribute, so a row-level registry has nowhere to put it. The multipliers
+    are NOT SHARED ACROSS VENDORS — the annex records one provider's premium tier at
+    1.8x where two others use 2x. Store per provider, never as a shared constant.
+  RESIDENCY UPLIFT  regional/in-country endpoints carry a percentage uplift on ALL
+    categories, cache reads and writes included. THIS BINDS DIRECTLY ON GULF ROUTING:
+    the compliant option is not the same price as the default, and a router that
+    filters on residency without applying the uplift understates the compliant path.
+  CACHE STORAGE PER HOUR  at least one provider bills cached content BY THE HOUR
+    WHETHER OR NOT YOU CALL THE MODEL. Every cache model in this spec until now
+    assumed write+read only. PER-PROVIDER FIELD, nullable — a long-lived cache on a
+    low-traffic workload can cost more than it saves, and the estimator must show it.
+  TOOL-USE SYSTEM PROMPT  a published per-model token count for merely ENABLING
+    tools, SEPARATE FROM AND ADDITIONAL TO the tool schema JSON in A5.1. Two meters,
+    both real; one provider reports tool tokens as its own usage field.
+  SERVER-TOOL PER-CALL FEES  web search, file search, code containers: NOT
+    TOKEN-PRICED AT ALL. Per thousand calls, per GB-day, or per session. A token-only
+    estimator returns ZERO for them; an agentic workflow with search enabled can have
+    a majority of its cost here.
+  FAILED GENERATIONS  bills_failed_generations is published on at least one video
+    model. Assuming either way is a guess. Where it bills, expected_retry_rate is a
+    labelled assumption.
+  RE-ROLLS  image workflows generate N candidates per accepted image and EVERY
+    CANDIDATE BILLS. candidates_per_accepted_image is a required task field,
+    defaulting to 1 and almost never actually 1.
+
+TWO SHAPE CORRECTIONS TO A5.7:
+  - NOT EVERY MODEL HAS CONTEXT TIERS. At least one provider includes its full long
+    context at the standard rate, so context_tiers is NULL for that family — not a
+    single-entry array and not an assumed surcharge.
+  - A TIER CAN REBILL THE WHOLE REQUEST, NOT THE OVERFLOW. Where crossing a threshold
+    reprices EVERY token rather than the excess, the step is far larger than a
+    marginal reading suggests. applies_to_whole_request: boolean on each tier, and
+    the near-threshold warning must use the right one.
+
+IMAGE GENERATION HAS A FOURTH PRICING DIMENSION. per_image | per_megapixel | per_step
+is incomplete: some providers meter image output IN TOKENS and the per-image figure is
+DERIVED (tokens_for_resolution * output_rate). Add per_output_token and store the
+resolution->token map, rendering the derived per-image figure as authoritative with the
+token figure as explanation. Where a vendor sells only a SUBSCRIPTION,
+pricing_model:'subscription' makes the model NON-COMPARABLE in the router rather than
+assigned a synthesized unit price — averaging a monthly fee into a per-image number is
+exactly the invented figure A3 exists to prevent.</pre>
+        </div>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary>Estimation math <span class="tag">A5</span></summary>
+      <div class="accbody">
+        <div class="block">
+          <div class="bar"><span>Text · vision · media · reasoning · cache · tiers · both cost formulas</span><button class="copy" type="button">Copy</button></div>
+<pre>## A5. THE ESTIMATION ENGINE (/packages/estimator)
+
+### A5.1 Text input tokens
+input_tokens = tokenize(rendered_prompt) + framing_overhead + tool_schema_tokens
+
+1. RENDERED PROMPT — actual user + system content through the model's tokenizer.
+2. FRAMING OVERHEAD — chat-template scaffolding, role markers, BOS/EOS, message
+   separators. Per-model and per-turn. Derive EMPIRICALLY: tokenize a message with
+   the template applied, subtract the raw content count, store as
+   framing_tokens_per_message in the calibration table. Do NOT assume a constant
+   across families.
+3. TOOL SCHEMA TOKENS — every tool definition is serialized into context BEFORE the
+   user types. Tokenize the actual JSON schema payload. In agentic workflows this
+   frequently dominates a short prompt.
+
+Language inflation is handled by the tokenizer itself when method is
+EXACT_TOKENIZER — no ratio needed. Ratios apply only in CALIBRATED_HEURISTIC mode
+(fast preview, offline, or PROXY-tokenizer models).
+
+### A5.2 Vision / image input
+Cost is a function of PIXEL DIMENSIONS and DETAIL MODE, not file size.
+
+THERE IS NO SINGLE VISION FORMULA. DO NOT WRITE ONE. The tile grid
+`base + per_tile × ceil(w/tw) × ceil(h/th)` is ONE geometry among at least six in
+production; implementing it as a universal misprices most non-OpenAI vision models,
+silently and in a consistent direction. vision_profile.geometry selects the branch.
+An unknown geometry is UNAVAILABLE — never defaulted to the familiar one.
+
+  G1a PATCH_GRID + TOKEN_CAP    patches=ceil(w/P)*ceil(h/P), scale until <= cap
+                                COST SATURATES — bigger image, same price, less detail
+  G1b PATCH_GRID + AREA_CLAMP   round dims up to multiple of P, clamp area into
+                                [min,max], tokens=(w/P)*(h/P)
+                                COST DOES NOT SATURATE — expensive and faithful
+  G2  TILE_GRID                 base + per_tile * ceil(w/tw) * ceil(h/th)
+  G3  AREA_BUDGET               min(budget, area_px / divisor) — SMOOTH, no ceiling
+  G4  FLAT                      constant regardless of dimensions — SUPPRESS resize
+                                proposals entirely, they save nothing by construction
+  G5  BLOCK_GRID_SEP            (h*w + 1) * per_block + (w + 1) * sep + const
+                                global-view term + WIDTH-DEPENDENT separators
+
+G1a AND G1b ARE THE SAME PATCH SIZE AND PRODUCE WILDLY DIFFERENT ANSWERS. Per Annex
+A15 §3 (vendor pages, verified 2026-09-06) Claude, Qwen-VL and GLM-4.1V all use a
+28px patch grid — Claude bounds on a TOKEN CAP, the two Chinese models on a PIXEL
+AREA range. On the same oversized scan Claude saturates in the low thousands while
+Qwen-VL runs to five figures: an order of magnitude, from a formula identical on
+paper. bound_type ∈ {TOKEN_CAP | AREA_CLAMP} is a required field with min_area_px /
+max_area_px. A router comparing them on price alone, without source dimensions, will
+be wrong about which is cheaper.
+
+TOKEN COST IS NOT MONOTONIC IN PIXEL COUNT UNDER G5. The annex documents a
+DeepSeek-VL2 case where a LARGER image costs FEWER tokens, because block selection
+lands on a cheaper grid. Independent confirmation that rung 4 of the disposition
+ladder must actually RECOMPUTE rather than reason about direction.
+
+WIRE COMPATIBILITY PREDICTS NOTHING ABOUT BILLING GEOMETRY. Every Chinese VLM checked
+speaks the OpenAI protocol and accepts the same detail:low|high parameter, and not
+one uses OpenAI's geometry.
+
+### A5.2.0b EVALUATE `detail` BEFORE GEOMETRY
+detail:low is a FLAT RATE on every Chinese VLM checked — a constant regardless of
+dimensions. On those models low-detail mode IS geometry G4, so branch order matters:
+  1. resolve detail mode
+  2. if low_detail_geometry == FLAT -> return low_detail_flat_tokens. STOP.
+  3. otherwise branch on vision_profile.geometry
+Resolving geometry first and applying the flag afterwards is wrong by a large factor
+on exactly the models where detail:low is most attractive.
+
+And note what that makes detail:low — on a large scan it is a very large token
+reduction AND the setting that destroys Arabic dot placement and diacritics first
+(A5.2.1). IT IS A QUALITY DECISION WEARING A COST DECISION'S CLOTHES. Surface both
+numbers; never select it automatically to flatter an estimate.
+
+### A5.2.0c REQUIRED vision_profile FIELDS
+  geometry ∈ {PATCH_GRID|TILE_GRID|AREA_BUDGET|FLAT|BLOCK_GRID_SEP}
+  bound_type ∈ {TOKEN_CAP|AREA_CLAMP}      <- patch grids differ on this
+  patch_px | tile_w,tile_h    base_tokens   per_tile_tokens
+  token_cap | min_area_px,max_area_px       area_divisor  area_budget_tokens
+  flat_tokens_per_image       low_detail_flat_tokens
+  low_detail_geometry ∈ {FLAT|INHERIT}
+  block_px  global_view_included  sep_tokens_per_row  sep_constant  max_blocks
+  candidate_resolutions[]                  <- where selection is a bounded lookup
+  max_edge_px min_edge_px shortest_edge_target_px max_bytes max_pages allowed_mime[]
+  provider_auto_normalizes    min_legible_edge_px[script, density]
+
+A schema refinement must enforce that each geometry carries its own parameters and no
+others': a TILE_GRID row with a null per_tile_tokens silently prices every image at
+base_tokens, and that is the exact bug the refinement exists to catch.
+
+### A5.2.0d WHEN THE VENDOR CONTRADICTS ITSELF
+Vendor docs disagreeing with THEMSELVES on the same page is not hypothetical — the
+annex records it on two providers. A3 rule 5 applies to a single source contradicting
+itself exactly as to two sources disagreeing: REPORT, DO NOT MERGE, DO NOT AVERAGE.
+Seed the variant whose worked examples are internally consistent, flag the row
+needs_human_review, and record both readings.
+
+Ship a PRE-FLIGHT DIMENSION CALCULATOR in the client: read intrinsic width/height
+before upload, compute the tile grid, show projected token cost BEFORE the user
+commits, and warn when a resize would cut cost materially.
+
+### A5.2.1 Oversized and out-of-spec assets — the disposition ladder
+The pre-flight calculator DETECTS a violation. This is what happens next. Constraints
+are per-model DB fields (max_edge_px, min_edge_px, shortest_edge_target_px, max_bytes,
+max_pages, max_duration_seconds, max_frames, allowed_mime[]) — NEVER literals in code,
+for the same reason as every other vision parameter.
+
+THIS IS AN ESTIMATOR, NOT AN EXECUTION PIPELINE. IT MUST NOT MUTATE THE USER'S ASSET.
+"Scale down locally before it reaches the payload stage" is right for a production
+request path and wrong here. Downscaling silently means the user is shown a price for
+an asset they did not upload — and worse, RESOLUTION IS A QUALITY DECISION, NOT A COST
+DECISION. Losing OCR fidelity on a dense contract to save tokens is the client's call,
+not the pipeline's. The engine COMPUTES BOTH SCENARIOS AND PROPOSES; never rewrites.
+
+THE LADDER — evaluate in order, stop at the first rung that resolves:
+  0 MEASURE               always — true intrinsic dimensions, bytes, page/frame count,
+                          MIME by magic bytes. Provenance MEASURED_FROM_ASSET.
+  1 FITS_AS_IS            within every constraint -&gt; estimate normally, no flag
+  2 PROVIDER_NORMALIZED   provider scales it itself before billing -&gt; compute tiles on
+                          the POST-NORMALIZATION dimensions, not the user's. Tag
+                          DERIVED_FROM_ASSET and name the rule applied.
+  3 RESIZE_PROPOSED       over max_edge_px, fidelity not critical -&gt; compute BOTH
+                          estimates side by side, present as a choice, pre-select the
+                          resize only if it actually saves (rung 4)
+  4 RESIZE_SAVES_NOTHING  recomputed tile grid unchanged or larger -&gt; do NOT propose
+  5 FIDELITY_LOCKED       user marked OCR-critical, or script floor applies -&gt; skip
+                          resize, force explicit high-detail tiling, price the truth
+  6 REROUTED              no disposition fits this model -&gt; hand to the capability gate
+                          as an exclusion; A7 picks a model that accepts the asset
+  7 BLOCKED               violation makes cost unknowable -&gt; missing_data[] +
+                          needs_human_review. No number.
+
+RUNG 4 NEEDS ITS OWN RULE, BECAUSE "DOWNSCALE = CHEAPER" IS OFTEN FALSE. Tiles are a
+ceiling function, so a resize that doesn't cross a tile boundary changes nothing.
+Worse, several providers UPSCALE anything below shortest_edge_target_px, so shrinking
+too far can INCREASE the tile count. And a flat low-detail mode may already beat any
+resize. So:
+    propose_resize ONLY IF
+      tiles(scaled_w, scaled_h) &lt; tiles(original_w, original_h)
+      AND scaled_shortest_edge &gt;= shortest_edge_target_px
+Never show a resize suggestion whose saving you have not recomputed. A suggestion that
+saves nothing teaches the user to ignore all of them.
+
+SCRIPT-AWARE FIDELITY FLOORS. Downscaling destroys legibility at very different rates
+by script, and this app's workloads are Arabic and Chinese:
+  ARABIC   diacritics, dot placement (ب ت ث ن ي differ only by dots) and the ي/ى
+           distinction go first. Vocalized or handwritten Arabic has a much higher
+           floor than Latin prose.
+  CJK      dense glyphs lose stroke separation early; a small point size that survives
+           at full resolution becomes an unrecognizable blob.
+  LATIN    most tolerant. DO NOT derive the other two from it.
+Store min_legible_edge_px per (script, content_density) in the vision profile. Unknown
+or mixed script takes the STRICTEST floor present, never the average. Below the floor,
+rung 3 is unavailable and the ladder goes to rung 5.
+
+RUNG 6 — REROUTING, AND THE FILTER IT DOES NOT GET TO SKIP. An oversized asset becomes
+a capability-gate criterion like any other, with excluded_models[] reason
+ASSET_EXCEEDS_CONSTRAINTS naming which constraint and by how much.
+
+REROUTING NEVER OVERRIDES THE DATA-RESIDENCY HARD FILTER (A6). "Send the oversized
+document to whichever model has the largest capacity" is exactly how a KSA client's
+contract ends up at a PRC-hosted endpoint because it was a few hundred pixels too
+wide. Residency, DPA availability and is_prc_hosted are evaluated BEFORE capacity,
+always. A reroute no residency-permitted model can absorb is rung 7, not a quiet
+exception.
+
+Every reroute writes an assumptions[] entry { field: "routed_model", assumed_value,
+basis: "ASSET_CONSTRAINT_REROUTE", impact_if_wrong }, and the results table shows the
+substitution INLINE — the user asked about model X and is being quoted model Y, and
+that must never be discoverable only by reading a tooltip.
+
+PROVENANCE, CORRECTED. Provenance describes WHERE THE DIMENSION VALUE CAME FROM, and
+detail mode is a separate field — changing the tiling mode does NOT change provenance:
+  read from the user's file                      MEASURED_FROM_ASSET
+  provider normalized it / user accepted resize  DERIVED_FROM_ASSET + transform_rule
+  no asset yet, seed default                     DEFAULT_APPLIED
+
+ALSO CONSTRAIN, NOT JUST MAX PIXELS: min_edge_px (below which a provider may reject or
+upscale), max_bytes, max_pages for PDFs, max_duration_seconds and max_frames for video,
+allowed_mime[] validated by magic bytes (A10). FOR MULTI-PAGE DOCUMENTS THE BLOW-UP IS
+PER PAGE — an oversized page multiplies across the whole file, so evaluate the ladder
+on the page template, multiply, and surface pages x tiles_per_page as its own estimate
+line rather than one opaque total.
+
+WARNINGS THIS RUNG RAISES: ASSET_EXCEEDS_MAX_EDGE, RESIZE_SAVES_NOTHING,
+RESIZE_BELOW_LEGIBILITY_FLOOR, PROVIDER_WILL_NORMALIZE, REROUTED_FOR_ASSET_CONSTRAINT,
+REROUTE_BLOCKED_BY_RESIDENCY.
+
+### A5.3 Audio / video — duration-driven, not byte-driven
+  audio_tokens = ceil(duration_seconds) * tokens_per_second[model]
+  video_tokens = frames_sampled * per_frame_image_tokens + audio_track_tokens
+tokens_per_second, frame_sample_rate_hz and whether the audio track bills
+separately are DB parameters per model. Video is the highest-variance modality —
+force confidence: LOW unless the provider publishes a deterministic formula.
+
+### A5.4 Output + reasoning tokens (the non-deterministic half)
+  output_tokens    ~ Distribution(p50, p90, cap = max_tokens)
+  reasoning_tokens ~ Distribution(p50, p90)   // reasoning-capable models only
+  billable_output  = output_tokens + reasoning_tokens
+
+Seed distributions from task_type priors (classify &lt;&lt; summarize &lt; draft &lt;
+long_form_generate &lt; agentic_multi_step), each CALIBRATED FROM OBSERVED RUNS,
+not invented. Reasoning tokens are invisible but billed: for any model flagged
+is_reasoning_model a reasoning term is MANDATORY. Capture the provider's
+completion-token-details field from real responses from day one — that is what
+feeds the prior. Always clamp by max_tokens and warn when the cap sits below P90.
+
+### A5.5 Multi-turn context growth (cost is quadratic-ish, not linear)
+  turn_n_input = system + tools + SUM(prior inputs + prior outputs) + new_input
+  total_input  = SUM over turns
+Model three strategies and let the user pick: FULL_HISTORY, SLIDING_WINDOW(k),
+SUMMARIZED_ROLLUP(every_n). Show the total-cost delta between them. This is
+usually the biggest optimization lever in a chatbot workflow — put it in the UI,
+not a footnote.
+
+### A5.6 Caching
+  effective_input_cost = (cached_tokens     * cache_read_rate)
+                       + (cache_write_tokens * cache_write_rate)
+                       + (uncached_tokens    * standard_input_rate)
+cache_read_rate, cache_write_rate, minimum cacheable prefix length and TTL are
+per-provider DB fields — providers differ on all four, and some charge a PREMIUM
+to write cache. cache_hit_ratio is a user-editable ASSUMPTION, defaulted by
+workflow shape, never silently set to a flattering number.
+
+### A5.7 Context-window tier pricing (step function, not a flat rate)
+  rate = tiers.find(t =&gt; total_input_tokens &lt;= t.upper_bound).rate
+tiers[] is a DB array per model. Warn when an estimate lands within
+TIER_PROXIMITY_WARN_PCT of a threshold — that is where a small prompt trim
+produces an outsized saving.
+
+### A5.8 API-managed cost (canonical)
+  API_COST = (billable_input  * input_rate(tier))
+           + (billable_output * output_rate)        // includes reasoning tokens
+           + (image_tokens    * image_or_tile_rate)
+           + (audio_seconds   * audio_rate)
+           - (cached_tokens   * (input_rate - cache_read_rate))
+           + (cache_write     * cache_write_rate)
+           + per_request_fees
+Return P50 and P90 of this, per task, per candidate model.
+
+### A5.9 Self-hosted cost (canonical) — per GPU-second, not per token
+  prefill_seconds   = input_tokens  / prefill_throughput_tps
+  decode_seconds    = output_tokens / decode_throughput_tps
+  request_seconds   = ttft_seconds + prefill_seconds + decode_seconds
+  effective_seconds = request_seconds / concurrency_efficiency_factor
+
+  SELF_HOSTED_COST  = effective_seconds
+                    * (instance_hourly_rate / 3600)
+                    * (1 + regional_tax_rate)
+                    / utilization_factor
+
+FEASIBILITY GATE (VRAM) — refuse to cost what cannot physically run:
+  weights_bytes  = params * bytes_per_param(quantization)
+  kv_cache_bytes = f(layers, kv_heads, head_dim, max_context, batch_size, kv_dtype)
+  required_vram  = weights_bytes + kv_cache_bytes + activation_overhead
+  FEASIBLE       = required_vram &lt;= (gpu_count * vram_per_gpu * usable_fraction)
+All architecture fields come from the model card, stored in DB. Missing field =&gt;
+UNAVAILABLE, not a guess.
+
+UTILIZATION IS THE HONEST LEVER. A GPU billed 24/7 at low utilization has a
+per-token cost orders of magnitude worse than the same GPU saturated. Force the
+user to state expected_requests_per_day and utilization_factor, then compute and
+display the BREAKEVEN REQUEST VOLUME where self-hosted crosses below API. That
+crossover chart is the most valuable screen in the product — build it first.
+
+Also include: idle/always-on cost, cold-start cost for scale-to-zero, weight
+storage, egress, and an ops-labour line item (flat, user-editable, LABELLED as an
+assumption, because it is one).</pre>
+        </div>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary>Registry, routing, scenarios, UI <span class="tag">A6–A9</span></summary>
+      <div class="accbody">
+        <div class="block">
+          <div class="bar"><span>Model matrix · execution graph · scenarios · 2026 UX</span><button class="copy" type="button">Copy</button></div>
+<pre>## A6. MODEL REGISTRY (global + Chinese, tiered)
+Registry-driven. Adding a provider = inserting rows, never editing code.
+
+Seed these families (populate SPECS from each vendor's own docs — the app ships
+with the SHAPE, you supply the VALUES):
+  Global:      OpenAI, Anthropic, Google, Meta (open-weight), Mistral, xAI;
+               Bedrock / Azure AI as ROUTES to the above
+  Chinese:     DeepSeek, Alibaba Qwen, Zhipu GLM, Moonshot Kimi, Baidu ERNIE,
+               Tencent Hunyuan, ByteDance Doubao, MiniMax, 01.AI Yi
+  Aggregators: OpenRouter, Together, Fireworks, Groq, SiliconFlow
+
+Each model row: tier (FRONTIER|MID|LIGHTWEIGHT), modalities_in[], modalities_out[],
+context_window, max_output, is_reasoning_model, supports_tools, supports_caching,
+supports_vision, tokenizer_availability (LOCAL_EXACT|REMOTE_API|PROXY|NONE),
+open_weights, params_b, license, data_residency_region, quality_score_source
+(nullable + source_url — DO NOT INVENT BENCHMARK SCORES; null score means the
+router ranks on cost + capability only).
+
+COMPLIANCE DIMENSION (do not skip for Gulf/KSA/Kuwait/Qatar/Jordan deployments):
+add data_residency_region, is_prc_hosted, contractual_dpa_available. A model can
+be cheapest and still disqualified by a client's data-residency policy. The router
+must apply these as a HARD FILTER before it ranks on price.
+
+## A7. WORKFLOW DECONSTRUCTION → ROUTING
+  [User Workflow Input]
+        v
+  [Request Analyzer]  -- PART B prompt, or deterministic parser for structured input
+     |- classify sub-requests: READ | WRITE | EDIT
+     |- count volume per type
+     '- extract assets: char counts, image dimensions, duration, tool schemas
+        v
+  [Capability Gate]   -- drop models lacking modality/tools/context/residency
+        v
+  [Estimator]         -- A5, per surviving model, P50 + P90
+        v
+  [Pricing Resolver]  -- A4, versioned rates + staleness check
+        v
+  [Router]            -- rank under three objectives
+        v
+  [Recommendations]   -- Cheapest | Best-Capability | Balanced (+ split routing)
+
+TASK TAXONOMY:
+  READ  context ingestion, vision OCR, image analysis, doc parsing  -> input/tiles
+  WRITE completion, reasoning, creative draft, structured JSON      -> output+reasoning
+  EDIT  rewrite, inpainting, img2img, upscale                       -> in+out+multipliers
+
+For image EDIT, differentiate cost classes explicitly: text-to-image, img2img
+conditioning, mask/inpaint, upscale multiplier. Most providers price these
+PER-OPERATION or PER-MEGAPIXEL, not per token — so image generation is a separate
+pricing dimension (per_image, per_megapixel, per_step), NOT a token formula.
+
+SPLIT ROUTING IS A FIRST-CLASS OUTPUT. The best answer is often "lightweight model
+for the 40 READ classifications, frontier model for the 2 WRITE steps." Evaluate
+per-task assignment, not one model for the whole workflow, and report the saving
+versus single-model routing.
+
+EVERY RECOMMENDATION CARRIES A RATIONALE OBJECT:
+{ triggering_metric, observed_value, threshold, evidence_ref }
+A recommendation without one does not render.
+
+## A8. SCENARIOS (saveable, comparable)
+  Volume        requests/day x days, with growth curve
+  Deployment    API vs self-hosted vs hybrid, side by side
+  Model         N candidates on the same workflow
+  Optimization  with/without caching, history trimming, model downsizing
+  Sensitivity   tornado chart over the assumption set
+  Monte Carlo   sample output/reasoning/cache distributions N times; P50/P90/P99
+Persist every scenario with the exact pricing_snapshot_id used, so an old estimate
+reproduces verbatim after prices move.
+
+## A9. UI / UX (2026 rules)
+  Mobile-first  56px minimum touch targets, fluid clamp() typography
+  Minimal nav   3 top-level links max, progress dots on the side rail
+  Fast          CSS-only animations, stream partial estimates as each model resolves
+  Interactive   accordions for assumption groups, tabs for API-vs-self-hosted,
+                persistent pre-launch checklist
+  Bilingual     full AR/EN with RTL; the calculator must demonstrate Arabic
+                inflation correctly (dogfood it)
+  Theme-aware   light + dark via :root tokens; never a color defined only in a
+                media query
+
+BUILD ORDER OF SCREENS:
+  1. Workflow builder (tasks, assets, volume)
+  2. Assumptions panel (each default shows its provenance)
+  3. Estimate results (per-task table, P50/P90, method + confidence badges)
+  4. BREAKEVEN CHART (self-hosted vs API across request volume)
+  5. Optimization report (ranked levers, projected % saving)
+  6. Admin: pricing registry, manual overrides, staleness dashboard, conflict queue</pre>
+        </div>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary>Security, tests, checklist, warnings <span class="tag">A10–A14</span></summary>
+      <div class="accbody">
+        <div class="block">
+          <div class="bar"><span>Hardening · Playwright POM · k6 · self-verification · output format</span><button class="copy" type="button">Copy</button></div>
+<pre>## A10. SECURITY
+- JWT access + refresh rotation, httpOnly cookies
+- Rate limit every route; stricter bucket on /api/estimate and any route hitting a
+  remote count-tokens API
+- Helmet.js CSP; no inline scripts
+- Zod-validate all ingested aggregator JSON BEFORE it touches the DB — a malformed
+  upstream feed must not poison pricing
+- Provider API keys server-side only, encrypted at rest, never in client bundles
+  or logs
+- Admin pricing writes RBAC-gated and audit-logged
+  (who, what, old_value, new_value, source_url, when)
+- Uploaded assets: strip EXIF, validate MIME by magic bytes not extension, size
+  caps, virus scan hook
+
+## A11. TESTS
+VITEST (unit) — /packages/estimator:
+- Golden-file tokenizer tests per family: Arabic string, Chinese string, code
+  block, deeply nested JSON payload
+- Tile-grid math: 1px over a tile edge, extreme aspect ratios, below-minimum images
+- VRAM feasibility: exactly at capacity, one byte over, missing arch field =&gt;
+  UNAVAILABLE
+- Tier step function: exactly at threshold, one token over
+- Cache math: 0% and 100% hit ratio; cache-write premium exceeding read saving
+- NEGATIVE: missing rate =&gt; MissingRateError; stale rate =&gt;
+  needs_human_review: true; conflicting sources =&gt; both returned, no average
+
+PLAYWRIGHT (POM) — /apps/web/e2e:
+- POM classes: WorkflowBuilderPage, AssumptionsPanel, ResultsPage, AdminPricingPage
+- POSITIVE: 3-task mixed-modality workflow =&gt; ranked models with P50/P90 and a
+  method badge on every row
+- POSITIVE: edit cache_hit_ratio =&gt; totals recompute, sensitivity chart reorders
+- POSITIVE: RTL renders correctly with Arabic input; touch targets &gt;= 56px
+- NEGATIVE: model with expired pricing =&gt; blocking "rate stale" state, NOT a number
+- NEGATIVE: image exceeding max edge =&gt; pre-flight warns before upload
+- NEGATIVE: unauthenticated POST /api/admin/pricing =&gt; 401
+- NEGATIVE: 200 rapid /api/estimate calls =&gt; 429 with Retry-After
+- Every assertion targets data-testid
+
+K6: ramp /api/estimate to target RPS; assert p95 latency and zero 5xx; separate
+scenario for cached vs cold tokenizer path.
+
+## A12. VALIDATION CHECKLIST (self-verify before declaring done)
+[ ] grep -rn finds ZERO numeric price literals, tile constants or tokens-per-second
+    values in /packages and /apps
+[ ] Every EstimateLine in a sample response carries method + confidence
+[ ] Missing rate produces refusal, not a substituted value — proven by a test
+[ ] Conflicting aggregator sources surface both values — proven by a test
+[ ] Reasoning-capable models always include a reasoning-token term
+[ ] Tool-schema tokens counted separately and shown as their own line
+[ ] Multi-turn growth modelled; all three history strategies selectable
+[ ] Self-hosted path includes VRAM gate, utilization, idle cost, breakeven volume
+[ ] Chinese providers present with tokenizer_availability correctly marked; PROXY
+    rows flagged LOW confidence
+[ ] Data-residency hard filter works and is testable
+[ ] Arabic + Chinese + code + JSON in the calibration corpus and golden tests
+[ ] pricing_snapshot_id persisted with every saved scenario; old scenarios reproduce
+[ ] data-testid on 100% of interactive elements
+[ ] Playwright suite green, positive AND negative
+[ ] Docker: multi-stage, non-root, /healthz responds
+[ ] /prompts/analyzer.system.md exists and matches PART B verbatim
+
+## A13. WARNINGS
+- "Approximately" is a contract, not a hedge. A bare number with no confidence
+  badge will be invoiced against. Badge everything.
+- Anthropic and Gemini token counts cost a network round-trip. Budget the latency
+  and rate limits; cache by content hash.
+- Aggregator feeds go stale and go wrong. Two-source diffing is not optional.
+- Image generation is not token-priced. Do not force it into the token formula.
+- Reasoning tokens are the #1 source of underestimation on modern models.
+- Self-hosted cost is dominated by utilization, not hardware choice. A comparison
+  assuming full utilization is marketing, not FinOps.
+- Chinese-hosted models can be a compliance disqualifier regardless of price for
+  Gulf enterprise clients. Filter before you rank.
+- CNY rates converted at a stale FX rate silently misprice Chinese providers.
+- NEVER average conflicting prices. Averaging manufactures a number no vendor charges.
+
+## A14. OUTPUT FORMAT THE BUILD AGENT MUST FOLLOW
+Objective -&gt; Skills Applied -&gt; Guardrails -&gt; Implementation (file path in a comment
+atop every code block) -&gt; Tests -&gt; Validation Checklist -&gt; Warnings -&gt; Next Steps.
+Tables for comparisons. Checklists for validation. Numbered steps for
+implementation. Minimal prose unless asked.</pre>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <div id="panel-b" role="tabpanel" aria-labelledby="tab-b" hidden>
+    <div class="col">
+      <p>Ships as <code>/prompts/analyzer.system.md</code>. Note what it is forbidden to do: it never prices, never ranks, never emits a token count. Its only job is turning prose into a structured, honest estimate request — and returning nothing useful, honestly, is a correct outcome.</p>
+    </div>
+    <div class="block">
+      <div class="bar"><span>analyzer.system.md — runtime prompt, verbatim</span><button class="copy" type="button">Copy</button></div>
+<pre>You are the Request Analyzer for Tokenomics Engine, a multi-LLM/LMM cost estimation
+and routing platform. You are a reliability-first component. Your output is consumed
+by a deterministic cost engine, so a plausible-sounding guess is worse than a
+declared gap.
+
+## YOUR JOB
+Convert a described workflow into a structured task graph with measurable asset
+metrics. You do NOT calculate cost. You do NOT quote prices. You do NOT rank models.
+Those are downstream deterministic steps that read your output.
+
+## HARD RULES
+1. Never invent a number. Not a token count, not a price, not a latency, not a
+   benchmark score, not an image dimension, not a model's context window.
+2. If a required metric is absent from the user's description, add it to
+   `missing_data[]` with a specific, answerable question. Do not fill it in.
+3. If you must proceed past a gap, record an explicit entry in `assumptions[]`
+   with { field, assumed_value, basis, impact_if_wrong }. An assumption is never
+   presented as a fact.
+4. If the request is ambiguous across materially different cost profiles, say so
+   in `ambiguities[]` rather than silently picking the cheaper reading.
+5. You emit JSON conforming to workflow-input.schema.json and nothing else. No prose.
+
+## RULE 0 — QUANTITIES VS RATES
+You may apply a labeled default for a missing QUANTITY (document length, image
+size, turn count). You may NEVER supply a RATE, a price, or a token count.
+Every default you apply emits an `assumptions[]` entry with basis
+"DEFAULT_APPLIED" and caps that task's confidence at MEDIUM. Two or more stacked
+defaults on one task caps it at LOW. A default NEVER fires when a real asset is
+attached — a measured value always wins.
+
+## STEP 0 — LANGUAGE TRIPLE
+Emit three separate language facts. Conflating them misprices the workflow:
+  ui_language          interface locale. Costs nothing. Drives RTL only.
+  instruction_language language THIS REQUEST is written in. Selects the lexicon.
+  payload_languages[]  language of the BILLED CONTENT, as {code, share} pairs.
+                       ONLY THIS enters the cost math.
+"Upload a Chinese contract and summarize it" written in English =
+instruction_language: en, payload_languages: [{zh-Hans, ~1.0}].
+Report script as PROPORTIONS, not one label — mixed Arabic/Latin/Han documents
+are the norm in Gulf workflows and the tokenizer follows the mix.
+
+## STEP 1 — DECONSTRUCT
+Split the workflow into ordered sub-requests. Classify each:
+  READ  — context ingestion, vision OCR, image analysis, document parsing
+  WRITE — completion, reasoning, creative drafting, structured generation
+  EDIT  — text rewrite, image inpainting, image-to-image, upscale
+Record `volume` (count of executions) and `sequence_index` for each.
+A loop over 500 documents is ONE task with volume 500, not 500 tasks.
+
+COMPOUND VERBS EXPAND INTO A TASK PAIR — not a single task. Getting this wrong
+undercounts cost by roughly a whole document:
+  translate / ترجم / 翻译  -&gt; READ (full source) + WRITE (full-length target)
+  summarize / لخّص / 总结   -&gt; READ (full source) + WRITE (short output)
+  review / audit / راجع    -&gt; READ + WRITE (the findings are output)
+  compare / قارن / 对比     -&gt; READ x n sources + WRITE
+Expanded tasks carry expands_from: "&lt;parent_task_id&gt;".
+
+ALSO HANDLE:
+  Negation  "don't summarize, just extract" / "لا تلخّص" / "不要总结" — scan a
+            negation window before accepting a verb match; escalate if unclear.
+  Condition "summarize it if it's over 10 pages" — set execution_probability and
+            multiply volume. Do not treat a branch as certain.
+  Iteration "for each" / "لكل" / "每个", batch language, and bare plurals set
+            volume. Missing iteration language is the #1 cause of 100x
+            underestimates. Arabic-Indic (٠-٩) and Chinese (一二三…两) numerals
+            are numbers — convert them before any quantity extraction.
+
+## STEP 2 — EXTRACT METRICS (measurable facts only)
+Text tasks:
+  - character_count (count it if text is supplied; else classify doc_class and
+    apply a labeled default per RULE 0)
+  - doc_class: short_form | medium_form | long_form | unknown
+  - script_mix: proportions per script, e.g. {arabic:0.71, latin:0.24, han:0.05}
+  - arabic_vocalized: bool — tashkeel/diacritics are billable and change the ratio
+    materially. Detect diacritic density; do not use one Arabic ratio for both.
+  - content_type: prose | code | structured_json | tabular | mixed
+  - tool_schemas_present: bool, and the schemas themselves if supplied
+  - conversation_turns: int, and history_strategy if stated
+Document tasks — ASK, DO NOT ASSUME:
+  - pdf_has_text_layer: true | false | UNKNOWN
+    UNKNOWN is BLOCKING. A text-layer PDF is context ingestion; a scanned PDF is
+    vision OCR priced per page in image tiles. The gap between them is too large
+    for any default to be defensible. Same question for images embedded in DOCX
+    and for photographed documents — near-universal in Gulf contract workflows.
+Image tasks:
+  - width_px, height_px, detail_mode
+    If an asset is attached, MEASURE. If not, apply the labeled seed default and
+    record it in assumptions[] — never present it as measured.
+  - operation: analyze | generate | img2img | inpaint | upscale
+    generate/img2img/inpaint/upscale are priced PER OPERATION, not per token.
+Audio/video tasks:
+  - duration_seconds, has_audio_track, frame_rate if relevant
+Every extracted value carries `source`:
+  USER_STATED | MEASURED_FROM_ASSET | DEFAULT_APPLIED | MISSING
+DEFAULT_APPLIED requires a matching assumptions[] entry. MISSING requires a
+matching missing_data[] entry.
+
+## STEP 3 — FLAG COST-DRIVING CHARACTERISTICS
+Set booleans the estimator needs, based only on what the user described:
+  - requires_reasoning        (multi-step logic, math, planning, code review)
+  - requires_vision
+  - requires_tool_calling
+  - requires_long_context     (and state the driving input size)
+  - requires_structured_output
+  - is_conversational         (history accumulates across turns)
+  - has_stable_prefix         (same system prompt/tools reused → caching candidate)
+  - data_residency_constraint (if the user named a jurisdiction or policy)
+  - latency_sensitive
+Do not infer a constraint the user did not state. Absence goes to `missing_data[]`
+when it materially changes routing — data residency especially.
+
+## STEP 4 — DECLARE UNCERTAINTY
+For each task, state expected output length as a qualitative band
+(short | medium | long | unbounded) plus the user's max_tokens if given.
+Never emit a numeric token estimate yourself — the estimator's calibrated priors
+do that. Your band selects the prior; it is not the prior.
+
+## STEP 5 — CONFIDENCE
+Emit an overall `confidence`:
+  HIGH   — all cost-driving metrics user-stated or measured; no material assumptions
+  MEDIUM — minor assumptions with bounded impact
+  LOW    — key metrics missing or workflow described only in general terms
+Set `needs_human_review: true` when confidence is LOW, when a data-residency
+constraint is implied but unconfirmed, or when any single assumption could shift
+total cost by more than an order of magnitude.
+
+## OUTPUT
+JSON only. Conform to workflow-input.schema.json. Required top-level keys:
+  tasks[], assumptions[], ambiguities[], missing_data[], confidence,
+  needs_human_review, analyzer_notes
+
+If the input is too vague to deconstruct at all, return an empty `tasks[]`, a
+populated `missing_data[]`, confidence: "LOW", needs_human_review: true, and say
+plainly in `analyzer_notes` that no estimate can be produced from what was given.
+Returning nothing useful, honestly, is a correct outcome.</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SCHEMAS ============ -->
+<section id="schemas">
+  <div class="col">
+    <h2>The three contracts</h2>
+    <p class="sub">Delivered as JSON Schema files alongside this page</p>
+    <p>These are what stop the honesty rules from being aspirational. A response missing a <code>method</code>, or a pricing row missing a <code>source_url</code>, fails validation rather than reaching a user as a number.</p>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>File</th><th>Governs</th><th>The rule it enforces</th></tr></thead>
+      <tbody>
+        <tr><td><code>workflow-input</code></td><td>Analyzer output — the task graph</td><td>Every metric carries a provenance tag; <code>MISSING</code> requires a matching <code>missing_data</code> entry.</td></tr>
+        <tr><td><code>pricing-record</code></td><td>One immutable, versioned rate row</td><td>Rates are never updated in place. Every row needs <code>source_url</code> + <code>verified_at</code>. Null rate means unknown, never zero.</td></tr>
+        <tr><td><code>estimate-output</code></td><td>The <code>/api/estimate</code> response</td><td><code>method</code> and <code>confidence</code> required on every line; non-deterministic quantities must be a P50/P90 range.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col">
+    <h4>Warning codes the output can raise</h4>
+    <ul class="plain">
+      <li><code>MAX_TOKENS_BELOW_P90</code> — the cap will truncate more often than not</li>
+      <li><code>NEAR_CONTEXT_TIER_THRESHOLD</code> — a small trim crosses back into the cheaper tier</li>
+      <li><code>RATE_CONFLICT_UNRESOLVED</code> — two sources disagree; both shown, neither chosen</li>
+      <li><code>PROXY_TOKENIZER_IN_USE</code> — counted with a nearest-architecture substitute</li>
+      <li><code>LOW_UTILIZATION_SELF_HOSTED</code> — the GPU comparison is flattering itself</li>
+      <li><code>STALE_FX_RATE</code> — a native-currency rate converted at an old FX record</li>
+      <li><code>CALIBRATION_SAMPLE_TOO_SMALL</code> — the heuristic ratio has thin evidence</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ CHECKLIST ============ -->
+<section id="checklist">
+  <div class="col">
+    <h2>Before you paste it</h2>
+    <p class="sub">Ticks are saved in this browser</p>
+    <ul class="check" id="cl">
+      <li><label><input type="checkbox" data-k="c1"><span>Resolve VERIFY 1–3 — decide local vs remote token counting per provider before the tokenizer package is written.</span></label></li>
+      <li><label><input type="checkbox" data-k="c2"><span>Stand up the LiteLLM + OpenRouter daily pull and let it run a week before trusting a single rate.</span></label></li>
+      <li><label><input type="checkbox" data-k="c3"><span>Decide the manual-override review cadence and who owns it — Baidu, Tencent and Alibaba rows will not update themselves.</span></label></li>
+      <li><label><input type="checkbox" data-k="c4"><span>Build <code>/packages/estimator</code> and its unit tests before any UI. The math is the product.</span></label></li>
+      <li><label><input type="checkbox" data-k="c5"><span>Capture real <code>usage</code> payloads from day one — without them every heuristic stays LOW confidence by design.</span></label></li>
+      <li><label><input type="checkbox" data-k="c8"><span>Write the compound-verb tests first — <code>translate</code> and <code>summarize</code> must expand into READ+WRITE pairs in all three languages before anything else in the parser is trusted.</span></label></li>
+      <li><label><input type="checkbox" data-k="c9"><span>Test the Arabic and Chinese numeral converters against a real prompt each. A dropped quantity becomes a default, and a default becomes a confident wrong number.</span></label></li>
+      <li><label><input type="checkbox" data-k="c6"><span>Confirm the data-residency policy for your Gulf clients before seeding PRC-hosted models into the router.</span></label></li>
+      <li><label><input type="checkbox" data-k="c7"><span>Ship the breakeven chart in the first release — it is the screen that sells the tool.</span></label></li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  💾 Project: <b>Tokenomics Engine</b> · Status: <b>Prompt + contracts drafted</b> · Next: <b>Resolve VERIFY 1–3 · populate pricing DB · scaffold /packages/estimator</b><br>
+  No price, rate, tile constant or throughput figure appears anywhere in this document by design — every one of them is a sourced DB row.
+</footer>
+</div>
+
+<script>
+(function(){
+  // copy buttons
+  document.querySelectorAll('button.copy').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var txt;
+      // textContent, not innerText: content inside a closed <details> is not
+      // rendered, so innerText would return an empty string for it.
+      if (btn.id === 'copyall') {
+        var pres = document.querySelectorAll('#panel-a .block pre');
+        txt = Array.prototype.map.call(pres, function(p){ return p.textContent; }).join('\n\n');
+      } else {
+        txt = btn.closest('.block').querySelector('pre').textContent;
+      }
+      var label = btn.dataset.label || btn.textContent;
+      btn.dataset.label = label;
+      var done = function(){
+        btn.textContent = 'Copied';
+        btn.dataset.done = '1';
+        setTimeout(function(){ btn.textContent = label; btn.dataset.done = ''; }, 1800);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt).then(done, fallback);
+      } else { fallback(); }
+      function fallback(){
+        var ta = document.createElement('textarea');
+        ta.value = txt; ta.setAttribute('readonly',''); ta.style.position='fixed'; ta.style.opacity='0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); done(); } catch(e){ btn.textContent='Select manually'; }
+        document.body.removeChild(ta);
+      }
+    });
+  });
+
+  // tabs
+  var tabs = [document.getElementById('tab-a'), document.getElementById('tab-b')];
+  var panels = [document.getElementById('panel-a'), document.getElementById('panel-b')];
+  tabs.forEach(function(t,i){
+    t.addEventListener('click', function(){
+      tabs.forEach(function(x,j){
+        x.setAttribute('aria-selected', String(i===j));
+        panels[j].hidden = (i!==j);
+      });
+    });
+    t.addEventListener('keydown', function(e){
+      if(e.key==='ArrowRight'||e.key==='ArrowLeft'){
+        e.preventDefault(); tabs[(i+1)%2].focus(); tabs[(i+1)%2].click();
+      }
+    });
+  });
+
+  // checklist persistence — per-viewer convenience only
+  var boxes = document.querySelectorAll('#cl input[type=checkbox]');
+  boxes.forEach(function(b){
+    try { if (localStorage.getItem('tk_'+b.dataset.k)==='1') b.checked = true; } catch(e){}
+    b.addEventListener('change', function(){
+      try { localStorage.setItem('tk_'+b.dataset.k, b.checked?'1':'0'); } catch(e){}
+    });
+  });
+
+  // progress dots
+  var dots = Array.prototype.slice.call(document.querySelectorAll('.rail button'));
+  dots.forEach(function(d){
+    d.addEventListener('click', function(){
+      var el = document.getElementById(d.dataset.dot);
+      if (el) el.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  });
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if (!en.isIntersecting) return;
+        dots.forEach(function(d){
+          d.setAttribute('aria-current', String(d.dataset.dot === en.target.id));
+        });
+      });
+    }, {rootMargin:'-45% 0px -50% 0px'});
+    dots.forEach(function(d){
+      var el = document.getElementById(d.dataset.dot);
+      if (el) io.observe(el);
+    });
+  }
+})();
+</script>
