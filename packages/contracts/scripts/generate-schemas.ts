@@ -20,6 +20,7 @@ import { VisionProfile } from '../src/vision';
 import { Provenance } from '../src/provenance';
 import { Assumption } from '../src/assumption';
 import { WorkflowInput } from '../src/workflow';
+import { EstimateOutput } from '../src/estimate';
 
 const OUT_DIR = join(__dirname, '..', '..', '..', 'schemas');
 
@@ -32,6 +33,7 @@ const TARGETS: Array<{ file: string; schema: z.ZodType; name: string }> = [
   // Overwrites a file that was hand-authored and orphaned. From here it is build
   // output: the gate guards a document the app actually reads.
   { file: 'workflow-input.schema.json', schema: WorkflowInput, name: 'WorkflowInput' },
+  { file: 'estimate-output.schema.json', schema: EstimateOutput, name: 'EstimateOutput' },
 ];
 
 const BANNER =

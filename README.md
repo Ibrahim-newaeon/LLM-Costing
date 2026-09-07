@@ -99,33 +99,43 @@ Two generator options encode decisions worth revisiting:
 `unrepresentable` is left at its default, `'throw'` — a shape JSON Schema cannot express should
 fail the build, not be silently widened to `{}`.
 
-### The generated set and the authored set are still disjoint
+### The split is closed
 
-`generate-schemas.ts` emits four files. As of 2026-09-07 they exist, are correct, and are gated:
+`generate-schemas.ts` now emits seven files, all gated:
 
 ```
 registry.schema.json   model-row.schema.json   vision-profile.schema.json   provenance.schema.json
+assumption.schema.json   workflow-input.schema.json   estimate-output.schema.json
 ```
 
-`schemas/` also holds three hand-authored files that no generator produces:
+Two of the three hand-authored orphans — `workflow-input` and `estimate-output` — became build
+output on 2026-09-07 and now come from Zod. Regenerating fixed their stale enums in passing:
+`estimate-output`'s `method` went from 6 values to the canonical 11, and `confidence` gained
+`NONE` in both.
 
-```
-estimate-output.schema.json   pricing-record.schema.json   workflow-input.schema.json
-```
+**`pricing-record.schema.json` is the exception, and is not being regenerated.** Its payload —
+`token_rates`, `context_tiers`, `cache_policy`, `vision_profile`, `self_hosted_profile` —
+duplicated `TextRateProfile`, `ContextTier`, `CacheProfile`, `VisionProfile` and
+`HardwareProfile`, which already exist in richer form and where every `Rate` carries its own
+`Provenance` with `source_url` and `verified_at`. Porting it would have been a fifth definition
+of the rate shapes.
 
-No overlap. The gate now guards four real files and still ignores the three the app would
-actually use. `MIGRATION.md`'s instruction to "regenerate" those three cannot be carried out: the
-Zod shapes they describe — `EstimateOutput`, `WorkflowInput`, a pricing record — **do not exist
-in `packages/contracts`**.
-
-That is the real gap. The contracts model *provenance* — where a number came from and how far
-to trust it. They do not yet model the *estimate* itself, its inputs, or its assumptions.
+Checked against `ModelRow`, exactly three things were missing, and all three now live on `Rate`
+where the fact they describe actually is: `DeploymentMode`, `RateConflict` (rule 5's only home in
+the contracts) and `max_age_days` + `rateFreshness()`. The file itself is now superseded and
+should be deleted.
 
 ## Open queue
 
-1. **Add the missing contract layer** — `EstimateOutput`, `WorkflowInput`, a pricing record,
-   and the assumption axis (`Assumption`, `impact_if_wrong`, `sensitivity_rank`, `impact`,
-   `deployment_mode`), then add them to the generator's `TARGETS`. See `docs/drift-sweep.md` §5.
+1. ~~**Add the missing contract layer.**~~ **Closed 2026-09-07.** `Assumption` (one superset type,
+   replacing two drifted copies), `Ambiguity`, `MissingDatum`, `WorkflowInput` and `EstimateOutput`
+   all exist in Zod and are generator targets. `DeploymentMode`, `RateConflict` and the
+   `max_age_days` staleness gate landed on `Rate` rather than on a recreated pricing record — see
+   below. 128 tests.
+
+   Two corrections to `docs/drift-sweep.md` §5c came out of it: the two impact scales are **not**
+   duplicates and must not be reconciled (`impact` is on `Ambiguity`, `impact_if_wrong` on
+   `Assumption`), and its suggested Zod would have dropped `seed_provenance`.
 2. **Four prose fixes in `SPEC.md`** — §A3 (`Method` 5 of 11, `Confidence` missing `NONE`),
    §A3.8 (`SourceClass` missing `VENDOR_CONFIG`, `MEASURED`), §A7 (`per_output_token`),
    §A14 (calibration buckets). Line numbers in `docs/drift-sweep.md`.
