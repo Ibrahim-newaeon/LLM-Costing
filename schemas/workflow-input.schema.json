@@ -1,0 +1,270 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokenomics.engine/schemas/workflow-input.schema.json",
+  "title": "WorkflowInput",
+  "description": "Output contract of the Request Analyzer (PART B system prompt). Consumed by the deterministic estimator. Contains NO prices and NO token counts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["languages", "tasks", "assumptions", "ambiguities", "missing_data", "confidence", "needs_human_review"],
+  "properties": {
+    "workflow_id": { "type": "string" },
+    "workflow_label": { "type": "string", "maxLength": 200 },
+    "languages": { "$ref": "#/$defs/languages" },
+    "parse_meta": { "$ref": "#/$defs/parseMeta" },
+    "tasks": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/task" }
+    },
+    "assumptions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/assumption" }
+    },
+    "ambiguities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["field", "readings", "impact"],
+        "properties": {
+          "field": { "type": "string" },
+          "readings": { "type": "array", "items": { "type": "string" }, "minItems": 2 },
+          "impact": { "type": "string", "enum": ["COSMETIC", "MATERIAL", "ORDER_OF_MAGNITUDE"] }
+        }
+      }
+    },
+    "missing_data": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["field", "question", "blocks_estimate"],
+        "properties": {
+          "field": { "type": "string" },
+          "task_id": { "type": "string" },
+          "question": { "type": "string", "description": "Specific, answerable question for the user." },
+          "blocks_estimate": { "type": "boolean" }
+        }
+      }
+    },
+    "confidence": { "$ref": "#/$defs/confidence" },
+    "needs_human_review": { "type": "boolean" },
+    "analyzer_notes": { "type": "string" }
+  },
+  "$defs": {
+    "confidence": { "type": "string", "enum": ["HIGH", "MEDIUM", "LOW"] },
+    "provenance": {
+      "type": "string",
+      "enum": ["USER_STATED", "MEASURED_FROM_ASSET", "DERIVED_FROM_ASSET", "DEFAULT_APPLIED", "MISSING"],
+      "description": "Where a metric VALUE came from — not how it is being used. DERIVED_FROM_ASSET means measured then transformed by a stated rule (provider normalization, or a resize the user accepted); it requires transform_rule. Changing detail_mode alone never changes provenance. DEFAULT_APPLIED requires a matching assumptions[] entry and caps task confidence at MEDIUM. MISSING requires a matching missing_data entry. A measured value always overrides a default."
+    },
+    "languages": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["payload_languages"],
+      "description": "Three separate facts. Conflating them misprices the workflow: only payload_languages enters the cost math.",
+      "properties": {
+        "ui_language": { "type": "string", "description": "Interface locale. Costs nothing; drives RTL layout only." },
+        "instruction_language": { "type": "string", "description": "Language THIS REQUEST is written in. Selects the parser lexicon." },
+        "payload_languages": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Language of the BILLED CONTENT. Shares should sum to ~1.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "share"],
+            "properties": {
+              "code": { "type": "string", "examples": ["en", "ar", "zh-Hans", "zh-Hant"] },
+              "share": { "type": "number", "minimum": 0, "maximum": 1 }
+            }
+          }
+        }
+      }
+    },
+    "parseMeta": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "How this task graph was produced. The L2 parse is itself a billable LLM call and must be metered as system_overhead on the estimate.",
+      "properties": {
+        "layer": { "type": "string", "enum": ["L1_DETERMINISTIC", "L2_LLM_PARSE"] },
+        "parse_confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "escalated_reason": { "type": ["string", "null"] },
+        "parser_model_id": { "type": ["string", "null"] },
+        "parser_input_tokens": { "type": ["integer", "null"], "minimum": 0 },
+        "parser_output_tokens": { "type": ["integer", "null"], "minimum": 0 }
+      }
+    },
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task_id", "sequence_index", "type", "volume", "flags"],
+      "properties": {
+        "task_id": { "type": "string" },
+        "sequence_index": { "type": "integer", "minimum": 0 },
+        "label": { "type": "string" },
+        "type": { "type": "string", "enum": ["READ", "WRITE", "EDIT"] },
+        "sub_kind": {
+          "type": "string",
+          "enum": [
+            "context_ingestion", "vision_ocr", "image_analysis", "document_parsing",
+            "completion", "reasoning", "creative_draft", "structured_generation",
+            "text_rewrite", "image_generate", "image_to_image", "inpaint", "upscale"
+          ]
+        },
+        "volume": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Executions of this task. A loop over 500 docs is one task with volume 500. Arabic-Indic and Chinese numerals must be converted before extraction."
+        },
+        "expands_from": {
+          "type": ["string", "null"],
+          "description": "Parent task id when a compound verb expanded into a pair. translate and summarize are BOTH read and write — classifying either as a single task undercounts by roughly one document."
+        },
+        "execution_probability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 1,
+          "description": "Below 1 for conditional branches (\"summarize it if it's over 10 pages\"). Multiplies effective volume."
+        },
+        "text_metrics": { "$ref": "#/$defs/textMetrics" },
+        "image_metrics": { "$ref": "#/$defs/imageMetrics" },
+        "media_metrics": { "$ref": "#/$defs/mediaMetrics" },
+        "expected_output_band": {
+          "type": "string",
+          "enum": ["short", "medium", "long", "unbounded"],
+          "description": "Selects a calibrated prior downstream. NOT itself a token estimate."
+        },
+        "max_tokens": { "type": ["integer", "null"], "minimum": 1 },
+        "flags": { "$ref": "#/$defs/costFlags" }
+      }
+    },
+    "textMetrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "character_count": { "type": ["integer", "null"], "minimum": 0 },
+        "character_count_source": { "$ref": "#/$defs/provenance" },
+        "doc_class": {
+          "type": "string",
+          "enum": ["short_form", "medium_form", "long_form", "unknown"],
+          "description": "Selects the seed default when character_count is absent. Seed values are SEED_UNCALIBRATED and must be replaced from observed runs."
+        },
+        "script_mix": {
+          "type": "object",
+          "additionalProperties": { "type": "number", "minimum": 0, "maximum": 1 },
+          "propertyNames": { "enum": ["latin", "arabic", "han", "cyrillic", "other"] },
+          "description": "Proportions, not a single label. Mixed Arabic/Latin/Han documents are the norm in Gulf workflows and the tokenizer follows the mix."
+        },
+        "arabic_vocalized": {
+          "type": ["boolean", "null"],
+          "description": "Convenience flag for bucket selection, DERIVED from diacritic_density by threshold. Do not set it independently — vocalization is a spectrum and a raw boolean snaps partially-vocalized text to whichever extreme misprices it."
+        },
+        "diacritic_density": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Measured diacritics per consonant. The underlying value the calibration table is keyed on and the UI displays. Most real Arabic is partially vocalized — diacritics only on genuinely ambiguous words — so this, not the boolean, is what drives the ratio."
+        },
+        "arabic_register": { "type": ["string", "null"], "enum": ["msa", "dialect", "mixed", null] },
+        "pdf_has_text_layer": {
+          "type": ["boolean", "null"],
+          "description": "null = UNKNOWN and BLOCKING. Text-layer PDF is context ingestion; a scanned PDF is vision OCR priced per page in image tiles. No default is defensible across that gap."
+        },
+        "content_type": { "type": "string", "enum": ["prose", "code", "structured_json", "tabular", "mixed", "unknown"] },
+        "tool_schemas_present": { "type": "boolean" },
+        "tool_schema_character_count": { "type": ["integer", "null"], "minimum": 0 },
+        "conversation_turns": { "type": ["integer", "null"], "minimum": 1 },
+        "history_strategy": { "type": ["string", "null"], "enum": ["FULL_HISTORY", "SLIDING_WINDOW", "SUMMARIZED_ROLLUP", null] },
+        "history_window_k": { "type": ["integer", "null"], "minimum": 1 }
+      }
+    },
+    "imageMetrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "width_px": { "type": ["integer", "null"], "minimum": 1 },
+        "height_px": { "type": ["integer", "null"], "minimum": 1 },
+        "dimensions_source": { "$ref": "#/$defs/provenance" },
+        "detail_mode": { "type": ["string", "null"], "enum": ["low", "high", "auto", null] },
+        "image_count": { "type": "integer", "minimum": 1 },
+        "operation": { "type": "string", "enum": ["analyze", "generate", "img2img", "inpaint", "upscale"] },
+        "upscale_multiplier": { "type": ["number", "null"], "exclusiveMinimum": 1 },
+        "mask_present": { "type": "boolean" },
+        "byte_size": { "type": ["integer", "null"], "minimum": 0 },
+        "page_count": { "type": ["integer", "null"], "minimum": 1, "description": "Multi-page documents multiply the tile grid per page. Surface pages x tiles_per_page as its own estimate line." },
+        "detected_script": { "type": ["string", "null"], "enum": ["latin", "arabic", "han", "mixed", "unknown", null], "description": "Drives min_legible_edge_px. Mixed content takes the STRICTEST floor present, never the average." },
+        "fidelity_critical": { "type": "boolean", "default": false, "description": "User marked this OCR-critical. Blocks the resize rung of the disposition ladder entirely." },
+        "asset_disposition": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "description": "Outcome of the oversized/out-of-spec ladder. The estimator NEVER mutates the asset — a resize is a proposal the user accepted or declined.",
+          "properties": {
+            "rung": {
+              "type": "string",
+              "enum": ["FITS_AS_IS", "PROVIDER_NORMALIZED", "RESIZE_PROPOSED", "RESIZE_SAVES_NOTHING", "FIDELITY_LOCKED", "REROUTED", "BLOCKED"]
+            },
+            "violated_constraints": {
+              "type": "array",
+              "items": { "type": "string", "enum": ["max_edge_px", "min_edge_px", "max_bytes", "max_pages", "max_duration_seconds", "max_frames", "allowed_mime"] }
+            },
+            "original_dimensions": { "type": ["string", "null"], "description": "WxH as measured, always retained even when a transform was applied." },
+            "effective_dimensions": { "type": ["string", "null"], "description": "WxH actually priced." },
+            "transform_rule": { "type": ["string", "null"], "description": "Required when provenance is DERIVED_FROM_ASSET. Names the rule, e.g. the provider's normalization or the accepted resize." },
+            "resize_accepted_by_user": { "type": ["boolean", "null"] },
+            "recomputed_tile_delta": { "type": ["integer", "null"], "description": "tiles(scaled) - tiles(original). A resize is only proposed when this is negative." },
+            "min_legible_edge_px": { "type": ["integer", "null"] }
+          }
+        }
+      }
+    },
+    "mediaMetrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "modality": { "type": "string", "enum": ["audio", "video"] },
+        "duration_seconds": { "type": ["number", "null"], "minimum": 0 },
+        "duration_source": { "$ref": "#/$defs/provenance" },
+        "has_audio_track": { "type": "boolean" },
+        "frame_sample_rate_hz": { "type": ["number", "null"], "exclusiveMinimum": 0 }
+      }
+    },
+    "costFlags": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requires_reasoning", "requires_vision", "requires_tool_calling"],
+      "properties": {
+        "requires_reasoning": { "type": "boolean" },
+        "requires_vision": { "type": "boolean" },
+        "requires_tool_calling": { "type": "boolean" },
+        "requires_long_context": { "type": "boolean" },
+        "requires_structured_output": { "type": "boolean" },
+        "is_conversational": { "type": "boolean" },
+        "has_stable_prefix": { "type": "boolean", "description": "Caching candidate: same system prompt/tool block reused across calls." },
+        "latency_sensitive": { "type": "boolean" },
+        "data_residency_constraint": {
+          "type": ["string", "null"],
+          "description": "Jurisdiction or policy the user actually stated. Null when unstated — do not infer."
+        }
+      }
+    },
+    "assumption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["field", "assumed_value", "basis", "impact_if_wrong"],
+      "properties": {
+        "task_id": { "type": "string" },
+        "field": { "type": "string" },
+        "assumed_value": {},
+        "basis": { "type": "string", "description": "Why this value was chosen. Use 'DEFAULT_APPLIED' for a seed baseline. Never 'typical' without a calibration reference." },
+        "seed_provenance": {
+          "type": ["string", "null"],
+          "enum": ["SEED_UNCALIBRATED", "CALIBRATED_FROM_OBSERVED", "USER_SUPPLIED_BASELINE", null],
+          "description": "SEED_UNCALIBRATED forces LOW confidence and carries a standing task to replace it from observed runs."
+        },
+        "impact_if_wrong": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "ORDER_OF_MAGNITUDE"] },
+        "user_editable": { "type": "boolean", "default": true }
+      }
+    }
+  }
+}

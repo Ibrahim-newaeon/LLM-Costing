@@ -1,0 +1,14 @@
+{
+  "name": "@tokenomics/contracts",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "generate:schemas": "tsx scripts/generate-schemas.ts",
+    "check:schemas": "tsx scripts/generate-schemas.ts --check",
+    "test": "vitest run"
+  }
+}

@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokenomics.engine/schemas/pricing-record.schema.json",
+  "title": "PricingRecord",
+  "description": "One immutable, versioned rate row. NEVER updated in place — a price change inserts a new row and closes the prior row's effective_to. Every row must be traceable to a source. No value in this file is a real rate; populate from the sources in §A4.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "record_id", "provider_id", "model_id", "deployment_mode", "currency",
+    "effective_from", "source", "verified_at", "confidence"
+  ],
+  "properties": {
+    "record_id": { "type": "string" },
+    "provider_id": { "type": "string", "examples": ["openai", "anthropic", "google", "deepseek", "alibaba-qwen", "zhipu-glm", "baidu-ernie", "tencent-hunyuan", "moonshot", "openrouter"] },
+    "model_id": { "type": "string" },
+    "region": { "type": ["string", "null"], "description": "Vendor region/endpoint. Rates differ by region for several clouds." },
+    "deployment_mode": { "type": "string", "enum": ["API_MANAGED", "SELF_HOSTED", "DEDICATED_CAPACITY"] },
+    "currency": { "type": "string", "pattern": "^[A-Z]{3}$", "description": "Vendor's NATIVE currency. Never store a converted value as primary." },
+    "unit_basis": {
+      "type": "string",
+      "enum": ["PER_MILLION_TOKENS", "PER_THOUSAND_TOKENS", "PER_TOKEN", "PER_IMAGE", "PER_MEGAPIXEL", "PER_STEP", "PER_SECOND", "PER_HOUR", "PER_REQUEST"],
+      "description": "Normalize at read time, not at write time — store what the vendor publishes."
+    },
+
+    "token_rates": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "All values null by default. A null rate means UNKNOWN and must block estimation, not default to zero.",
+      "properties": {
+        "input": { "type": ["number", "null"], "minimum": 0 },
+        "output": { "type": ["number", "null"], "minimum": 0 },
+        "reasoning_output": { "type": ["number", "null"], "minimum": 0, "description": "Null usually means reasoning tokens bill at the standard output rate — confirm per provider, do not assume." },
+        "cache_read": { "type": ["number", "null"], "minimum": 0 },
+        "cache_write": { "type": ["number", "null"], "minimum": 0, "description": "Some providers charge a PREMIUM to write cache. May exceed the input rate." },
+        "audio_input_per_second": { "type": ["number", "null"], "minimum": 0 },
+        "audio_output_per_second": { "type": ["number", "null"], "minimum": 0 },
+        "per_request_fee": { "type": ["number", "null"], "minimum": 0 }
+      }
+    },
+
+    "context_tiers": {
+      "type": "array",
+      "description": "Step function. Ordered ascending by upper_bound_tokens. Last entry may use null as unbounded.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["upper_bound_tokens", "input_rate", "output_rate"],
+        "properties": {
+          "upper_bound_tokens": { "type": ["integer", "null"], "minimum": 1 },
+          "input_rate": { "type": "number", "minimum": 0 },
+          "output_rate": { "type": "number", "minimum": 0 }
+        }
+      }
+    },
+
+    "cache_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "min_cacheable_tokens": { "type": ["integer", "null"], "minimum": 1 },
+        "ttl_seconds": { "type": ["integer", "null"], "minimum": 1 },
+        "is_automatic": { "type": ["boolean", "null"], "description": "true = provider caches implicitly; false = explicit cache-control required." }
+      }
+    },
+
+    "vision_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Tile-grid parameters. Per model family, sourced from vendor vision docs. NO defaults are safe here.",
+      "properties": {
+        "tile_w_px": { "type": ["integer", "null"], "minimum": 1 },
+        "tile_h_px": { "type": ["integer", "null"], "minimum": 1 },
+        "base_tokens": { "type": ["integer", "null"], "minimum": 0 },
+        "tokens_per_tile": { "type": ["integer", "null"], "minimum": 0 },
+        "max_edge_px": { "type": ["integer", "null"], "minimum": 1 },
+        "shortest_edge_target_px": { "type": ["integer", "null"], "minimum": 1 },
+        "low_detail_flat_tokens": { "type": ["integer", "null"], "minimum": 0 },
+        "image_rate_override": { "type": ["number", "null"], "minimum": 0, "description": "Set when images are billed per-image/per-megapixel rather than as tokens." }
+      }
+    },
+
+    "self_hosted_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Only for deployment_mode SELF_HOSTED. Throughput figures MUST come from a measured benchmark on the stated hardware, never from a vendor claim.",
+      "properties": {
+        "instance_type": { "type": "string" },
+        "cloud_provider": { "type": "string" },
+        "gpu_model": { "type": "string" },
+        "gpu_count": { "type": "integer", "minimum": 1 },
+        "vram_per_gpu_gb": { "type": "number", "exclusiveMinimum": 0 },
+        "hourly_rate_on_demand": { "type": ["number", "null"], "minimum": 0 },
+        "hourly_rate_spot": { "type": ["number", "null"], "minimum": 0, "description": "Stored separately. NEVER blended with on-demand." },
+        "regional_tax_rate": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "storage_monthly": { "type": ["number", "null"], "minimum": 0 },
+        "egress_per_gb": { "type": ["number", "null"], "minimum": 0 },
+        "measured_ttft_seconds": { "type": ["number", "null"], "minimum": 0 },
+        "measured_prefill_tps": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+        "measured_decode_tps": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+        "benchmark_source_url": { "type": ["string", "null"], "format": "uri" },
+        "benchmark_batch_size": { "type": ["integer", "null"], "minimum": 1 },
+        "concurrency_efficiency_factor": { "type": ["number", "null"], "exclusiveMinimum": 0, "description": "Measured multiplexing gain. Labelled as an assumption when not measured." }
+      }
+    },
+
+    "effective_from": { "type": "string", "format": "date-time" },
+    "effective_to": { "type": ["string", "null"], "format": "date-time", "description": "Null = currently active. Closing a row is how a price change is recorded." },
+
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tier", "source_url"],
+      "properties": {
+        "tier": { "type": "string", "enum": ["AGGREGATOR_LITELLM", "AGGREGATOR_OPENROUTER", "VENDOR_DOCS_MANUAL", "CLOUD_PRICE_SHEET", "MEASURED_BENCHMARK"] },
+        "source_url": { "type": "string", "format": "uri" },
+        "screenshot_ref": { "type": ["string", "null"] },
+        "verified_by": { "type": ["string", "null"], "description": "Required for VENDOR_DOCS_MANUAL rows." },
+        "raw_payload_hash": { "type": ["string", "null"] }
+      }
+    },
+
+    "verified_at": { "type": "string", "format": "date-time" },
+    "max_age_days": { "type": "integer", "minimum": 1, "description": "Past this age the row is stale and blocks estimation." },
+    "confidence": { "type": "string", "enum": ["HIGH", "MEDIUM", "LOW"] },
+
+    "conflict": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "description": "Set when two sources disagree beyond tolerance. Both values are surfaced; they are NEVER averaged.",
+      "properties": {
+        "competing_record_id": { "type": "string" },
+        "competing_value": { "type": "number" },
+        "competing_source_url": { "type": "string", "format": "uri" },
+        "delta_pct": { "type": "number" },
+        "resolved": { "type": "boolean", "default": false }
+      }
+    }
+  }
+}
