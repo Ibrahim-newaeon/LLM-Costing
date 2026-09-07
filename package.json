@@ -4,7 +4,12 @@
   "scripts": {
     "generate:schemas": "pnpm -F @tokenomics/contracts generate:schemas",
     "check:schemas": "pnpm -F @tokenomics/contracts check:schemas",
-    "test": "pnpm -r test",
-    "typecheck": "pnpm -r typecheck"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.0"
   }
 }
