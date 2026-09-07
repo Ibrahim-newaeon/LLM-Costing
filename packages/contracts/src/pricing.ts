@@ -14,6 +14,51 @@ import { sourced, Provenance } from './provenance';
 
 export const Currency = z.string().length(3);
 
+/* ─────────────────────── how a model is served ─────────────────────── */
+
+/**
+ * Sibling of ServiceTier: that says which lane a request takes, this says who runs
+ * the hardware. It changes which cost terms exist at all — a SELF_HOSTED candidate
+ * has gpu_seconds and idle_gpu lines and no per-token rate.
+ */
+export const DeploymentMode = z.enum(['API_MANAGED', 'SELF_HOSTED', 'DEDICATED_CAPACITY']);
+export type DeploymentMode = z.infer<typeof DeploymentMode>;
+
+/* ─────────────────────── conflicts and staleness ─────────────────────── */
+
+/**
+ * Rule 5 — conflicts are REPORTED, never merged, and never averaged.
+ *
+ * This is that rule's only home in the contracts. The prior
+ * /schemas/pricing-record.schema.json carried it on a record type whose payload
+ * duplicated TextRateProfile, ContextTier, CacheProfile and VisionProfile; that
+ * record is not being recreated (2026-09-07 decision). What it had and the
+ * contracts lacked was exactly three things: DeploymentMode, the staleness gate,
+ * and this. They belong on the rate itself, where the disagreement actually is.
+ *
+ * Field naming follows Rate: `competing_amount`, not the old `competing_value`.
+ */
+export const RateConflict = z.object({
+  competing_record_id: z.string().min(1),
+  competing_amount: z.number().nonnegative(),
+  competing_source_url: z.string().url(),
+  /** Signed, relative to this rate's amount. Kept for display, not for choosing. */
+  delta_pct: z.number(),
+  /**
+   * A human decided which source is right. Until then BOTH are shown — an
+   * unresolved conflict is a fact about the data, not a rendering problem to
+   * smooth over.
+   */
+  resolved: z.boolean().default(false),
+});
+export type RateConflict = z.infer<typeof RateConflict>;
+
+/**
+ * Whether a rate is still usable. Four states, because "we never wrote down a
+ * staleness policy" and "this rate is fresh" are not the same claim.
+ */
+export type Freshness = 'FRESH' | 'STALE' | 'UNVERIFIED' | 'NO_POLICY';
+
 /**
  * §A4.2 — the vendor's NATIVE currency is the source of truth. A converted figure
  * is never stored as primary, because a CNY rate frozen at yesterday's USD is a
@@ -44,6 +89,16 @@ export const Rate = z
     effective_to: z.string().datetime().nullable(),
     /** §14.9 — peak/off-peak exists in the market; a single amount cannot express it. */
     time_of_day_variant: z.enum(['all_hours', 'peak', 'offpeak']).default('all_hours'),
+    /**
+     * Days after which this row is stale and must BLOCK rather than price.
+     *
+     * Null is not "never stale" — it is "no policy was recorded", which
+     * `rateFreshness` reports as its own state rather than quietly passing. A
+     * default here would be a hardcoded policy pretending to be a fact.
+     */
+    max_age_days: z.number().int().positive().nullable().default(null),
+    /** Rule 5. Set when another source disagrees beyond tolerance. */
+    conflict: RateConflict.nullable().default(null),
     provenance: Provenance,
   })
   .refine(
@@ -51,6 +106,28 @@ export const Rate = z
     { message: 'A non-USD list price requires fx_rate_used + fx_rate_date (§A4.2).', path: ['fx_rate_used'] },
   );
 export type Rate = z.infer<typeof Rate>;
+
+/**
+ * The staleness gate. Deliberately returns four states rather than a boolean.
+ *
+ * A boolean would have to answer `false` for a rate with no recorded policy and
+ * for a rate verified this morning, and those are opposite situations. The caller
+ * decides what to do with NO_POLICY and UNVERIFIED — this function refuses to
+ * decide for it, which is the same reason `Method` has UNAVAILABLE.
+ *
+ * STALE must block estimation, not annotate it (§A3.2).
+ */
+export function rateFreshness(r: Rate, now: Date = new Date()): Freshness {
+  if (r.provenance.verified_at === null) return 'UNVERIFIED';
+  if (r.max_age_days === null) return 'NO_POLICY';
+  const verifiedAt = Date.parse(r.provenance.verified_at);
+  if (Number.isNaN(verifiedAt)) return 'UNVERIFIED';
+  const ageDays = (now.getTime() - verifiedAt) / 86_400_000;
+  return ageDays > r.max_age_days ? 'STALE' : 'FRESH';
+}
+
+/** True only for the one state that may be priced against. */
+export const isPriceable = (f: Freshness): boolean => f === 'FRESH';
 
 /* ─────────────────────── context tiers (§A5.7) ─────────────────────── */
 

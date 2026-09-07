@@ -74,40 +74,40 @@
             "$ref": "#/$defs/__schema36"
           },
           "service_tiers": {
-            "$ref": "#/$defs/__schema49"
-          },
-          "vision": {
-            "$ref": "#/$defs/__schema50"
-          },
-          "image_gen": {
             "$ref": "#/$defs/__schema51"
           },
-          "video_gen": {
+          "vision": {
+            "$ref": "#/$defs/__schema52"
+          },
+          "image_gen": {
             "$ref": "#/$defs/__schema53"
           },
-          "video_in": {
-            "$ref": "#/$defs/__schema54"
-          },
-          "hardware": {
+          "video_gen": {
             "$ref": "#/$defs/__schema55"
           },
-          "compliance": {
+          "video_in": {
             "$ref": "#/$defs/__schema56"
           },
-          "quality_score": {
+          "hardware": {
+            "$ref": "#/$defs/__schema57"
+          },
+          "compliance": {
             "$ref": "#/$defs/__schema58"
           },
-          "quality_score_source_url": {
-            "$ref": "#/$defs/__schema59"
-          },
-          "effective_from": {
+          "quality_score": {
             "$ref": "#/$defs/__schema60"
           },
-          "effective_to": {
+          "quality_score_source_url": {
             "$ref": "#/$defs/__schema61"
           },
-          "deprecation_date": {
+          "effective_from": {
             "$ref": "#/$defs/__schema62"
+          },
+          "effective_to": {
+            "$ref": "#/$defs/__schema63"
+          },
+          "deprecation_date": {
+            "$ref": "#/$defs/__schema64"
           }
         },
         "required": [
@@ -920,6 +920,12 @@
         "time_of_day_variant": {
           "$ref": "#/$defs/__schema48"
         },
+        "max_age_days": {
+          "$ref": "#/$defs/__schema49"
+        },
+        "conflict": {
+          "$ref": "#/$defs/__schema50"
+        },
         "provenance": {
           "$ref": "#/$defs/__schema10"
         }
@@ -1021,6 +1027,57 @@
       ]
     },
     "__schema49": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema50": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "competing_record_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "competing_amount": {
+              "type": "number",
+              "minimum": 0
+            },
+            "competing_source_url": {
+              "type": "string",
+              "format": "uri"
+            },
+            "delta_pct": {
+              "type": "number"
+            },
+            "resolved": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "competing_record_id",
+            "competing_amount",
+            "competing_source_url",
+            "delta_pct"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema51": {
       "default": [],
       "type": "array",
       "items": {
@@ -1077,7 +1134,7 @@
         ]
       }
     },
-    "__schema50": {
+    "__schema52": {
       "default": null,
       "anyOf": [
         {
@@ -1979,7 +2036,7 @@
         }
       ]
     },
-    "__schema51": {
+    "__schema53": {
       "default": null,
       "anyOf": [
         {
@@ -1998,7 +2055,7 @@
               "minItems": 1,
               "type": "array",
               "items": {
-                "$ref": "#/$defs/__schema52"
+                "$ref": "#/$defs/__schema54"
               }
             },
             "price_matrix": {
@@ -2155,7 +2212,7 @@
         }
       ]
     },
-    "__schema52": {
+    "__schema54": {
       "type": "string",
       "enum": [
         "TEXT_TO_IMAGE",
@@ -2164,7 +2221,7 @@
         "UPSCALE"
       ]
     },
-    "__schema53": {
+    "__schema55": {
       "default": null,
       "anyOf": [
         {
@@ -2345,7 +2402,7 @@
         }
       ]
     },
-    "__schema54": {
+    "__schema56": {
       "default": null,
       "anyOf": [
         {
@@ -2477,7 +2534,7 @@
         }
       ]
     },
-    "__schema55": {
+    "__schema57": {
       "default": null,
       "anyOf": [
         {
@@ -2736,14 +2793,14 @@
         }
       ]
     },
-    "__schema56": {
+    "__schema58": {
       "type": "object",
       "properties": {
         "data_residency_region": {
           "minItems": 1,
           "type": "array",
           "items": {
-            "$ref": "#/$defs/__schema57"
+            "$ref": "#/$defs/__schema59"
           }
         },
         "is_prc_hosted": {
@@ -2791,17 +2848,17 @@
         "residency_uplift_pct"
       ]
     },
-    "__schema57": {
+    "__schema59": {
       "type": "string"
     },
-    "__schema58": {
+    "__schema60": {
       "default": null,
       "type": [
         "number",
         "null"
       ]
     },
-    "__schema59": {
+    "__schema61": {
       "default": null,
       "anyOf": [
         {
@@ -2813,12 +2870,12 @@
         }
       ]
     },
-    "__schema60": {
+    "__schema62": {
       "type": "string",
       "format": "date-time",
       "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
     },
-    "__schema61": {
+    "__schema63": {
       "anyOf": [
         {
           "type": "string",
@@ -2830,7 +2887,7 @@
         }
       ]
     },
-    "__schema62": {
+    "__schema64": {
       "default": null,
       "anyOf": [
         {
