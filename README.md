@@ -38,18 +38,29 @@ version from `SPEC.md` when it is needed.
 `packages/contracts` is the only thing built. Nothing consumes it yet — no estimator, no
 tokenizers, no router, no UI.
 
-The toolchain was stood up on 2026-09-07, and as of that date everything here has actually been
-run rather than merely read:
+The toolchain was stood up on 2026-09-07, and everything here has actually been run rather than
+merely read. The authority is a clean-checkout CI run, not a local one —
+[run 34133800389](https://github.com/Ibrahim-newaeon/LLM-Costing/actions/runs/34133800389),
+ubuntu-latest, 12s:
 
-| Command | Result, 2026-09-07 |
+| Step | Result |
 |---|---|
-| `pnpm typecheck` | 0 errors — TypeScript 7.0.2, `strict` |
-| `pnpm test` | 29 passed, 1 file (`src/registry.test.ts`) — first execution ever |
-| `pnpm check:schemas` | green; the four generated targets match the Zod |
-| gate proof | injected `PRETTY_SURE` into the generated `Confidence` enum → red, file named; regenerate → green |
+| `pnpm install --frozen-lockfile` | lockfile up to date, 46 packages, esbuild postinstall ran |
+| `pnpm typecheck` | passed — TypeScript 7.0.2, `strict` |
+| `pnpm test` | 29 passed, 1 file (`src/registry.test.ts`) |
+| `pnpm check:schemas` | `schemas in sync with Zod ✓` |
 
-Resolved versions live in `pnpm-lock.yaml`. Use `corepack pnpm install`. The lockfile is
-portable; `node_modules` is not — it is built for whatever platform ran the install.
+The gate was separately proven to **fail**, which is the half that matters: injecting
+`PRETTY_SURE` into the generated `Confidence` enum turned `check:schemas` red and named the
+offending file; regenerating restored green. That was a local run, not a CI one.
+
+Resolved versions live in `pnpm-lock.yaml`. Run **`corepack enable`** first, then `pnpm install` —
+not `corepack pnpm install`. The root scripts shell out to a bare `pnpm` (`pnpm -r test`), so
+without the shim on `PATH` they fail with `sh: pnpm: command not found` while the outer command
+appears to work. CI does the same thing in its own step.
+
+The lockfile is portable and has been exercised on three platforms — linux-arm64, linux-x64 (CI)
+and darwin-arm64. `node_modules` is not portable; re-run `pnpm install` after changing machine.
 
 Note: `scripts/generate-schemas.ts` uses `__dirname`, so the contracts package is intentionally
 **not** `"type": "module"`.
@@ -70,9 +81,8 @@ Exit 0, four files written, nothing to see. Committed, `check:schemas` would hav
 forever while guarding schemas that validate anything at all. Its *types* were the only thing
 that objected — `tsc` flagged the zod-3-shaped signature, which is how it was caught.
 
-The generator now uses zod 4's built-in `z.toJSONSchema`, which also removes the dependency.
-`zod-to-json-schema` is still declared in `packages/contracts/package.json` and imported by
-nothing; drop it with `pnpm remove zod-to-json-schema -F @tokenomics/contracts`.
+The generator now uses zod 4's built-in `z.toJSONSchema`, and `zod-to-json-schema` has been
+removed from the package entirely — the fix drops a dependency rather than adding one.
 
 Two generator options encode decisions worth revisiting:
 
