@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "method": {
+      "$ref": "#/$defs/__schema0"
+    },
+    "confidence": {
+      "$ref": "#/$defs/__schema1"
+    },
+    "source_class": {
+      "$ref": "#/$defs/__schema2"
+    },
+    "source_url": {
+      "$ref": "#/$defs/__schema3"
+    },
+    "verified_at": {
+      "$ref": "#/$defs/__schema4"
+    },
+    "verified_by": {
+      "$ref": "#/$defs/__schema5"
+    },
+    "notes": {
+      "$ref": "#/$defs/__schema6"
+    }
+  },
+  "required": [
+    "method",
+    "confidence",
+    "source_class",
+    "source_url",
+    "verified_at"
+  ],
+  "$defs": {
+    "__schema0": {
+      "type": "string",
+      "enum": [
+        "EXACT_TOKENIZER",
+        "PROVIDER_COUNT_API",
+        "PROVIDER_FORMULA",
+        "MEASURED_PROBE",
+        "MEASURED_BENCHMARK",
+        "TOKENIZER_SCALED",
+        "CALIBRATED_HEURISTIC",
+        "EXACT_PROXY",
+        "USER_SUPPLIED",
+        "DERIVED",
+        "UNAVAILABLE"
+      ]
+    },
+    "__schema1": {
+      "type": "string",
+      "enum": [
+        "HIGH",
+        "MEDIUM",
+        "LOW",
+        "NONE"
+      ]
+    },
+    "__schema2": {
+      "type": "string",
+      "enum": [
+        "VENDOR_PAGE",
+        "VENDOR_CONFIG",
+        "VENDOR_DOCS",
+        "AGGREGATOR",
+        "MEASURED",
+        "USER_ENTERED"
+      ]
+    },
+    "__schema3": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uri"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema4": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema5": {
+      "default": null,
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema6": {
+      "default": null,
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "title": "Provenance",
+  "$comment": "GENERATED from /packages/contracts/src — do not hand-edit. Run `pnpm generate:schemas`. CI fails if this file differs from the regenerated output (§A2)."
+}

@@ -1,2 +1,9 @@
 packages:
   - 'packages/*'
+
+# tsx -> esbuild has a postinstall that links its platform binary. pnpm 12 refuses
+# to run dependency build scripts unless they are named here, and exits non-zero
+# until the decision is recorded either way (ERR_PNPM_IGNORED_BUILDS). Approved so
+# a clean `pnpm install` exits 0 in CI.
+allowBuilds:
+  esbuild: true
