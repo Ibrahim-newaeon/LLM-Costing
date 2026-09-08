@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-09-08T04:16:10.000Z",
+  "generated_at": "2026-09-08T11:20:00.000Z",
   "models": [
     {
       "model_id": "claude-opus-5",
@@ -422,6 +422,402 @@
       "quality_score": null,
       "quality_score_source_url": null,
       "effective_from": "2026-09-08T04:16:10.000Z",
+      "effective_to": null,
+      "deprecation_date": null
+    },
+    {
+      "model_id": "gemini-2.5-pro",
+      "display_name": "Gemini 2.5 Pro",
+      "provider": "google",
+      "provider_origin": "US",
+      "tier": "FRONTIER",
+      "pricing_model": "usage",
+      "modalities_in": [
+        "text",
+        "image"
+      ],
+      "modalities_out": [
+        "text"
+      ],
+      "context_window": {
+        "value": null,
+        "provenance": {
+          "method": "UNAVAILABLE",
+          "confidence": "NONE",
+          "source_class": "VENDOR_DOCS",
+          "source_url": null,
+          "verified_at": null,
+          "verified_by": null,
+          "notes": "Model spec tables are JS-rendered; WebFetch returns only the navigation shell. Not fetched."
+        }
+      },
+      "max_output": {
+        "value": null,
+        "provenance": {
+          "method": "UNAVAILABLE",
+          "confidence": "NONE",
+          "source_class": "VENDOR_DOCS",
+          "source_url": null,
+          "verified_at": null,
+          "verified_by": null,
+          "notes": "Same: the spec table did not load."
+        }
+      },
+      "is_reasoning_model": false,
+      "supports_tools": true,
+      "supports_caching": true,
+      "supports_vision": true,
+      "open_weights": false,
+      "license": null,
+      "served_quantization": "unknown",
+      "tokenizer": {
+        "availability": "REMOTE_API",
+        "identifier": null,
+        "revision_hash": null,
+        "proxy_for": null,
+        "proxy_basis": null,
+        "measured_delta_pct": null,
+        "tokenizer_multiplier": {
+          "value": null,
+          "provenance": {
+            "method": "UNAVAILABLE",
+            "confidence": "NONE",
+            "source_class": "VENDOR_DOCS",
+            "source_url": null,
+            "verified_at": null,
+            "verified_by": null,
+            "notes": "Calibrated from observed runs; no capture exists yet."
+          }
+        },
+        "framing_tokens_per_message": {
+          "value": null,
+          "provenance": {
+            "method": "UNAVAILABLE",
+            "confidence": "NONE",
+            "source_class": "VENDOR_DOCS",
+            "source_url": null,
+            "verified_at": null,
+            "verified_by": null,
+            "notes": "Not published by the vendor and not measured here."
+          }
+        },
+        "conversation_preamble_tokens": {
+          "value": null,
+          "provenance": {
+            "method": "UNAVAILABLE",
+            "confidence": "NONE",
+            "source_class": "VENDOR_DOCS",
+            "source_url": null,
+            "verified_at": null,
+            "verified_by": null,
+            "notes": "Not published by the vendor and not measured here."
+          }
+        }
+      },
+      "text_rates": [
+        {
+          "variant": "standard",
+          "currency": "USD",
+          "input_rate_by_modality": {
+            "text": {
+              "amount": 1.25,
+              "unit": "per_1m_tokens",
+              "list_currency": "USD",
+              "fx_rate_used": null,
+              "fx_rate_date": null,
+              "fx_source_url": null,
+              "effective_from": "2026-09-08T11:20:00.000Z",
+              "effective_to": null,
+              "time_of_day_variant": "all_hours",
+              "max_age_days": 30,
+              "conflict": null,
+              "provenance": {
+                "method": "PROVIDER_FORMULA",
+                "confidence": "HIGH",
+                "source_class": "VENDOR_DOCS",
+                "source_url": "https://ai.google.dev/gemini-api/docs/pricing",
+                "verified_at": "2026-09-08T11:20:00.000Z",
+                "verified_by": null,
+                "notes": "Published as \"Input $1.25, prompts <=200k $2.50, prompts >200k\". The wording is \"prompts >200k tokens\", so the whole prompt reprices, not the overflow."
+              }
+            },
+            "image": null,
+            "audio": null,
+            "video": null
+          },
+          "output_rate": {
+            "amount": 10.0,
+            "unit": "per_1m_tokens",
+            "list_currency": "USD",
+            "fx_rate_used": null,
+            "fx_rate_date": null,
+            "fx_source_url": null,
+            "effective_from": "2026-09-08T11:20:00.000Z",
+            "effective_to": null,
+            "time_of_day_variant": "all_hours",
+            "max_age_days": 30,
+            "conflict": null,
+            "provenance": {
+              "method": "PROVIDER_FORMULA",
+              "confidence": "HIGH",
+              "source_class": "VENDOR_DOCS",
+              "source_url": "https://ai.google.dev/gemini-api/docs/pricing",
+              "verified_at": "2026-09-08T11:20:00.000Z",
+              "verified_by": null,
+              "notes": "Published as \"Input $1.25, prompts <=200k $2.50, prompts >200k\". The wording is \"prompts >200k tokens\", so the whole prompt reprices, not the overflow."
+            }
+          },
+          "reasoning_output_rate": null,
+          "per_request_fee": null,
+          "context_tiers": [
+            {
+              "upper_bound_tokens": 200000,
+              "input_rate": {
+                "amount": 1.25,
+                "unit": "per_1m_tokens",
+                "list_currency": "USD",
+                "fx_rate_used": null,
+                "fx_rate_date": null,
+                "fx_source_url": null,
+                "effective_from": "2026-09-08T11:20:00.000Z",
+                "effective_to": null,
+                "time_of_day_variant": "all_hours",
+                "max_age_days": 30,
+                "conflict": null,
+                "provenance": {
+                  "method": "PROVIDER_FORMULA",
+                  "confidence": "HIGH",
+                  "source_class": "VENDOR_DOCS",
+                  "source_url": "https://ai.google.dev/gemini-api/docs/pricing",
+                  "verified_at": "2026-09-08T11:20:00.000Z",
+                  "verified_by": null,
+                  "notes": "Published as \"Input $1.25, prompts <=200k $2.50, prompts >200k\". The wording is \"prompts >200k tokens\", so the whole prompt reprices, not the overflow."
+                }
+              },
+              "output_rate": {
+                "amount": 10.0,
+                "unit": "per_1m_tokens",
+                "list_currency": "USD",
+                "fx_rate_used": null,
+                "fx_rate_date": null,
+                "fx_source_url": null,
+                "effective_from": "2026-09-08T11:20:00.000Z",
+                "effective_to": null,
+                "time_of_day_variant": "all_hours",
+                "max_age_days": 30,
+                "conflict": null,
+                "provenance": {
+                  "method": "PROVIDER_FORMULA",
+                  "confidence": "HIGH",
+                  "source_class": "VENDOR_DOCS",
+                  "source_url": "https://ai.google.dev/gemini-api/docs/pricing",
+                  "verified_at": "2026-09-08T11:20:00.000Z",
+                  "verified_by": null,
+                  "notes": "Published as \"Input $1.25, prompts <=200k $2.50, prompts >200k\". The wording is \"prompts >200k tokens\", so the whole prompt reprices, not the overflow."
+                }
+              },
+              "cache_read_rate": null,
+              "applies_to_whole_request": true
+            },
+            {
+              "upper_bound_tokens": null,
+              "input_rate": {
+                "amount": 2.5,
+                "unit": "per_1m_tokens",
+                "list_currency": "USD",
+                "fx_rate_used": null,
+                "fx_rate_date": null,
+                "fx_source_url": null,
+                "effective_from": "2026-09-08T11:20:00.000Z",
+                "effective_to": null,
+                "time_of_day_variant": "all_hours",
+                "max_age_days": 30,
+                "conflict": null,
+                "provenance": {
+                  "method": "PROVIDER_FORMULA",
+                  "confidence": "HIGH",
+                  "source_class": "VENDOR_DOCS",
+                  "source_url": "https://ai.google.dev/gemini-api/docs/pricing",
+                  "verified_at": "2026-09-08T11:20:00.000Z",
+                  "verified_by": null,
+                  "notes": "Published as \"Input $1.25, prompts <=200k $2.50, prompts >200k\". The wording is \"prompts >200k tokens\", so the whole prompt reprices, not the overflow."
+                }
+              },
+              "output_rate": {
+                "amount": 15.0,
+                "unit": "per_1m_tokens",
+                "list_currency": "USD",
+                "fx_rate_used": null,
+                "fx_rate_date": null,
+                "fx_source_url": null,
+                "effective_from": "2026-09-08T11:20:00.000Z",
+                "effective_to": null,
+                "time_of_day_variant": "all_hours",
+                "max_age_days": 30,
+                "conflict": null,
+                "provenance": {
+                  "method": "PROVIDER_FORMULA",
+                  "confidence": "HIGH",
+                  "source_class": "VENDOR_DOCS",
+                  "source_url": "https://ai.google.dev/gemini-api/docs/pricing",
+                  "verified_at": "2026-09-08T11:20:00.000Z",
+                  "verified_by": null,
+                  "notes": "Published as \"Input $1.25, prompts <=200k $2.50, prompts >200k\". The wording is \"prompts >200k tokens\", so the whole prompt reprices, not the overflow."
+                }
+              },
+              "cache_read_rate": null,
+              "applies_to_whole_request": true
+            }
+          ],
+          "cache": null,
+          "tool_use_system_prompt_tokens": [],
+          "server_tool_fees": []
+        }
+      ],
+      "service_tiers": [
+        {
+          "tier": "batch",
+          "multiplier": {
+            "value": 0.5,
+            "provenance": {
+              "method": "PROVIDER_FORMULA",
+              "confidence": "HIGH",
+              "source_class": "VENDOR_DOCS",
+              "source_url": "https://ai.google.dev/gemini-api/docs/pricing",
+              "verified_at": "2026-09-08T11:20:00.000Z",
+              "verified_by": null,
+              "notes": "\"Batch API offers 50% cost reduction\". Same figure Anthropic publishes \u2014 read per provider, never shared."
+            }
+          },
+          "available": true,
+          "excludes": [],
+          "unavailable_in_regions": []
+        }
+      ],
+      "vision": {
+        "geometry": {
+          "geometry": "UNAVAILABLE",
+          "reason": "The tile geometry is published \u2014 258 tokens for images <=384px in both dimensions, larger images tiled into 768x768 tiles at 258 tokens each \u2014 but the page states no per-image base and offers no worked example, so whether a total is tiles x 258 or 258 + tiles x 258 is unresolved. That is 258 tokens on every image (~25% on a 1000x1000). See docs/verify-resolution.md VERIFY #6.",
+          "probe_candidate": true
+        },
+        "low_detail": {
+          "kind": "UNSUPPORTED"
+        },
+        "constraints": {
+          "max_edge_px": {
+            "value": null,
+            "provenance": {
+              "method": "UNAVAILABLE",
+              "confidence": "NONE",
+              "source_class": "VENDOR_DOCS",
+              "source_url": null,
+              "verified_at": null,
+              "verified_by": null,
+              "notes": "Not fetched; spec tables are JS-rendered."
+            }
+          },
+          "min_edge_px": {
+            "value": null,
+            "provenance": {
+              "method": "UNAVAILABLE",
+              "confidence": "NONE",
+              "source_class": "VENDOR_DOCS",
+              "source_url": null,
+              "verified_at": null,
+              "verified_by": null,
+              "notes": "Not stated."
+            }
+          },
+          "shortest_edge_target_px": {
+            "value": null,
+            "provenance": {
+              "method": "UNAVAILABLE",
+              "confidence": "NONE",
+              "source_class": "VENDOR_DOCS",
+              "source_url": null,
+              "verified_at": null,
+              "verified_by": null,
+              "notes": "Not stated."
+            }
+          },
+          "max_bytes": {
+            "value": null,
+            "provenance": {
+              "method": "UNAVAILABLE",
+              "confidence": "NONE",
+              "source_class": "VENDOR_DOCS",
+              "source_url": null,
+              "verified_at": null,
+              "verified_by": null,
+              "notes": "Not fetched."
+            }
+          },
+          "max_pages": {
+            "value": null,
+            "provenance": {
+              "method": "UNAVAILABLE",
+              "confidence": "NONE",
+              "source_class": "VENDOR_DOCS",
+              "source_url": null,
+              "verified_at": null,
+              "verified_by": null,
+              "notes": "Not fetched."
+            }
+          },
+          "allowed_mime": [],
+          "provider_auto_normalizes": false,
+          "min_legible_edge_px": [],
+          "max_context_tokens": {
+            "value": null,
+            "provenance": {
+              "method": "UNAVAILABLE",
+              "confidence": "NONE",
+              "source_class": "VENDOR_DOCS",
+              "source_url": null,
+              "verified_at": null,
+              "verified_by": null,
+              "notes": "Model spec table did not load."
+            }
+          }
+        },
+        "provenance": {
+          "method": "UNAVAILABLE",
+          "confidence": "NONE",
+          "source_class": "VENDOR_DOCS",
+          "source_url": null,
+          "verified_at": null,
+          "verified_by": null,
+          "notes": "Geometry is UNAVAILABLE pending a worked example (VERIFY #6)."
+        }
+      },
+      "image_gen": null,
+      "video_gen": null,
+      "video_in": null,
+      "audio_in": null,
+      "hardware": null,
+      "compliance": {
+        "data_residency_region": [
+          "global"
+        ],
+        "is_prc_hosted": false,
+        "contractual_dpa_available": true,
+        "residency_uplift_pct": {
+          "value": null,
+          "provenance": {
+            "method": "UNAVAILABLE",
+            "confidence": "NONE",
+            "source_class": "VENDOR_DOCS",
+            "source_url": null,
+            "verified_at": null,
+            "verified_by": null,
+            "notes": "No regional-endpoint uplift found on the pricing page for the Gemini API. Vertex AI regional pricing not fetched."
+          }
+        },
+        "notes": "Residency options via Vertex AI were not researched for this row."
+      },
+      "quality_score": null,
+      "quality_score_source_url": null,
+      "effective_from": "2026-09-08T11:20:00.000Z",
       "effective_to": null,
       "deprecation_date": null
     }
