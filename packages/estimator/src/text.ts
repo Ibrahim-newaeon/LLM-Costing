@@ -37,6 +37,21 @@ import {
 /** Which rung of §A4.5 actually produced a number. Never the rung requested. */
 export type TokenTier = 0 | 1 | 2 | 3;
 
+/**
+ * What an exact count already contains.
+ *
+ *   PROMPT_ONLY    — the rendered prompt text and nothing else. Framing and tool
+ *                    schemas are still owed and get their own components.
+ *   WHOLE_REQUEST  — everything the provider will bill as input: prompt, system,
+ *                    tool definitions, per-message framing, attached media. One
+ *                    number, and adding anything to it double-counts.
+ *
+ * There is no default. Guessing wrong is a silent double-count in one direction
+ * and a silent undercount in the other, and neither shows up as a wrong-looking
+ * number.
+ */
+export type ExactCoverage = 'PROMPT_ONLY' | 'WHOLE_REQUEST';
+
 export interface TextComponent {
   component: 'prompt_input' | 'framing_overhead' | 'tool_schema';
   tokens: Range;
@@ -145,8 +160,27 @@ export interface TextCountInput {
    * API) or Tier 2 (a local or proxy tokenizer). Supplying it skips the heuristic
    * entirely, and its `method` is carried through unchanged: a cached Tier 3 value
    * is never re-tagged as Tier 1.
+   *
+   * `covers` is load-bearing and was added after a real provider was read properly
+   * (2026-09-08). Anthropic's count-tokens endpoint is handed the WHOLE request —
+   * "the count includes system prompts, tool definitions, messages, thinking
+   * blocks, images and PDFs" — and returns one number for all of it. A local
+   * tokenizer run over the prompt string covers only the prompt.
+   *
+   * Without the distinction this function added §A5.1.2 framing and §A5.1.3 tool
+   * schemas ON TOP of a number that already contained them, and blocked outright
+   * when framing was unmeasured — on a term the count had already measured. See
+   * the WHOLE_REQUEST branch below.
    */
-  exact?: { tokens: number; method: Method; confidence: Confidence; tier: 0 | 1 | 2 };
+  exact?: {
+    tokens: number;
+    method: Method;
+    confidence: Confidence;
+    tier: 0 | 1 | 2;
+    covers: ExactCoverage;
+    /** Vendor caveats worth carrying to the line, e.g. unbilled system tokens. */
+    note?: string | null;
+  };
   /** §A4.5.5. Config, not a literal, and it applies to Tier 3 only. */
   heuristic_safety_pad_pct: number;
 }
@@ -158,6 +192,35 @@ export function countTextTokens(input: TextCountInput): TextCount {
 
   const components: TextComponent[] = [];
   const confidences: Confidence[] = [];
+
+  /* ---- 0. a whole-request count is the ENTIRE answer ---- */
+  // It already contains framing and tool schemas, so the only correct thing to do
+  // with the other two components is not compute them. Returning early rather than
+  // guarding each one below keeps that fact in a single place.
+  if (exact !== undefined && exact.covers === 'WHOLE_REQUEST') {
+    const whole: TextComponent = {
+      component: 'prompt_input',
+      tokens: { p50: exact.tokens, p90: exact.tokens, p99: null },
+      // Never pad a measured count — that is overquoting, not safety.
+      context_safety_tokens: null,
+      method: exact.method,
+      confidence: exact.confidence,
+      tier: exact.tier,
+      note:
+        'Whole-request count: prompt, system, tool definitions and per-message framing are all ' +
+        'inside this one figure. No framing_overhead or tool_schema component is emitted, because ' +
+        'adding either would bill the same tokens twice.' +
+        (exact.note ? ` ${exact.note}` : ''),
+    };
+    return {
+      status: 'COUNTED',
+      components: [whole],
+      total: whole.tokens,
+      context_safety_total: whole.tokens.p90,
+      confidence: exact.confidence,
+      tier: exact.tier,
+    };
+  }
 
   /* ---- 1. the rendered prompt ---- */
   if (exact !== undefined) {
