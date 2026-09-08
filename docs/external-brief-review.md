@@ -97,6 +97,12 @@ without `source_url` + `verified_at` from the vendor's own domain.
 has been checked against an Anthropic page in this repo. This needs a vendor-page verification,
 not a choice.
 
+> **CLOSED 2026-09-07 — see `docs/verify-resolution.md` VERIFY #4.** The patch-grid reading is
+> correct, confirmed on Anthropic's own docs. The brief was wrong twice: the divisor is the patch
+> *area* (784), and 1568 is genuinely two limits in two units — max long edge 1568 px *and* max
+> visual tokens 1568, on the standard tier. Running the vendor's published worked examples
+> against the estimator also surfaced an off-by-one in our own binary search.
+
 ## 6. Three claims that are not true of this repo
 
 1. **"All three ⚠️ VERIFY items are fully resolved and built into the core architecture."**

@@ -102,3 +102,78 @@ and the report already has the vocabulary to say so.
 - Whether the Go tokenizer package is genuinely local or a thin client.
 - Whether hosted ERNIE / Hunyuan tiers match their open-weight tokenizers.
 - Current Gemini local-tokenizer vocab coverage per model generation.
+
+---
+
+## VERIFY #4 — Claude vision geometry (raised 2026-09-07, closed 2026-09-07)
+
+`docs/external-brief-review.md` §5 recorded a conflict between two readings of how Anthropic
+bills images, and said plainly that it needed a vendor page rather than an adjudication:
+
+| Source | Claimed geometry |
+|---|---|
+| The external Gemini brief | scale long edge ≤ 1568 px, then `⌈(w × h) / 750⌉` |
+| `prototype/src/lib/images.js:36` | 28 px patch grid, `⌈w/28⌉ × ⌈h/28⌉`, binary-searched to a 1568-**token** cap |
+
+**The patch-grid reading is correct.** From Anthropic's own documentation:
+
+> Claude views images in patches, where each patch is a 28×28-pixel block. […]
+> `⌈width / 28⌉ × ⌈height / 28⌉`
+
+The brief was wrong twice over. `28² = 784`, not 750 — the divisor is the patch **area**, and
+750 corresponds to no documented quantity. And **1568 is two different limits in two different
+units**, which the brief collapsed into one:
+
+| Tier | Max long edge | Max visual tokens |
+|---|---|---|
+| Standard | 1568 px | 1568 |
+| High-resolution | 2576 px | 4784 |
+
+Maximum accepted dimensions are 8000×8000 px. High-resolution is automatic on Claude 4.7 and
+later. Images over either limit are downscaled to "the largest aspect-preserving size" that
+satisfies **both**, found by binary search along the long edge — and the docs note that "the
+token limit, not the edge limit, determines final size for most photos and screenshots."
+
+**Only downscaling occurs.** There is no upscaling for small images; images already within the
+limits are returned unchanged. That closes, *for Anthropic specifically*, one of the two gaps
+recorded in the README: `VisionConstraints.shortest_edge_target_px` has no direction flag, and
+§A5.2.1's warning that some providers upscale below a target still stands unverified for
+everyone else.
+
+After resizing, Claude pads to the next multiple of 28 on the bottom and right edges only. The
+padding does not add tokens — `⌈w/28⌉` already accounts for the partial patch — but it matters
+for coordinate mapping, and the docs are explicit that coordinates normalize by the **resized**
+dimensions, not the padded ones.
+
+### It found a defect
+
+The published worked examples were run against `countVisionTokens` as a conformance check:
+
+| Example | Documented | Ours, before |
+|---|---|---|
+| 1000×1000 | 36 × 36 = 1296 tokens, unresized | ✅ 1296 |
+| 1075×1520 (A4 at 130 DPI), standard tier | resizes to **924×1307** | ❌ 924×**1306** |
+
+The binary search compared patch rows against an *unrounded* short edge. Images have integer
+dimensions, so the short edge must be rounded to a whole pixel before the grid is taken —
+`⌈924.36/28⌉ = 34` but `⌈924/28⌉ = 33`, and that one row was enough to reject a size the
+provider accepts. Same token count on this example, but the resized dimensions are what
+coordinates normalize by, and on other aspect ratios the count itself moves. Fixed, with the
+vendor's own examples now pinned in `packages/estimator/src/vision.conformance.test.ts`.
+
+Worth noting what caught it: not a test we invented, but a number the vendor published. A
+worked example is the vendor stating, for specific pixels, exactly what they bill — which is
+why §A4.6.1 treats them as the only trustworthy points on a geometry.
+
+### Still not established
+
+- Whether the same 28 px patch grid applies to Qwen-VL and GLM-4.1V. A15 §3 records all three
+  as 28 px, but with *different bound types* — this verification covers Anthropic only.
+- The exact tie-break when two aspect-preserving sizes fit equally.
+- Nothing here is a registry seed. These figures enter the registry through ingestion, recorded
+  with `source_url` and `verified_at`, or not at all (rule 1).
+
+Sources, both retrieved 2026-09-07; **neither page displays a publication or last-updated date**:
+<https://platform.claude.com/docs/en/build-with-claude/vision>,
+<https://platform.claude.com/docs/en/build-with-claude/vision-coordinates>
+(reached via a 302 from `docs.claude.com/en/docs/build-with-claude/vision`).
