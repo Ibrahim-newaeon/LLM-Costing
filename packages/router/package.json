@@ -1,5 +1,5 @@
 {
-  "name": "@tokenomics/estimator",
+  "name": "@tokenomics/router",
   "version": "0.0.0",
   "private": true,
   "main": "./src/index.ts",
@@ -10,9 +10,5 @@
   "scripts": {},
   "dependencies": {
     "@tokenomics/contracts": "workspace:*"
-  },
-  "devDependencies": {
-    "@tokenomics/tokenizers": "workspace:*",
-    "@tokenomics/router": "workspace:*"
   }
 }

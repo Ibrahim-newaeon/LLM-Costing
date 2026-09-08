@@ -380,12 +380,74 @@ video input rates (siblings price audio separately, so parity with text would as
 the exception), and the context window (Google's spec tables are JS-rendered and return only a
 navigation shell).
 
+## The router — §A7
+
+`packages/router` is pure, like the estimator: candidates and rows arrive as arguments, so a
+recommendation is reproducible from its inputs. That is the point of §A7's requirement that every
+recommendation carry a `Rationale` — `{triggering_metric, observed_value, threshold, evidence_ref}`,
+and one without it does not render.
+
+### The trap it exists to avoid
+
+`assembleCandidate` sums a refusal line as zero, because `EstimateLine.cost` is null on a refusal.
+**A candidate whose every line refused therefore totals $0.00** — and a naive sort on `total_cost.p50`
+puts the model nothing could price *first, as the cheapest option*.
+
+That is not hypothetical. Both registry rows refuse on some path: Anthropic on text without tier 1,
+Google on vision. A cheapest-by-total router would have recommended whichever one failed hardest.
+
+So the first thing `rank()` does is not a comparison, it is a filter. A candidate is rankable only
+if its estimate **finished** — `confidence !== 'NONE'`, which §A3.7 already computes as the minimum
+over the lines. A partially refused candidate is excluded too: its total is a lower bound, and
+comparing a lower bound against a complete total is the same bug wearing a smaller number. Mutating
+that check to `return true` turns five tests red.
+
+### What else is not comparable
+
+**Two currencies.** §A4.2 makes the vendor's native currency the source of truth precisely so nobody
+silently compares a CNY figure against a USD one. Ranking returns null rather than converting on an
+exchange rate nobody recorded.
+
+**Ties.** Broken by `model_id` lexicographically. Without that, two candidates at the same price are
+ordered by their position in the registry file — so re-sorting the registry would change the
+recommendation, and a recommendation that moves when nothing about the models moved is one nobody
+can reproduce.
+
+### Two of the three objectives cannot be answered
+
+§A7 asks for Cheapest | Best-Capability | Balanced. **Cheapest works. The other two return null**,
+because they need a quality signal and §A6 says "do NOT invent benchmark scores. Null unless
+sourced" — and neither registry row carries one.
+
+Ranking on price or context window instead would be a capability claim derived from neither. So the
+router returns null *with a reason*, which is the correct output rather than a gap to paper over.
+
+### The gate drops loudly
+
+§A7 puts the capability gate before the estimator, and the ordering matters for the *reason*
+reported, not just the outcome: a model can fail both the vision check and the rate check, and
+"fixing the rate does not make a text-only model see". Capability first, pricing after.
+
+It also reports checks it **could not perform**, separately from passes. Gemini's context window is
+`UNAVAILABLE` — Google's spec tables are JS-rendered — so the gate cannot tell whether a 500k-token
+request fits. It says so rather than passing it silently. An unexamined pass is not a pass.
+
+### On the real registry
+
+| Workflow | Outcome |
+|---|---|
+| Vision | Gemini **excluded** (`UNAVAILABLE` geometry, VERIFY #6); Anthropic eligible |
+| Text | **Both** eligible — the same Gemini row, undropped, because its gap is vision-specific |
+| 100k-token read | **Gemini wins**: $0.125 against Anthropic's $0.50, at $1.25/1M below the 200k tier |
+| Best-capability | **Null** — no sourced `quality_score` on either row |
+
 ## Build order
 
 **Contracts** ✅ (Zod canonical, JSON Schema generated with a CI drift gate)
 → **estimator** ✅ (pure functions, fully unit-tested — every §A5 section has a module:
    vision, text, output, audio/video, cache, tiers, assembly, self-hosting, request multipliers)
 → **tokenizers** ◐ (§A4.5 tiers 0 and 1 done; no tier 2 for Anthropic) + Layer 0 parser (§A4.4)
+→ **router** ✅ (§A7 gate, three objectives, split routing — pure)
 → pricing ingestion → registry → router → UI → e2e.
 
 **Estimator before UI.** The math is the product.
