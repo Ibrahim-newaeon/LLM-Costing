@@ -240,7 +240,7 @@ const baseRow = () => ({
     tokenizer_multiplier: s(1), framing_tokens_per_message: s(3), conversation_preamble_tokens: s(7),
   },
   text_rates: [], service_tiers: [],
-  vision: null, image_gen: null, video_gen: null, video_in: null, hardware: null,
+  vision: null, image_gen: null, video_gen: null, video_in: null, audio_in: null, hardware: null,
   compliance: {
     data_residency_region: ['us'], is_prc_hosted: false, contractual_dpa_available: true,
     residency_uplift_pct: s(0), notes: null,
@@ -292,5 +292,36 @@ describe('model row', () => {
       }),
     });
     expect(rankingEligibility(m).reasons).toContain('VISION_GEOMETRY_UNAVAILABLE');
+  });
+});
+
+/* ══════════════ §A5.3 — a claimed media modality needs its parameters ══════════════ */
+
+describe('an audio- or video-accepting row must carry the profile that prices it', () => {
+  it('refuses an audio modality with no audio_in', () => {
+    expect(() => ModelRow.parse({ ...baseRow(), modalities_in: ['text', 'audio'] })).toThrow(
+      /audio_in profile/,
+    );
+  });
+
+  it('refuses a video modality with no video_in', () => {
+    expect(() => ModelRow.parse({ ...baseRow(), modalities_in: ['text', 'video'] })).toThrow(
+      /video_in profile/,
+    );
+  });
+
+  it('accepts an audio row that carries one', () => {
+    const m = ModelRow.parse({
+      ...baseRow(),
+      modalities_in: ['text', 'audio'],
+      audio_in: {
+        billing_basis: 'PER_TOKEN',
+        tokens_per_second: s(25),
+        billing_granularity_seconds: s(null, { method: 'UNAVAILABLE', confidence: 'NONE', source_url: null }),
+        max_duration_seconds: s(9600),
+        multichannel_multiplies: false,
+      },
+    });
+    expect(m.audio_in?.billing_basis).toBe('PER_TOKEN');
   });
 });

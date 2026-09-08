@@ -198,8 +198,8 @@ should be deleted.
 ## Build order
 
 **Contracts** ✅ (Zod canonical, JSON Schema generated with a CI drift gate)
-→ **estimator** ◐ (pure functions, fully unit-tested — vision, text, output, cache, tiers,
-   assembly, self-hosting done)
+→ **estimator** ◐ (pure functions, fully unit-tested — vision, text, output, audio/video, cache,
+   tiers, assembly, self-hosting done; §A5.10 request multipliers in PR #9)
 → tokenizers (§A4.5 tiers) + Layer 0 parser (§A4.4)
 → pricing ingestion → registry → router → UI → e2e.
 
@@ -294,6 +294,59 @@ budget first. Guessing that would be guessing a provider fact.
 
 An `unbounded` band with no cap is refused outright — nothing bounds the cost, so the p90 would be
 unfalsifiable.
+
+### Audio and video — `media.ts`, §A5.3
+
+Duration-driven, not byte-driven. Two lines of arithmetic:
+
+```
+audio_tokens = ceil(duration_seconds) × tokens_per_second[model]
+video_tokens = frames_sampled × per_frame_image_tokens + audio_track_tokens
+```
+
+and four ways to be confidently wrong. Each is closed here, and the two most easily optimised away
+have a mutation on record that turns exactly one test red.
+
+**1. Audio is billed two different ways.** Some providers convert duration to tokens; others bill
+seconds against a `per_second` rate — §A5.8's own identity writes `audio_seconds × audio_rate`.
+`billing_basis` discriminates and there is no fallback between them, because reading a row as the
+wrong one is a mispricing that scales with the length of the recording. A `PER_SECOND` model gets no
+synthesized token figure: that would be a fabricated number wearing a plausible unit, and the
+contract refuses a row claiming both bases.
+
+Standalone audio also had **no home in the contracts**. `VideoInputProfile.audio_tokens_per_second`
+is the audio *track of a video* — a different quantity on a different asset — so a bare audio file
+had nothing to convert with. `AudioInputProfile` is new here.
+
+**2. `per_frame_image_tokens` is a §A5.2 geometry result.** A video is a stack of images, so the
+vision geometry *is* the per-frame input — the same coupling §A5.9.1 makes for VRAM, and a geometry
+error multiplies by the frame count. `countVideoTokens` calls `countVisionTokens` rather than taking
+a flat per-frame number, and refuses outright when the geometry is unavailable.
+
+**3. The sample rate may not be yours to set.** §A5.3 calls sampling "the whole cost", and
+`user_configurable_fps` records whether the provider actually exposes it. A person who lowers fps to
+save money on a model that ignores the setting has changed nothing — so the request is discarded
+*loudly*, with `FPS_NOT_CONFIGURABLE`, rather than quietly honoured and handed back as a saving.
+`max_frames` clamps and says that coverage stops rising along with the cost: past the cap a longer
+video is not more expensive, it is more thinly sampled.
+
+**4. The LOW ceiling is on the answer.** §A5.3: "force `confidence: LOW` unless the provider
+publishes a deterministic formula." Applied last, so strong provenance on the sample rate and the
+geometry cannot lift a figure the provider never committed to. The quantity is unchanged — the
+ceiling moves confidence, not the number.
+
+**Adaptive sampling is the one refusal.** Where a provider decides at run time how much to load, the
+*quantity* genuinely varies and the band can span an order of magnitude on one input. The contracts
+put it plainly — P50/P90 or nothing — so with nothing measured `countVideoTokens` returns nothing and
+asks for an observed frame range. Supply one and the band survives into the estimate. Everywhere else
+the count is arithmetic and returns an exact range, for the reason `range.ts` sets out: what is
+uncertain is whether the constants are right, and that belongs on `method` + `confidence`.
+
+**The audio track lands on one side of the `+` or the other.** `audio_billed_separately` decides:
+folded into the video quantity where the provider meters them together, or its own line where it is
+charged apart. Both are real and both are visible on an invoice. A clip *with* a track on a model
+that publishes no audio rate is refused rather than counted without it — dropping it would understate
+every clip that has one.
 
 ### Self-hosting — `selfhosted.ts`, §A5.9 and §A5.9.1
 
