@@ -289,6 +289,16 @@ export const ImageMetrics = z
     image_count: z.number().int().positive().default(1),
     operation: z.enum(['analyze', 'generate', 'img2img', 'inpaint', 'upscale']),
     upscale_multiplier: z.number().gt(1).nullable().default(null),
+    /**
+     * §A5.10 re-rolls — "image workflows generate N candidates per accepted image.
+     * Every candidate bills."
+     *
+     * Defaults to 1 and is, in the spec's own words, "almost never actually 1".
+     * The default therefore does not pass silently: on a generating operation the
+     * estimator emits an Assumption for it, which caps the line's confidence.
+     * A default that is usually wrong has to cost something.
+     */
+    candidates_per_accepted_image: z.number().int().positive().default(1),
     mask_present: z.boolean().default(false),
     byte_size: z.number().int().nonnegative().nullable().default(null),
     /**
@@ -317,6 +327,15 @@ export const ImageMetrics = z
       err(
         'fidelity_critical blocks the resize rung: the correct rung is FIDELITY_LOCKED (§A5.2.1).',
         ['asset_disposition', 'rung'],
+      );
+    }
+    // Re-rolls are a property of GENERATING. Analysing an image once does not
+    // produce candidates, and a count above 1 there is a misfiled field that would
+    // multiply a vision bill.
+    if (m.operation === 'analyze' && m.candidates_per_accepted_image !== 1) {
+      err(
+        'candidates_per_accepted_image applies to generation, not analysis — an analysed image is billed once (§A5.10).',
+        ['candidates_per_accepted_image'],
       );
     }
     if (m.operation === 'inpaint' && !m.mask_present) {

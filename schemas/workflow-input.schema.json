@@ -634,6 +634,12 @@
             }
           ]
         },
+        "candidates_per_accepted_image": {
+          "default": 1,
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
         "mask_present": {
           "default": false,
           "type": "boolean"
