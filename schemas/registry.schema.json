@@ -742,8 +742,10 @@
             "per_request",
             "per_1k_calls",
             "per_gb_day",
+            "per_gb",
             "per_1m_tokens_per_hour",
-            "per_gpu_hour"
+            "per_gpu_hour",
+            "per_instance_hour"
           ]
         },
         "list_currency": {

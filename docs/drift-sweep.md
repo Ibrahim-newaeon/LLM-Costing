@@ -335,3 +335,46 @@ today with no typed source behind them.
 
 Until step 2, the drift gate protects four files nobody consumes and ignores the three that the
 app actually reads.
+
+---
+
+### 5e. CORRECTION to PR #3's deletion note, 2026-09-08 — recorded after §A5.9 was built
+
+§5c and §5d are corrections to this document's own findings. This one corrects a claim made *in
+the commit that acted on them*, which is worse, because it shipped.
+
+PR #3 deleted `/schemas/pricing-record.schema.json`. The note said its payload
+
+> duplicated `TextRateProfile`, `ContextTier`, `CacheProfile`, `VisionProfile` and
+> `HardwareProfile`
+
+and README.md said "exactly three things were missing" — `DeploymentMode`, `RateConflict` and the
+staleness gate. Both statements were repeated in `packages/contracts/src/pricing.ts`.
+
+**It was four.** The record's `self_hosted_profile` block had two halves and only one of them was a
+duplicate:
+
+| Field | Counterpart |
+|---|---|
+| `measured_ttft_seconds`, `measured_prefill_tps`, `measured_decode_tps`, `benchmark_source_url`, `benchmark_batch_size` | `HardwareProfile` — genuine duplicates |
+| `instance_type`, `cloud_provider`, `gpu_model`, `gpu_count`, `vram_per_gpu_gb`, `hourly_rate_on_demand`, `hourly_rate_spot`, `regional_tax_rate`, `storage_monthly`, `egress_per_gb`, `concurrency_efficiency_factor` | **none** |
+
+The second half was lost, not superseded, and §A5.9 could not be implemented without it:
+`HardwareProfile` answers *how fast does this model run and how much memory does it need*, and
+nothing answered *on what, for how much*.
+
+**How the wrong claim got made.** The completeness check behind "exactly three things were missing"
+was run against `ModelRow`. `ModelRow` has no deployment-economics fields to compare against, so
+the self-hosting half of the record had nothing to be found missing *from* — and the check reported
+clean. The note then presented a check of one path as a check of the record. The sentence was not
+a guess; it was a true statement about a narrower question than the one it appeared to answer,
+which is the harder failure to catch on review.
+
+**Fixed by** `packages/contracts/src/instance.ts` — `InstanceProfile` and `DeploymentPlan`, a
+separate row rather than a revived pricing record, plus a `schemas/instance-profile.schema.json`
+generator target so the drift gate covers it. The corrections are written into `pricing.ts`,
+`README.md` and here rather than applied silently.
+
+**Carried forward:** a deletion note that asserts nothing was lost must name the thing it compared
+against, and the comparison has to cover every consumer of the deleted shape — not the one that
+happened to be open in the editor.

@@ -12,3 +12,4 @@ export * from './text';
 export * from './context';
 export * from './cache';
 export * from './candidate';
+export * from './selfhosted';

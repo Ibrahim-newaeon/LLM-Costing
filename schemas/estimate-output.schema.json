@@ -581,10 +581,25 @@
     "SelfHostedDetail": {
       "type": "object",
       "properties": {
+        "instance_id": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rate_basis": {
+          "$ref": "#/$defs/RateBasis"
+        },
         "vram_feasible": {
           "type": "boolean"
         },
-        "required_vram_gb": {
+        "required_vram_gib": {
           "default": null,
           "anyOf": [
             {
@@ -596,12 +611,48 @@
             }
           ]
         },
-        "available_vram_gb": {
+        "available_vram_gib": {
           "default": null,
           "anyOf": [
             {
               "type": "number",
               "exclusiveMinimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "weights_vram_gib": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "kv_cache_vram_gib": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "activation_vram_gib": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
             },
             {
               "type": "null"
@@ -619,10 +670,27 @@
             }
           ]
         },
+        "prefill_share_pct": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "utilization_factor": {
           "type": "number",
           "exclusiveMinimum": 0,
           "maximum": 1
+        },
+        "utilization_is_derived": {
+          "default": false,
+          "type": "boolean"
         },
         "idle_cost_per_day": {
           "default": null,
@@ -647,19 +715,19 @@
               "type": "null"
             }
           ]
-        },
-        "rate_basis": {
-          "type": "string",
-          "enum": [
-            "ON_DEMAND",
-            "SPOT"
-          ]
         }
       },
       "required": [
+        "rate_basis",
         "vram_feasible",
-        "utilization_factor",
-        "rate_basis"
+        "utilization_factor"
+      ]
+    },
+    "RateBasis": {
+      "type": "string",
+      "enum": [
+        "ON_DEMAND",
+        "SPOT"
       ]
     },
     "Recommendations": {
@@ -1257,7 +1325,10 @@
         "RESIZE_BELOW_LEGIBILITY_FLOOR",
         "PROVIDER_WILL_NORMALIZE",
         "REROUTED_FOR_ASSET_CONSTRAINT",
-        "REROUTE_BLOCKED_BY_RESIDENCY"
+        "REROUTE_BLOCKED_BY_RESIDENCY",
+        "SPOT_RATE_INTERRUPTION_UNMODELLED",
+        "UTILIZATION_STATED_VS_DERIVED",
+        "VISUAL_TOKENS_DOMINATE_CONTEXT"
       ]
     }
   },
