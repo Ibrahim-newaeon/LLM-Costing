@@ -34,6 +34,7 @@ import {
 import { countWithLadder, CountCache, type CountTokensPort } from '@tokenomics/tokenizers';
 import { countTextTokens } from './text';
 import { countVisionTokens } from './vision';
+import { selectContextTier, contextTierCrossingSaving } from './context';
 import { buildLine, assembleCandidate } from './candidate';
 import { residencyUplift, resolveServiceTier } from './request';
 import { exactRange } from './range';
@@ -50,8 +51,8 @@ const perToken = (amountPerMillion: number) => amountPerMillion / 1_000_000;
 /* ══════════════ the row itself ══════════════ */
 
 describe('the first real registry document', () => {
-  it('parses as a Registry — the schema has never had a real document before', () => {
-    expect(registry.models).toHaveLength(1);
+  it('parses as a Registry — two providers, from two sets of vendor pages', () => {
+    expect(registry.models.map((m) => m.model_id)).toEqual(['claude-opus-5', 'gemini-2.5-pro']);
     expect(opus.display_name).toBe('Claude Opus 5');
   });
 
@@ -404,5 +405,127 @@ describe('§A4.5 tier 1 turns the text refusal into a costed estimate', () => {
     expect(candidate.total_cost.p50).toBeCloseTo((1296 + 1500) * 5e-6, 12);
     expect(candidate.confidence).toBe('HIGH');
     expect(candidate.total_tokens!.input!.p50).toBe(1296 + 1500);
+  });
+});
+
+/* ══════════════ two providers — §A5.7 against real published tiers ══════════════ */
+
+const gemini: ModelRow = registry.models.find((m) => m.model_id === 'gemini-2.5-pro')!;
+const gRates = gemini.text_rates[0]!;
+
+describe('the second provider brings the first real context tier', () => {
+  it('Anthropic has no tier and Google has one — both are published facts', () => {
+    expect(rates.context_tiers).toBeNull();
+    expect(gRates.context_tiers).toHaveLength(2);
+  });
+
+  it('selects $1.25 below the 200k threshold and $2.50 above it', () => {
+    const below = selectContextTier(gRates.context_tiers, 199_000);
+    const above = selectContextTier(gRates.context_tiers, 201_000);
+    if (below.status !== 'SELECTED' || above.status !== 'SELECTED') throw new Error('tier');
+    expect(below.input_rate.amount).toBe(1.25);
+    expect(above.input_rate.amount).toBe(2.5);
+    expect(below.output_rate.amount).toBe(10);
+    expect(above.output_rate.amount).toBe(15);
+  });
+
+  it('crossing 200k by 1% roughly DOUBLES the bill, because the whole prompt reprices', () => {
+    // The §A5.7 distinction, on figures a vendor published. "prompts >200k tokens"
+    // reprices every token, not the overflow.
+    const price = (tokens: number) => {
+      const t = selectContextTier(gRates.context_tiers, tokens);
+      if (t.status !== 'SELECTED') throw new Error('tier');
+      expect(t.tier.applies_to_whole_request).toBe(true);
+      return tokens * perToken(t.input_rate.amount);
+    };
+    const under = price(199_000);
+    const over = price(201_000);
+
+    expect(under).toBeCloseTo(0.24875, 10);
+    expect(over).toBeCloseTo(0.5025, 10);
+    expect(over / under).toBeGreaterThan(2);
+
+    // What a marginal reading would have said — understated by a factor of two.
+    const marginal = 200_000 * perToken(1.25) + 1_000 * perToken(2.5);
+    expect(marginal).toBeCloseTo(0.2525, 10);
+    expect(over / marginal).toBeGreaterThan(1.9);
+  });
+
+  it('a 0.5% prompt trim halves the cost — the outsized saving §A5.7 exists to surface', () => {
+    const saving = contextTierCrossingSaving(gRates.context_tiers!, 1, 201_000);
+    expect(saving).not.toBeNull();
+    expect(saving!.trim_tokens).toBe(1_000);
+    expect(saving!.applies_to_whole_request).toBe(true);
+    // Trimming 0.5% of the prompt repriced the entire request.
+    expect(saving!.repriced_tokens).toBe(200_000);
+    expect(saving!.trim_tokens / 201_000).toBeLessThan(0.006);
+  });
+
+  it('costs a real 201k-token request end to end', () => {
+    const t = selectContextTier(gRates.context_tiers, 201_000);
+    if (t.status !== 'SELECTED') throw new Error('tier');
+    const candidate = assembleCandidate({
+      model_id: gemini.model_id,
+      provider_id: gemini.provider,
+      deployment_mode: 'API_MANAGED',
+      currency: 'USD',
+      lines: [
+        buildLine({
+          task_id: 'long-doc',
+          component: 'prompt_input',
+          quantity: exactRange(201_000),
+          unit: 'tokens',
+          rate_amount: perToken(t.input_rate.amount),
+          rate_record_id: 'gemini-2.5-pro:input:text:>200k',
+          method: 'PROVIDER_FORMULA',
+          confidence: 'HIGH',
+          tier: 1,
+        }),
+      ],
+    });
+    expect(candidate.total_cost.p50).toBeCloseTo(0.5025, 10);
+  });
+});
+
+describe('the second provider also brings honest gaps', () => {
+  it('accepts images but cannot count them — capability true, geometry UNAVAILABLE', () => {
+    // Recording supports_vision:false would have been a false capability claim.
+    // UNAVAILABLE geometry is the true statement: it does vision, we cannot price it.
+    expect(gemini.supports_vision).toBe(true);
+    expect(gemini.modalities_in).toContain('image');
+    expect(gemini.vision!.geometry.geometry).toBe('UNAVAILABLE');
+    expect(rankingEligibility(gemini).reasons).toContain('VISION_GEOMETRY_UNAVAILABLE');
+  });
+
+  it('names what would close it — a worked example, the same thing that fixed Anthropic', () => {
+    const g = gemini.vision!.geometry;
+    if (g.geometry !== 'UNAVAILABLE') throw new Error('geometry');
+    expect(g.reason).toMatch(/worked example/);
+    expect(g.probe_candidate).toBe(true);
+  });
+
+  it('reads the batch discount off Google, not off Anthropic — same figure, separate rows', () => {
+    // Both vendors publish 50%. A passing test here proves it is read per provider
+    // rather than having quietly become a shared constant.
+    const a = resolveServiceTier(opus.service_tiers, 'batch', null);
+    const g = resolveServiceTier(gemini.service_tiers, 'batch', null);
+    expect(a.status === 'OK' && a.multiplier).toBe(0.5);
+    expect(g.status === 'OK' && g.multiplier).toBe(0.5);
+    expect(opus.service_tiers).not.toBe(gemini.service_tiers);
+  });
+
+  it('leaves audio and video unpriced rather than assuming parity with text', () => {
+    // Siblings price audio separately (2.5 Flash: "$0.30 (text/image/video) $1.00
+    // (audio)"), so equal-to-text would be assuming this model is the exception.
+    expect(gRates.input_rate_by_modality.audio).toBeNull();
+    expect(gRates.input_rate_by_modality.video).toBeNull();
+    expect(gRates.input_rate_by_modality.text!.amount).toBe(1.25);
+  });
+
+  it('has no cache profile, because none is published for THIS model', () => {
+    // The family publishes cache rates with a per-hour storage charge; 2.5 Pro is
+    // not among them. Carrying a Flash rate across is another model's answer.
+    expect(gRates.cache).toBeNull();
+    expect(rates.cache).not.toBeNull();
   });
 });

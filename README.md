@@ -312,6 +312,74 @@ once tier 1 answers, and a combined vision + text candidate totals `(1296 + 1500
 estimate. Counting is free and separately rate-limited (5,000–20,000 RPM by usage tier), so tier 1
 costs a round trip rather than money.
 
+## A second provider, and the first real context tier
+
+`/registry/registry.json` now holds **two models from two vendors**: `claude-opus-5` and
+`gemini-2.5-pro`, each figure fetched from that vendor's own domain with a `source_url` and a
+`verified_at`.
+
+### §A5.7 stops being a thought experiment
+
+Anthropic publishes `context_tiers: null` — "the full 1M token context window at standard pricing".
+Google publishes a step:
+
+> **Gemini 2.5 Pro**: Input "$1.25, prompts ≤200k $2.50, prompts >200k"; Output "$10.00, prompts
+> ≤200k $15.00, prompts >200k"
+
+The wording is "prompts >200k tokens" — **the whole prompt reprices, not the overflow**. So on real
+published rates:
+
+| Request | Tier | Cost |
+|---|---|---|
+| 199,000 tokens | ≤200k | **$0.2488** |
+| 201,000 tokens | >200k | **$0.5025** |
+
+A request **1% larger costs 2.02× as much.** A marginal reading — charging the first 200k at $1.25
+and only the 1,000 extra at $2.50 — gives $0.2525 and is understated by a factor of two. That is the
+`applies_to_whole_request` distinction the tests had been measuring against fixtures, now measured
+against a vendor.
+
+It also makes the advice concrete: **trimming 1,000 tokens, 0.5% of the prompt, halves the bill.**
+That is what §A5.7's near-threshold warning is for.
+
+### `rateInForce` — the fields nothing was reading
+
+Google's pricing page carries scheduled changes: *"$0.75 through December 31, 2026. $1.50 starting
+January 1, 2027."* Two rates for one model, distinguished only by `effective_from` /
+`effective_to` — fields that have been on `Rate` since the contract was written and which **nothing
+read**. Confirmed by grep before fixing: no selector existed anywhere.
+
+A registry holding both halves would have priced whichever row the caller reached first, and been
+silently 2× out from a fixed date onward.
+
+`rateInForce()` sits beside `rateFreshness()` and answers a different question. Freshness asks
+whether a row was *checked* recently enough to trust; validity asks whether it *applies to the date
+being priced*. A rate can be verified this morning and still be the wrong rate — there is a test
+that asserts exactly that pairing. Overlapping windows are reported as `AMBIGUOUS`, never resolved:
+picking the cheaper flatters the estimate and picking the newer assumes an ordering nobody
+published (rule 5).
+
+### The gaps are the other half of the row
+
+Gemini 2.5 Pro **accepts images and cannot be priced for them**. Google publishes the tile geometry
+(258 tokens ≤384px; 768×768 tiles at 258 each) but no per-image base and **no worked example**, so
+whether a 1000×1000 image is 1032 or 1290 tokens is unresolved — 25% on every image, in one
+direction, invisible in the output. Recorded as `UNAVAILABLE` geometry with `probe_candidate: true`
+(**VERIFY #6**), while `supports_vision` stays **true**: the model does vision, we cannot count it,
+and saying otherwise would be a false capability claim. This is the first time
+`VISION_GEOMETRY_UNAVAILABLE` has fired on real data.
+
+The contrast is the finding. Anthropic's geometry is HIGH because Anthropic publishes worked
+examples — the same ones that caught our off-by-one. Google's blocks because it does not. The
+difference is not general documentation quality; it is whether the vendor publishes the specific
+artefact that makes a geometry checkable.
+
+Also unpriced and recorded rather than assumed: cache (published for the Flash models in this
+family, **not** for 2.5 Pro — carrying a Flash rate across is another model's answer), audio and
+video input rates (siblings price audio separately, so parity with text would assume this model is
+the exception), and the context window (Google's spec tables are JS-rendered and return only a
+navigation shell).
+
 ## Build order
 
 **Contracts** ✅ (Zod canonical, JSON Schema generated with a CI drift gate)

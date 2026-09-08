@@ -145,6 +145,87 @@ export function rateFreshness(r: Rate, now: Date = new Date()): Freshness {
 /** True only for the one state that may be priced against. */
 export const isPriceable = (f: Freshness): boolean => f === 'FRESH';
 
+/* ─────────────────────── validity, which is not freshness ─────────────────────── */
+
+/**
+ * Which rate is IN FORCE at a given moment.
+ *
+ * `rateFreshness` asks whether a row was checked recently enough to trust. This asks
+ * something different and independent: whether the row applies to the date being
+ * priced. A rate can be verified this morning and still be the wrong rate for the
+ * estimate, because vendors publish price changes in advance.
+ *
+ * That is not hypothetical. Google's pricing page carries entries of the form
+ * "$0.75 through December 31, 2026. $1.50 starting January 1, 2027" — two rates for
+ * one model, distinguished only by these fields (retrieved 2026-09-08 from
+ * https://ai.google.dev/gemini-api/docs/pricing; the page shows no publication date).
+ *
+ * ⚠️ `effective_from` and `effective_to` have been on `Rate` since the contract was
+ * written and, until this function, **nothing read them**. A registry holding both
+ * halves of a scheduled change would have priced whichever row the caller happened
+ * to reach first, and been silently 2x out from a fixed date onward with no warning.
+ *
+ * Ambiguity is reported, never resolved. Two rates covering the same instant is a
+ * data defect — picking the cheaper flatters the estimate, picking the newer assumes
+ * an ordering nobody published, and picking either hides the defect (rule 5).
+ */
+export type RateValidity =
+  | { status: 'IN_FORCE'; rate: Rate }
+  | { status: 'NONE_IN_FORCE'; reason: string }
+  | { status: 'AMBIGUOUS'; reason: string; candidates: Rate[] };
+
+export function rateInForce(rates: readonly Rate[], at: Date = new Date()): RateValidity {
+  if (rates.length === 0) {
+    return { status: 'NONE_IN_FORCE', reason: 'No rates supplied.' };
+  }
+  const t = at.getTime();
+  const covering = rates.filter((r) => {
+    const from = Date.parse(r.effective_from);
+    if (Number.isNaN(from) || t < from) return false;
+    if (r.effective_to === null) return true;
+    const to = Date.parse(r.effective_to);
+    // `effective_to` is the END of the window. A rate published as "through
+    // December 31" is recorded with an exclusive bound at the following midnight,
+    // so the comparison is strict and the two halves of a scheduled change never
+    // both cover the boundary instant.
+    return !Number.isNaN(to) && t < to;
+  });
+
+  if (covering.length === 0) {
+    return {
+      status: 'NONE_IN_FORCE',
+      reason: `No rate covers ${at.toISOString()}. A gap in the schedule blocks the estimate — the alternative is pricing a date at a rate the vendor did not publish for it.`,
+    };
+  }
+  if (covering.length > 1) {
+    return {
+      status: 'AMBIGUOUS',
+      reason: `${covering.length} rates cover ${at.toISOString()}. Overlapping windows are a data defect: choosing between them would either flatter the estimate or assume an ordering nobody published (rule 5).`,
+      candidates: covering,
+    };
+  }
+  return { status: 'IN_FORCE', rate: covering[0]! };
+}
+
+/**
+ * True when a scheduled change is close enough that a quote for work starting later
+ * would be priced wrong. The UI warns; it does not silently switch rates.
+ */
+export function ratePriceChangeAhead(
+  rates: readonly Rate[],
+  at: Date = new Date(),
+): { changes_at: string; from_amount: number; to_amount: number } | null {
+  const current = rateInForce(rates, at);
+  if (current.status !== 'IN_FORCE' || current.rate.effective_to === null) return null;
+  const next = rateInForce(rates, new Date(Date.parse(current.rate.effective_to)));
+  if (next.status !== 'IN_FORCE') return null;
+  return {
+    changes_at: current.rate.effective_to,
+    from_amount: current.rate.amount,
+    to_amount: next.rate.amount,
+  };
+}
+
 /* ─────────────────────── context tiers (§A5.7) ─────────────────────── */
 
 export const ContextTier = z.object({

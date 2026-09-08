@@ -10,7 +10,10 @@
 //   pnpm vitest src/pricing.test.ts     # offline, free
 
 import { describe, it, expect } from 'vitest';
-import { Rate, RateConflict, rateFreshness, isPriceable, DeploymentMode } from './pricing';
+import {
+  Rate, RateConflict, rateFreshness, isPriceable, DeploymentMode,
+  rateInForce, ratePriceChangeAhead,
+} from './pricing';
 
 const prov = (over: Partial<any> = {}) => ({
   method: 'PROVIDER_FORMULA' as const,
@@ -170,5 +173,94 @@ describe('DeploymentMode', () => {
 
   it('rejects an unlisted mode rather than passing it through', () => {
     expect(() => DeploymentMode.parse('SERVERLESS')).toThrow();
+  });
+});
+
+/* ══════════════ validity, which is not freshness ══════════════ */
+
+// The case this exists for, from Google's pricing page (retrieved 2026-09-08):
+// "$0.75 through December 31, 2026. $1.50 starting January 1, 2027."
+const CUTOVER = '2027-01-01T00:00:00.000Z';
+const scheduled = [
+  rate({ amount: 0.75, effective_from: '2026-01-01T00:00:00.000Z', effective_to: CUTOVER }),
+  rate({ amount: 1.5, effective_from: CUTOVER, effective_to: null }),
+];
+
+describe('rateInForce answers a different question from rateFreshness', () => {
+  it('picks the rate in force before the cutover', () => {
+    const r = rateInForce(scheduled, new Date('2026-12-31T23:59:59.000Z'));
+    expect(r.status).toBe('IN_FORCE');
+    if (r.status === 'IN_FORCE') expect(r.rate.amount).toBe(0.75);
+  });
+
+  it('picks the new rate ON the cutover instant, not the old one', () => {
+    // The boundary is where an off-by-one would live, and it would be a 2x error.
+    const r = rateInForce(scheduled, new Date(CUTOVER));
+    expect(r.status).toBe('IN_FORCE');
+    if (r.status === 'IN_FORCE') expect(r.rate.amount).toBe(1.5);
+  });
+
+  it('a FRESH rate can still be the WRONG rate — the two checks are independent', () => {
+    // The point of having both. This rate was verified the day it is being read, so
+    // freshness says yes; it expired at the cutover, so validity says no. A gate
+    // that only checked staleness would have priced 2027 at the 2026 rate.
+    const verifiedToday = rate({
+      amount: 0.75,
+      effective_from: '2026-01-01T00:00:00.000Z',
+      effective_to: CUTOVER,
+      max_age_days: 30,
+      provenance: prov({ verified_at: '2027-06-01T00:00:00.000Z' }),
+    });
+    const readingAt = new Date('2027-06-02T00:00:00.000Z');
+
+    expect(isPriceable(rateFreshness(verifiedToday, readingAt))).toBe(true);
+    expect(rateInForce([verifiedToday], readingAt).status).toBe('NONE_IN_FORCE');
+  });
+
+  it('refuses a date no rate covers rather than reaching for the nearest', () => {
+    const r = rateInForce(scheduled, new Date('2025-01-01T00:00:00.000Z'));
+    expect(r.status).toBe('NONE_IN_FORCE');
+    if (r.status === 'NONE_IN_FORCE') expect(r.reason).toMatch(/did not publish/);
+  });
+
+  it('REPORTS overlapping windows instead of choosing between them (rule 5)', () => {
+    const overlapping = [
+      rate({ amount: 1, effective_from: '2026-01-01T00:00:00.000Z', effective_to: null }),
+      rate({ amount: 2, effective_from: '2026-06-01T00:00:00.000Z', effective_to: null }),
+    ];
+    const r = rateInForce(overlapping, new Date('2026-09-08T00:00:00.000Z'));
+    expect(r.status).toBe('AMBIGUOUS');
+    if (r.status === 'AMBIGUOUS') {
+      expect(r.candidates).toHaveLength(2);
+      // Neither the cheaper nor the newer was picked.
+      expect(r.reason).toMatch(/flatter the estimate|ordering nobody published/);
+    }
+  });
+
+  it('an open-ended rate covers everything after its start', () => {
+    const r = rateInForce([scheduled[1]!], new Date('2030-01-01T00:00:00.000Z'));
+    expect(r.status).toBe('IN_FORCE');
+  });
+
+  it('refuses an empty rate list rather than returning nothing quietly', () => {
+    expect(rateInForce([]).status).toBe('NONE_IN_FORCE');
+  });
+});
+
+describe('ratePriceChangeAhead warns; it does not switch rates', () => {
+  it('reports the scheduled doubling before it lands', () => {
+    const ahead = ratePriceChangeAhead(scheduled, new Date('2026-12-01T00:00:00.000Z'));
+    expect(ahead).not.toBeNull();
+    expect(ahead!.changes_at).toBe(CUTOVER);
+    expect(ahead!.from_amount).toBe(0.75);
+    expect(ahead!.to_amount).toBe(1.5);
+  });
+
+  it('is null once the change has happened', () => {
+    expect(ratePriceChangeAhead(scheduled, new Date('2027-02-01T00:00:00.000Z'))).toBeNull();
+  });
+
+  it('is null for a rate with no end date', () => {
+    expect(ratePriceChangeAhead([scheduled[1]!], new Date('2027-02-01T00:00:00.000Z'))).toBeNull();
   });
 });

@@ -227,3 +227,53 @@ The first real row failed to parse against it.
 The behaviour is right — an omitted key is indistinguishable from a modality nobody considered, and
 a missing audio rate must not read as "no audio charge" — but it was undocumented, and nothing in
 the repo had ever parsed a real row to discover it. Documented in `pricing.ts` rather than relaxed.
+
+---
+
+## VERIFY #6 — is Gemini's per-image token count `tiles × 258`, or `258 + tiles × 258`? (raised 2026-09-08, OPEN)
+
+Building the second registry row hit the same class of question VERIFY #4 answered for Anthropic,
+and this time the vendor does not publish what settles it.
+
+Google states the geometry plainly:
+
+> "Images ≤384 pixels in both dimensions count as 258 tokens."
+> "Larger images are tiled into 768x768 pixel tiles, each counting as 258 tokens."
+
+Source: <https://ai.google.dev/gemini-api/docs/tokens> (retrieved 2026-09-08; the page displays no
+publication date)
+
+**What is missing is the per-image base.** Anthropic's tile-grid analogue in this repo's tests
+carries `base_tokens: 85` — a fixed cost added to the tiles. Google's page states only the per-tile
+figure and says nothing either way about a base, and asked directly for worked examples it has
+none.
+
+So a 1000×1000 image is either:
+
+| Reading | Tokens | At Gemini 2.5 Pro's $1.25/1M |
+|---|---|---|
+| `tiles × 258` (4 tiles) | 1032 | $1.29 per thousand images |
+| `258 + tiles × 258` | 1290 | $1.61 per thousand images |
+
+**A 25% difference on every image**, in one direction, invisible in the output. The 258-token flat
+rate below 384px is consistent with a zero base — one tile's worth either way — but "consistent
+with" is not "stated", and this is exactly the reasoning that produced the 750-vs-784 error the
+external brief made about Anthropic.
+
+**What was recorded.** `gemini-2.5-pro`'s vision geometry is `UNAVAILABLE` with this reason, and
+`probe_candidate: true`. The row still declares `supports_vision: true` and `image` in
+`modalities_in`, because the model **does** accept images — recording `supports_vision: false`
+would have been a false statement about capability, where `UNAVAILABLE` geometry is the true one:
+we know it does vision, we cannot count it. `rankingEligibility` consequently returns
+`VISION_GEOMETRY_UNAVAILABLE`, which is the first time that reason has fired on real data.
+
+**To close it:** a worked example from Google giving specific pixel dimensions and a resulting token
+count — one line would do it — or a §A4.6.1 probe against the live `countTokens` endpoint, which is
+free to call. The probe is the better answer: it is a measurement rather than a reading, and
+`probe_candidate` is set for that reason.
+
+**Carried forward:** vendor worked examples are the only trustworthy points on a geometry (§A4.6.1),
+and their absence is itself a finding. Anthropic publishes them, which is why its geometry is HIGH
+and why running them caught our off-by-one. Google does not, which is why its geometry blocks. The
+difference between the two rows in this registry is not that one vendor is better documented in
+general — it is that one publishes the specific artefact that makes a geometry checkable.
