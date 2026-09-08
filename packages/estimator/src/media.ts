@@ -312,15 +312,33 @@ export function countVideoTokens(input: VideoCountInput): VideoCount {
   const sampling = sampleFrames(video, m);
   if (sampling.status === 'UNAVAILABLE') return refuse(sampling.reason);
 
-  if (!video.per_frame_uses_vision_geometry) {
-    return refuse(
-      'This model does not price video frames through its image geometry, and no alternative per-frame count is published. There is nothing to multiply by (§A5.3).',
-    );
-  }
+  // ── what one frame costs ─────────────────────────────────────────────────────
+  // Two paths, and which one applies is a property of the provider, not a fallback
+  // ordering. A model that publishes a per-frame count is not "missing" a geometry;
+  // running its frames through the image geometry would produce a different number
+  // with the same unit, which is the failure that reads as an answer.
+  let frame: { tokens: number; confidence: Confidence; notes: string[] };
 
-  const frame = countVisionTokens(vision, input.frame);
-  if (frame.status === 'UNAVAILABLE') {
-    return refuse(`Per-frame geometry is unavailable, so the video cannot be priced: ${frame.reason}`);
+  if (video.per_frame_uses_vision_geometry) {
+    const geo = countVisionTokens(vision, input.frame);
+    if (geo.status === 'UNAVAILABLE') {
+      return refuse(`Per-frame geometry is unavailable, so the video cannot be priced: ${geo.reason}`);
+    }
+    frame = { tokens: geo.tokens, confidence: geo.confidence, notes: geo.notes };
+  } else {
+    const published = video.tokens_per_frame.value;
+    if (published === null) {
+      return refuse(
+        'This model does not price video frames through its image geometry, and no alternative per-frame count is published. There is nothing to multiply by (§A5.3).',
+      );
+    }
+    frame = {
+      tokens: published,
+      confidence: video.tokens_per_frame.provenance.confidence,
+      notes: [
+        `Frames priced at the published ${published} tokens each, not through this model's image geometry — the provider meters video on its own scale.`,
+      ],
+    };
   }
 
   const warnings = [...sampling.warnings];
