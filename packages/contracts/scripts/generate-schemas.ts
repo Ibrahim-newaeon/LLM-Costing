@@ -22,7 +22,7 @@ import { Provenance } from '../src/provenance';
 import { Assumption } from '../src/assumption';
 import { WorkflowInput } from '../src/workflow';
 import { EstimateOutput } from '../src/estimate';
-import { TextCalibration } from '../src/calibration';
+import { TextCalibration, OutputPrior } from '../src/calibration';
 
 const OUT_DIR = join(__dirname, '..', '..', '..', 'schemas');
 
@@ -37,6 +37,7 @@ const TARGETS: Array<{ file: string; schema: z.ZodType; name: string }> = [
   { file: 'workflow-input.schema.json', schema: WorkflowInput, name: 'WorkflowInput' },
   { file: 'estimate-output.schema.json', schema: EstimateOutput, name: 'EstimateOutput' },
   { file: 'text-calibration.schema.json', schema: TextCalibration, name: 'TextCalibration' },
+  { file: 'output-prior.schema.json', schema: OutputPrior, name: 'OutputPrior' },
 ];
 
 const BANNER =

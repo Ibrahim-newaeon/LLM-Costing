@@ -14,7 +14,7 @@ import { z } from 'zod';
 import { Provenance } from './provenance';
 import { SeedProvenance } from './assumption';
 import { Script } from './vision';
-import { ContentType } from './workflow';
+import { ContentType, OutputBand } from './workflow';
 
 /* ─────────────────────────── the bucket key ─────────────────────────── */
 
@@ -143,4 +143,83 @@ export function findCalibration(
         c.bucket.content_type === bucket.content_type,
     ) ?? null
   );
+}
+
+/* ─────────────────────────── output priors (§A5.4) ─────────────────────────── */
+
+/**
+ * The non-deterministic half. You cannot know output length before the call, so it
+ * is a DISTRIBUTION, keyed by the band the analyzer picked.
+ *
+ * §A5.4 is explicit that each prior is "calibrated from observed runs, not
+ * invented", and that for any model flagged `is_reasoning_model` a reasoning term is
+ * MANDATORY. Reasoning tokens are invisible in the response body but billed, so an
+ * estimate that omits them is wrong by however much the model thought — which on a
+ * reasoning model is frequently the larger half of the bill.
+ *
+ * `reasoning_tokens` is therefore nullable ONLY for non-reasoning models, and the
+ * estimator refuses a reasoning model whose prior leaves it null rather than
+ * treating the invisible term as zero.
+ */
+export const OutputPrior = z
+  .object({
+    model_id: z.string().min(1),
+    band: OutputBand,
+    output_tokens: z
+      .object({ p50: z.number().nonnegative(), p90: z.number().nonnegative() })
+      .refine((r) => r.p90 >= r.p50, { message: 'p90 must be >= p50.', path: ['p90'] }),
+    /**
+     * Null means "this model does not reason", not "reasoning is free". Populated
+     * from `usage.completion_tokens_details` (or the provider's equivalent) on real
+     * responses — which is why §A5.4 says to wire that capture from day one.
+     */
+    reasoning_tokens: z
+      .object({ p50: z.number().nonnegative(), p90: z.number().nonnegative() })
+      .refine((r) => r.p90 >= r.p50, { message: 'p90 must be >= p50.', path: ['p90'] })
+      .nullable()
+      .default(null),
+    n_samples: z.number().int().nonnegative(),
+    seed_provenance: SeedProvenance.nullable().default(null),
+    provenance: Provenance,
+  })
+  .superRefine((p, ctx) => {
+    const err = (message: string, path: (string | number)[]) =>
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message, path });
+
+    if (p.n_samples === 0 && p.seed_provenance === null) {
+      err(
+        'A prior with zero observations must declare its seed_provenance. §A5.4 requires priors ' +
+          'calibrated from observed runs; an undeclared one is an invented number.',
+        ['seed_provenance'],
+      );
+    }
+    if (p.seed_provenance === 'SEED_UNCALIBRATED' && p.provenance.confidence !== 'LOW') {
+      err('Seeds are LOW until samples replace them, never by assertion (§A4.5.4).', [
+        'provenance', 'confidence',
+      ]);
+    }
+    if (p.seed_provenance === 'CALIBRATED_FROM_OBSERVED' && p.n_samples === 0) {
+      err('CALIBRATED_FROM_OBSERVED with zero samples is a seed wearing a better label.', [
+        'n_samples',
+      ]);
+    }
+    // An unbounded band has no upper end by definition, so a p90 equal to p50 is
+    // claiming a certainty the band denies.
+    if (p.band === 'unbounded' && p.output_tokens.p90 === p.output_tokens.p50) {
+      err(
+        'An unbounded output band with a zero-width distribution is a contradiction — the band ' +
+          'exists to say the length is not pinned down.',
+        ['output_tokens', 'p90'],
+      );
+    }
+  });
+export type OutputPrior = z.infer<typeof OutputPrior>;
+
+/** Exact-match lookup. Same rule as the text table: never interpolate a band. */
+export function findOutputPrior(
+  table: readonly OutputPrior[],
+  model_id: string,
+  band: OutputBand,
+): OutputPrior | null {
+  return table.find((p) => p.model_id === model_id && p.band === band) ?? null;
 }

@@ -245,6 +245,31 @@ lines, never accepted, so a caller cannot assert more than the weakest line supp
 `contextOverflow` is the only consumer of the padded quantities, deliberately a separate function
 from anything that prices, so the padded number has no path into a total.
 
+### Output and reasoning — §A5.4
+
+The non-deterministic half, and the reason rule 3 exists rather than being decorative. Keyed on
+the `expected_output_band` the analyzer picked, because §A4.4 forbids the analyzer emitting a
+number itself.
+
+**Reasoning tokens are invisible but billed.** On a reasoning model they are frequently the larger
+half — in the tests, 4000 against 900 of visible output. They appear only in
+`usage.completion_tokens_details`, so a reasoning model whose prior leaves the term null
+**blocks**: treating an unmeasured invisible quantity as zero is the most expensive silent error
+available here.
+
+**`max_tokens` is a clamp, not a forecast.** Clamping p90 to the cap makes the estimate look
+tighter while the real risk moves elsewhere — the output gets truncated. So the clamp lowers what
+is billed and `MAX_TOKENS_BELOW_P90` says why, rather than the risk disappearing into a smaller
+number.
+
+`max_tokens_includes_reasoning` is a required input with **no default**, because providers differ
+and the answer changes the result materially: on the same 4200-token cap and the same prior,
+visible output is 900 tokens if reasoning is billed separately and **200** if reasoning eats the
+budget first. Guessing that would be guessing a provider fact.
+
+An `unbounded` band with no cap is refused outright — nothing bounds the cost, so the p90 would be
+unfalsifiable.
+
 **Two gaps in the contracts surfaced by building this**, both recorded rather than guessed:
 
 1. `LowDetailBehaviour.INHERIT` means "the main geometry at reduced resolution", but the
