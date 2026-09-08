@@ -33,6 +33,16 @@ importers:
       '@tokenomics/contracts':
         specifier: workspace:*
         version: link:../contracts
+    devDependencies:
+      '@tokenomics/tokenizers':
+        specifier: workspace:*
+        version: link:../tokenizers
+
+  packages/tokenizers:
+    dependencies:
+      '@tokenomics/contracts':
+        specifier: workspace:*
+        version: link:../contracts
 
 packages:
 

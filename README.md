@@ -241,12 +241,83 @@ outcome is one that will eventually ship the second as a zero.
   2× one-hour write, 0.1× reads), not absolute rates, so the cache rates carry `method: DERIVED` and
   name the arithmetic in their provenance.
 
+## Tier 1 — reading the endpoint properly, and the bug that found
+
+`packages/tokenizers` is the first package allowed to do I/O. `estimator` states in its own index
+that it has no I/O, no clock and no network — that is what makes an estimate reproducible from its
+arguments — so the network call lives here and the estimator receives a plain value. Everything is
+written against a `CountTokensPort`, so **no test touches the network and no API key exists in this
+repo**.
+
+### It found a double-count before it sent a single request
+
+Anthropic's count-tokens endpoint is handed the **whole request**, and the docs are explicit that
+the count "includes system prompts, tool definitions, messages, thinking blocks, images and PDFs".
+
+`countTextTokens`'s `exact` hook replaced only the `prompt_input` component, then added §A5.1.2
+framing and §A5.1.3 tool schemas **on top**. So a tier-1 count would have billed the same tokens
+twice — and worse, it would have **blocked outright**, because framing is a hard refusal when
+unmeasured and this row cannot supply it. A provider's own exact count, refused for want of a term
+that provider had already counted.
+
+The fix is a `covers` discriminator with no default:
+
+| | |
+|---|---|
+| `PROMPT_ONLY` | The rendered prompt and nothing else. Framing and tool schemas are still owed. |
+| `WHOLE_REQUEST` | Everything the provider bills as input. One number, and adding anything to it double-counts. |
+
+No default, because guessing is a silent double-count one way and a silent undercount the other.
+Making it required broke both existing call sites at compile time, which is the point. A mutation
+that treats `WHOLE_REQUEST` as `PROMPT_ONLY` — the original bug — turns seven tests red.
+
+### The cache key is the whole of tier 0
+
+The docs also state that newer models "use a tokenizer producing **~30% more tokens** than earlier
+models for the same content" and instruct you to "always count against the specific model you plan
+to use". A cache keyed on the content hash alone would serve one model's count for another's request
+and be wrong by roughly a third — consistently, in one direction, on every hit. So the key is
+`(model_id, request fingerprint)` and `model_id` is not optional. Changing the system prompt, the
+tool set or the thinking config changes the fingerprint; message order matters, object key order
+does not.
+
+**A cached value keeps the tier it was produced at.** §A4.5 is explicit that a cached tier-3
+heuristic is still tier 3 — tier 0 says where an answer was *fetched*, not how it was *produced*.
+`served_from` and `tier` are separate fields for that reason, and re-tagging would let a guess
+acquire a provider's confidence by sitting in a map.
+
+### Two vendor caveats, carried rather than filed away
+
+- "Token counts may include tokens added automatically by Anthropic for system optimizations. **You
+  are not billed for system-added tokens.**" The count can therefore *exceed* the invoice.
+- "The token count is an **estimate**. In some cases, the actual number of input tokens used when
+  creating a message might differ by a small amount."
+
+§A4.5 assigns `PROVIDER_COUNT_API` HIGH confidence and that is kept — it is the vendor's own count
+of the vendor's own tokenization, and nothing available is closer. But both sentences ride along on
+every count and onto the priced line.
+
+### There is no tier 2 here
+
+Anthropic publishes no local tokenizer, so the ladder is **0 → 1 → 3**. A failed tier-1 call does
+not degrade by one rung, it drops to the calibrated heuristic — which for this model does not exist
+yet. `countWithLadder` therefore returns `FELL_THROUGH` rather than a number, and the caller runs
+the heuristic path with its own lower confidence. Substituting anything here would be rule 4's exact
+violation: an answer labelled with the tier that was asked for.
+
+### The result, on the real row
+
+The same `claude-opus-5` row that refuses on text produces **$0.0075 for a 1500-token request**
+once tier 1 answers, and a combined vision + text candidate totals `(1296 + 1500) × $5/1M` on one
+estimate. Counting is free and separately rate-limited (5,000–20,000 RPM by usage tier), so tier 1
+costs a round trip rather than money.
+
 ## Build order
 
 **Contracts** ✅ (Zod canonical, JSON Schema generated with a CI drift gate)
 → **estimator** ✅ (pure functions, fully unit-tested — every §A5 section has a module:
    vision, text, output, audio/video, cache, tiers, assembly, self-hosting, request multipliers)
-→ tokenizers (§A4.5 tiers) + Layer 0 parser (§A4.4)
+→ **tokenizers** ◐ (§A4.5 tiers 0 and 1 done; no tier 2 for Anthropic) + Layer 0 parser (§A4.4)
 → pricing ingestion → registry → router → UI → e2e.
 
 **Estimator before UI.** The math is the product.
