@@ -455,6 +455,51 @@ export const Optimization = z
   });
 export type Optimization = z.infer<typeof Optimization>;
 
+/* ─────────────────────────── system overhead ─────────────────────────── */
+
+/**
+ * §A4.4.1 — the cost of the estimator's own parse.
+ *
+ * "A cost calculator that doesn't meter its own parser is lying about total cost
+ * of ownership." An L2 parse is an LLM call with input and output tokens, and it
+ * has to appear somewhere.
+ *
+ * ⚠️ TWO PLACEMENT RULES, both easy to get wrong, and only one of them needs a
+ * runtime check:
+ *
+ * 1. **It belongs at the estimate level, not in a candidate's `lines[]`.** The
+ *    parse happens ONCE per workflow, before any model is chosen. Metering it per
+ *    candidate multiplies it by the number of models being compared and corrupts
+ *    every comparison, because the same constant is added to both sides.
+ *
+ *    That one needs no check: `CostComponent` has no member for it, so a parse
+ *    cost cannot be expressed as an `EstimateLine` at all. The type system is the
+ *    guard.
+ *
+ * 2. **An L1 parse costs nothing, so it emits no entry.** That is what makes the
+ *    L1 hit-rate legible as a margin figure — "if every parse shows overhead, you
+ *    cannot see the lever". `source` is an enum of one today for that reason: the
+ *    only overhead this project has found is the L2 parse, and inventing
+ *    categories for costs nobody has measured would defeat the point.
+ */
+export const SystemOverhead = z.object({
+  source: z.enum(['L2_PARSE']),
+  /**
+   * The parser runs on the cheapest capable model, which is frequently NOT one of
+   * the candidates being priced — so this rate lookup is independent of the
+   * comparison set and the id here may name a model absent from `candidates`.
+   */
+  parser_model_id: z.string().min(1),
+  input_tokens: z.number().int().nonnegative(),
+  output_tokens: z.number().int().nonnegative(),
+  cost: Range.nullable().default(null),
+  currency: Currency,
+  rate_record_id: z.string().min(1).nullable().default(null),
+  method: Method,
+  confidence: Confidence,
+});
+export type SystemOverhead = z.infer<typeof SystemOverhead>;
+
 /* ─────────────────────────── breakeven ─────────────────────────── */
 
 export const BreakevenPoint = z.object({
@@ -532,6 +577,12 @@ export const EstimateOutput = z
     needs_human_review: z.boolean(),
     missing_data: z.array(MissingDatum),
     warnings: z.array(EstimateWarning).default([]),
+    /**
+     * §A4.4.1. Empty for an L1 parse, which is free — and that emptiness is the
+     * operating metric, not a missing field. Excluded from per-candidate ranking
+     * by construction: it is not a line and cannot become one.
+     */
+    system_overhead: z.array(SystemOverhead).default([]),
   })
   .superRefine((e, ctx) => {
     const err = (message: string, path: (string | number)[]) =>
