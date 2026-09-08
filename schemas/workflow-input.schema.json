@@ -343,13 +343,7 @@
           "default": null,
           "anyOf": [
             {
-              "type": "string",
-              "enum": [
-                "short",
-                "medium",
-                "long",
-                "unbounded"
-              ]
+              "$ref": "#/$defs/OutputBand"
             },
             {
               "type": "null"
@@ -867,6 +861,15 @@
       "required": [
         "modality",
         "duration_source"
+      ]
+    },
+    "OutputBand": {
+      "type": "string",
+      "enum": [
+        "short",
+        "medium",
+        "long",
+        "unbounded"
       ]
     },
     "CostFlags": {
