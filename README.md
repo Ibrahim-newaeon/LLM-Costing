@@ -213,4 +213,24 @@ entirely on `FLAT` geometry, blocks below the legibility floor, and reports
    than counting at full resolution and looking authoritative doing it.
 2. `VisionConstraints.shortest_edge_target_px` has no direction flag. §A5.2.1 warns that several
    providers *upscale* below that target — which is what makes shrinking able to raise a count —
-   but nothing records which ones do. Only downscaling is implemented.
+   but nothing records which ones do. Only downscaling is implemented. **Closed for Anthropic**
+   by `docs/verify-resolution.md` VERIFY #4 (they downscale only); still open for everyone else.
+
+### Conformance against published worked examples
+
+`vision.conformance.test.ts` pins the estimator to numbers **Anthropic published**, not to
+numbers we chose. Verified 2026-09-07 against
+[the vision docs](https://platform.claude.com/docs/en/build-with-claude/vision) and
+[the resize/pad rules](https://platform.claude.com/docs/en/build-with-claude/vision-coordinates);
+neither page shows a publication date.
+
+That check earned its keep immediately. `1000×1000 → 1296` matched, but the A4-at-130-DPI
+example (`1075×1520`) resized to `924×1306` where the documentation says `924×1307`. The binary
+search was comparing patch rows against an *unrounded* short edge; images have integer
+dimensions, and `⌈924.36/28⌉ = 34` against `⌈924/28⌉ = 33` was enough to reject a size the
+provider accepts. Same token count on that example, but the resized dimensions are what
+coordinates normalize by. Fixed, and VERIFY #4 records it.
+
+It also settled the conflict `docs/external-brief-review.md` §5 flagged: the patch grid is
+right, `28² = 784` rather than 750, and 1568 is **two** limits in two units — max long edge
+1568 px *and* max visual tokens 1568 on the standard tier.

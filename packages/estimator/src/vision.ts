@@ -330,12 +330,20 @@ export function countVisionTokens(profile: VisionProfile, req: VisionRequest): V
         const cap = need(ev, g.bound.token_cap, 'bound.token_cap');
         if (cap === null) return finish(ev, null, w, h, scaled, rung, notes);
 
-        const patchesAt = (long: number, ratio: number) =>
-          Math.ceil(long / patch) * Math.ceil(long / ratio / patch);
-
         const long = Math.max(w, h);
         const short = Math.min(w, h);
         const ratio = long / short;
+
+        // Images have INTEGER dimensions, so the short edge is rounded to a whole
+        // pixel before the patch grid is taken — matching the provider's own
+        // reference implementation. Dividing the unrounded value instead pushes a
+        // boundary case into the next patch row and rejects a size the provider
+        // accepts: on Anthropic's published 1075x1520 example it returned
+        // 924x1306 where the documentation says 924x1307. Same token count there,
+        // but the resized dimensions are what coordinates must be normalized by,
+        // and on other aspect ratios the count itself moves.
+        const shortAt = (l: number) => Math.max(1, Math.round(l / ratio));
+        const patchesAt = (l: number) => Math.ceil(l / patch) * Math.ceil(shortAt(l) / patch);
         const direct = Math.ceil(w / patch) * Math.ceil(h / patch);
         if (direct <= cap) {
           return finish(ev, direct, w, h, scaled, rung, [
@@ -351,14 +359,14 @@ export function countVisionTokens(profile: VisionProfile, req: VisionRequest): V
         let hi = long;
         while (lo < hi) {
           const mid = Math.ceil((lo + hi + 1) / 2);
-          if (patchesAt(mid, ratio) <= cap) lo = mid;
+          if (patchesAt(mid) <= cap) lo = mid;
           else hi = mid - 1;
         }
         const newLong = lo;
-        const newShort = Math.max(1, Math.round(newLong / ratio));
+        const newShort = shortAt(newLong);
         const outW = w >= h ? newLong : newShort;
         const outH = w >= h ? newShort : newLong;
-        return finish(ev, patchesAt(newLong, ratio), outW, outH, true, 'PROVIDER_NORMALIZED', [
+        return finish(ev, patchesAt(newLong), outW, outH, true, 'PROVIDER_NORMALIZED', [
           ...notes,
           `Cost saturates at the ${cap}-token cap; the provider scales to ${outW}x${outH}. ` +
             'An oversized image here is cheap and lossy, not expensive.',
