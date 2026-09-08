@@ -216,6 +216,18 @@ export const TextRateProfile = z.object({
   /**
    * §A5.10 — audio is frequently a SEPARATE input rate, often a multiple of text.
    * One input_rate per model is not enough; key by modality.
+   *
+   * ⚠️ ALL FOUR KEYS ARE REQUIRED. `z.record` over an enum key is exhaustive, so a
+   * text-and-image model must write `audio: null, video: null` rather than omit
+   * them. That is deliberate and worth the noise: an omitted key is
+   * indistinguishable from a modality nobody thought about, and this record is
+   * where a missing audio rate would otherwise read as "no audio charge" instead of
+   * "we never looked". Documented here because it was undocumented until the first
+   * real registry row failed to parse against it (2026-09-08).
+   *
+   * The four are a deliberate subset of `Modality`, which also has `code` (priced as
+   * text everywhere seen so far) and `embedding` (a different endpoint with its own
+   * rate shape, not an input modality of a chat model).
    */
   input_rate_by_modality: z.record(
     z.enum(['text', 'image', 'audio', 'video']),

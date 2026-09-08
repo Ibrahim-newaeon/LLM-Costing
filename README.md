@@ -200,6 +200,47 @@ should be deleted.
    web-search call fee is not obviously how any provider bills it. Needs one vendor page to
    confirm or split the term out of the parenthesis.
 
+## The first real number
+
+`/registry/registry.json` holds one model: **Claude Opus 5**, every figure fetched from
+`platform.claude.com` on 2026-09-08 with a `source_url` and a `verified_at`. It is the first
+`Registry` document this repo has ever had, and the first time the contracts and the estimator have
+met data rather than a fixture.
+
+`packages/estimator/src/end-to-end.test.ts` drives it through the whole chain —
+`Registry.parse` → `countVisionTokens` → `buildLine` → `assembleCandidate` — and lands on a dollar
+figure. A 1000×1000 image is **1296 visual tokens**, and at $5/1M that is **$6.48 per thousand
+images**: the same figure Anthropic's own worked example states, computed here from the geometry
+rather than copied from the page.
+
+**It pins the refusal just as hard.** A text task against the same fully-priced row returns nothing:
+`tokenizer_multiplier` and `framing_tokens_per_message` are recorded as `UNAVAILABLE` because nobody
+has measured them, §A4.5.4 forbids borrowing the English bootstrap ratio, and the model is a
+reasoning model with no reasoning prior. One refused line drags the whole candidate to `NONE`
+confidence even while the vision line beside it is HIGH and costed. A repo that only tests the first
+outcome is one that will eventually ship the second as a zero.
+
+**What the slice found, in its first ten minutes:**
+
+- **A contract defect.** `input_rate_by_modality` is a `z.record` over an enum key, which in Zod 4
+  is exhaustive — a text-and-image model must write `audio: null, video: null` rather than omit
+  them. The behaviour is right (an omitted key is indistinguishable from a modality nobody
+  considered) but it was undocumented, and nothing had ever parsed a real row to discover it. Now
+  documented in `pricing.ts`.
+- **A published fact that validates §A5.10's first shape correction.** "Claude 4.6 and later models
+  include the full 1M token context window at standard pricing. (A 900k-token request is billed at
+  the same per-token rate as a 9k-token request.)" `context_tiers` is `null` — not a single-entry
+  array and not an assumed surcharge.
+- **A published residency uplift, and a reason not to use it.** The 1.1× `inference_geo` multiplier
+  is real and applies "on all token pricing categories, including input tokens, output tokens, cache
+  writes, and cache reads" — vendor confirmation of exactly the term `request.ts` refuses to let a
+  line escape. But it is scoped to "Claude 4.6 and later models", a set the docs never enumerate, so
+  `residency_uplift_pct` is `UNAVAILABLE` and the US-only route refuses rather than being quoted at
+  the default price or a guessed one. **VERIFY #5.**
+- **Derived cache rates.** The page publishes *multipliers* of base input (1.25× five-minute write,
+  2× one-hour write, 0.1× reads), not absolute rates, so the cache rates carry `method: DERIVED` and
+  name the arithmetic in their provenance.
+
 ## Build order
 
 **Contracts** ✅ (Zod canonical, JSON Schema generated with a CI drift gate)
