@@ -22,6 +22,7 @@ import { Provenance } from '../src/provenance';
 import { Assumption } from '../src/assumption';
 import { WorkflowInput } from '../src/workflow';
 import { EstimateOutput } from '../src/estimate';
+import { TextCalibration } from '../src/calibration';
 
 const OUT_DIR = join(__dirname, '..', '..', '..', 'schemas');
 
@@ -35,6 +36,7 @@ const TARGETS: Array<{ file: string; schema: z.ZodType; name: string }> = [
   // output: the gate guards a document the app actually reads.
   { file: 'workflow-input.schema.json', schema: WorkflowInput, name: 'WorkflowInput' },
   { file: 'estimate-output.schema.json', schema: EstimateOutput, name: 'EstimateOutput' },
+  { file: 'text-calibration.schema.json', schema: TextCalibration, name: 'TextCalibration' },
 ];
 
 const BANNER =
@@ -92,22 +94,57 @@ function inlineAnonymousDefs(json: Record<string, unknown>): void {
 
   const bodies = new Map<string, unknown>();
   for (const k of anonNames) {
-    const body = defs[k];
-    if (JSON.stringify(body).includes('#/$defs/__schema')) {
-      throw new Error(
-        `Anonymous def ${k} references another anonymous def. Inlining is no longer a single ` +
-          `pass — this needs a fixpoint with a cycle check before it can be trusted.`,
-      );
-    }
-    bodies.set(k, body);
+    bodies.set(k, defs[k]);
     delete defs[k];
   }
 
-  const walk = (node: unknown): unknown => {
-    if (Array.isArray(node)) return node.map(walk);
-    if (node === null || typeof node !== 'object') return node;
+  // An anonymous def may reference another — an inline object whose fields are
+  // themselves inline shapes. Resolve the bodies against each other to a fixpoint
+  // first, so the main walk below is a single pass over already-flat bodies.
+  //
+  // Bounded, and it throws on a genuine cycle rather than looping or emitting
+  // something half-substituted. A schema that cannot be flattened is a schema this
+  // function does not understand, and guessing is how the empty-schema bug shipped.
+  const MAX_PASSES = 32;
+  for (let pass = 0; ; pass++) {
+    if (pass >= MAX_PASSES) {
+      throw new Error(
+        'Anonymous defs did not reach a fixpoint after ' +
+          `${MAX_PASSES} passes — they reference each other cyclically. Name the recursive shape ` +
+          'by exporting it, so it becomes a real $def instead of an anonymous one.',
+      );
+    }
+    let changed = false;
+    for (const [name, body] of bodies) {
+      const serialized = JSON.stringify(body);
+      if (!serialized.includes('#/$defs/__schema')) continue;
+      if (serialized.includes(`#/$defs/${name}"`)) {
+        throw new Error(`Anonymous def ${name} references itself; it needs a name, not inlining.`);
+      }
+      bodies.set(name, substituteAnonRefs(body, bodies));
+      changed = true;
+    }
+    if (!changed) break;
+  }
 
-    const obj = node as Record<string, unknown>;
+  const walk = (node: unknown): unknown => substituteAnonRefs(node, bodies);
+
+  // The root and the surviving named defs both need rewriting.
+  for (const [k, v] of Object.entries(json)) {
+    if (k !== '$defs') json[k] = walk(v);
+  }
+  for (const [k, v] of Object.entries(defs)) defs[k] = walk(v);
+
+  if (Object.keys(defs).length === 0) delete json.$defs;
+}
+
+/** Replace every `$ref` to a body in `bodies` with an independent copy of it. */
+function substituteAnonRefs(node: unknown, bodies: Map<string, unknown>): unknown {
+  const walk = (n: unknown): unknown => {
+    if (Array.isArray(n)) return n.map(walk);
+    if (n === null || typeof n !== 'object') return n;
+
+    const obj = n as Record<string, unknown>;
     const ref = obj.$ref;
     if (typeof ref === 'string') {
       const target = /^#\/\$defs\/(.+)$/.exec(ref)?.[1];
@@ -125,13 +162,7 @@ function inlineAnonymousDefs(json: Record<string, unknown>): void {
     return out;
   };
 
-  // The root and the surviving named defs both need rewriting.
-  for (const [k, v] of Object.entries(json)) {
-    if (k !== '$defs') json[k] = walk(v);
-  }
-  for (const [k, v] of Object.entries(defs)) defs[k] = walk(v);
-
-  if (Object.keys(defs).length === 0) delete json.$defs;
+  return walk(node);
 }
 
 /**

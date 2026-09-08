@@ -206,6 +206,45 @@ Three behaviours worth knowing, each pinned by a test:
 entirely on `FLAT` geometry, blocks below the legibility floor, and reports
 `RESIZE_SAVES_NOTHING` when a shrink raises the count.
 
+### Text, caching, context tiers, assembly
+
+**`text.ts` — §A5.1 and §A5.5.** `input = tokenize(prompt) + framing_overhead + tool_schema`.
+All three, because the second is per-model and per-turn and the third routinely dominates a short
+agentic prompt. Tool schemas are priced from the **`structured_json` bucket**, not the prose one —
+a ratio measured on prose says nothing about brace-heavy machine text.
+
+The sharp edge is §A4.5.4. A bootstrap chars-per-token ratio exists for English prose and **for
+nothing else**, so `countTextTokens` returns UNAVAILABLE with a `missing_data` entry naming the
+bucket rather than borrowing the Latin ratio. A 70/30 Latin-Arabic document resolves to `mixed`,
+which is equally uncalibrated — it is not 70% priceable. Character counts are honest; wrong token
+counts are not.
+
+`conversationInputTokens` implements the growth §A5.5 warns is quadratic:
+`N(s+a) + (a+b)·N(N-1)/2` for `FULL_HISTORY`. `SLIDING_WINDOW` requires its window size and
+`SUMMARIZED_ROLLUP` requires a stated summary size — that one is an assumption nobody knows before
+the run, and defaulting it would flatter the single biggest lever in a chatbot workflow.
+
+**`context.ts` — §A5.7.** A step function, with the part that actually matters:
+`applies_to_whole_request`. Crossing a threshold can reprice *every* token, not just the overflow.
+On the tiers in the tests that is the difference between a saving of 600,000 and 15,000 — **40×** —
+so reporting the marginal figure makes the recommendation useless. A request that fits no tier is
+a refusal, not a top-tier price.
+
+**`cache.ts` — §A5.6 plus §A5.10's storage term.** `cache_hit_ratio` is a required input *with a
+stated basis*; an unexplained ratio is indistinguishable from a flattering default. Caching can
+lose money, and the estimator distinguishes *why*: at a low hit ratio the culprit is the write
+premium, while a long-lived cache on low traffic loses to the hourly storage charge. The pre-v2.0
+cache model could express neither, having no storage term at all.
+
+**`candidate.ts` — §A5.8.** Assembly. The canonical formula is written with a cache *credit*;
+this produces the algebraically identical decomposition — uncached at the input rate, cached at
+the read rate — because `EstimateLine.cost` is a nonnegative `Range` and a credit line is
+literally unrepresentable. A test pins the two forms equal. Confidence is **computed** from the
+lines, never accepted, so a caller cannot assert more than the weakest line supports.
+
+`contextOverflow` is the only consumer of the padded quantities, deliberately a separate function
+from anything that prices, so the padded number has no path into a total.
+
 **Two gaps in the contracts surfaced by building this**, both recorded rather than guessed:
 
 1. `LowDetailBehaviour.INHERIT` means "the main geometry at reduced resolution", but the

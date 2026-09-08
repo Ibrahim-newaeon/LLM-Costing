@@ -508,3 +508,11 @@ export const EstimateOutput = z
     });
   });
 export type EstimateOutput = z.infer<typeof EstimateOutput>;
+
+/* ─────────────────────── inferred types ───────────────────────
+ * Companions for the schemas above that were defined without one. Every schema in
+ * this package should export both: a consumer that can only import the value has to
+ * write `z.infer<typeof X>` at its own use sites, which is the same shape spelled
+ * out in two places and one edit away from disagreeing.
+ */
+export type BreakevenPoint = z.infer<typeof BreakevenPoint>;
