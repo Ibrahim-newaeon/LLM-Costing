@@ -198,8 +198,8 @@ should be deleted.
 ## Build order
 
 **Contracts** ✅ (Zod canonical, JSON Schema generated with a CI drift gate)
-→ **estimator** ◐ (pure functions, fully unit-tested — vision, text, cache, tiers, assembly,
-   self-hosting done)
+→ **estimator** ◐ (pure functions, fully unit-tested — vision, text, output, cache, tiers,
+   assembly, self-hosting done)
 → tokenizers (§A4.5 tiers) + Layer 0 parser (§A4.4)
 → pricing ingestion → registry → router → UI → e2e.
 
@@ -269,6 +269,31 @@ lines, never accepted, so a caller cannot assert more than the weakest line supp
 
 `contextOverflow` is the only consumer of the padded quantities, deliberately a separate function
 from anything that prices, so the padded number has no path into a total.
+
+### Output and reasoning — §A5.4
+
+The non-deterministic half, and the reason rule 3 exists rather than being decorative. Keyed on
+the `expected_output_band` the analyzer picked, because §A4.4 forbids the analyzer emitting a
+number itself.
+
+**Reasoning tokens are invisible but billed.** On a reasoning model they are frequently the larger
+half — in the tests, 4000 against 900 of visible output. They appear only in
+`usage.completion_tokens_details`, so a reasoning model whose prior leaves the term null
+**blocks**: treating an unmeasured invisible quantity as zero is the most expensive silent error
+available here.
+
+**`max_tokens` is a clamp, not a forecast.** Clamping p90 to the cap makes the estimate look
+tighter while the real risk moves elsewhere — the output gets truncated. So the clamp lowers what
+is billed and `MAX_TOKENS_BELOW_P90` says why, rather than the risk disappearing into a smaller
+number.
+
+`max_tokens_includes_reasoning` is a required input with **no default**, because providers differ
+and the answer changes the result materially: on the same 4200-token cap and the same prior,
+visible output is 900 tokens if reasoning is billed separately and **200** if reasoning eats the
+budget first. Guessing that would be guessing a provider fact.
+
+An `unbounded` band with no cap is refused outright — nothing bounds the cost, so the p90 would be
+unfalsifiable.
 
 ### Self-hosting — `selfhosted.ts`, §A5.9 and §A5.9.1
 

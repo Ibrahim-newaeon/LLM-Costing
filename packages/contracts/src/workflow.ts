@@ -364,6 +364,17 @@ export type CostFlags = z.infer<typeof CostFlags>;
 
 /* ─────────────────────────── task ─────────────────────────── */
 
+/**
+ * How much output this task is expected to produce. Exported because it is the key
+ * a calibrated output prior is looked up by (§A5.4) — the analyzer picks a band, and
+ * the estimator turns that band into a distribution measured from observed runs.
+ *
+ * It is a BAND, not a number. §A4.4 STEP 4 is explicit that the analyzer never emits
+ * a numeric token estimate itself.
+ */
+export const OutputBand = z.enum(['short', 'medium', 'long', 'unbounded']);
+export type OutputBand = z.infer<typeof OutputBand>;
+
 export const Task = z
   .object({
     task_id: z.string().min(1),
@@ -395,10 +406,7 @@ export const Task = z
     image_metrics: ImageMetrics.nullable().default(null),
     media_metrics: MediaMetrics.nullable().default(null),
     /** Selects a calibrated prior downstream. NOT itself a token estimate. */
-    expected_output_band: z
-      .enum(['short', 'medium', 'long', 'unbounded'])
-      .nullable()
-      .default(null),
+    expected_output_band: OutputBand.nullable().default(null),
     max_tokens: z.number().int().positive().nullable().default(null),
     flags: CostFlags,
   })
