@@ -22,6 +22,7 @@ import { Provenance } from '../src/provenance';
 import { Assumption } from '../src/assumption';
 import { WorkflowInput } from '../src/workflow';
 import { InstanceProfile } from '../src/instance';
+import { RequestOptions } from '../src/request';
 import { EstimateOutput } from '../src/estimate';
 import { TextCalibration, OutputPrior } from '../src/calibration';
 
@@ -43,6 +44,8 @@ const TARGETS: Array<{ file: string; schema: z.ZodType; name: string }> = [
   // carried and nothing replaced. Ingestion writes these rows, so the drift gate
   // has to guard the document it validates them against.
   { file: 'instance-profile.schema.json', schema: InstanceProfile, name: 'InstanceProfile' },
+  // §A5.10 — the request-level choices that are not properties of any model row.
+  { file: 'request-options.schema.json', schema: RequestOptions, name: 'RequestOptions' },
 ];
 
 const BANNER =

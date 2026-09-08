@@ -194,12 +194,17 @@ should be deleted.
    formula is implemented exactly as specified and `Throughput.ttft_seconds` carries the warning;
    what is missing is a sentence in SPEC §A5.9 saying which of the two the field is, and an
    ingestion rule that enforces it.
+10. **Does the service-tier multiplier really scale server-tool fees?** §A5.10's formula puts
+   `Σ server_tool_calls × per_call_fee` **inside** the parenthesis that the tier multiplier and the
+   residency uplift both apply to, so `request.ts` implements it that way. A batch discount on a
+   web-search call fee is not obviously how any provider bills it. Needs one vendor page to
+   confirm or split the term out of the parenthesis.
 
 ## Build order
 
 **Contracts** ✅ (Zod canonical, JSON Schema generated with a CI drift gate)
 → **estimator** ◐ (pure functions, fully unit-tested — vision, text, output, cache, tiers,
-   assembly, self-hosting done)
+   assembly, self-hosting, request-level multipliers done; §A5.3 audio/video is the last gap)
 → tokenizers (§A4.5 tiers) + Layer 0 parser (§A4.4)
 → pricing ingestion → registry → router → UI → e2e.
 
@@ -294,6 +299,43 @@ budget first. Guessing that would be guessing a provider fact.
 
 An `unbounded` band with no cap is refused outright — nothing bounds the cost, so the p90 would be
 unfalsifiable.
+
+### Request-level multipliers and non-token fees — `request.ts`, §A5.10
+
+§A5.8's identity covers what is metered per token. This is the rest of the invoice, and every term
+in it goes missing for the same structural reason: it is a property of the **request**, and a
+row-level registry has nowhere to put it. The same model under two service tiers is two different
+answers from one registry entry.
+
+**The two multiplicative layers are applied per line, not to the total.** Algebraically identical,
+but `Candidate.total_cost` is required to equal the sum of its lines, so scaling the total alone
+breaks the contract and scaling *some* lines silently exempts whichever the author forgot. §A5.10
+is explicit that the residency uplift covers "all categories, cache reads and writes included" —
+the terms least likely to be checked, because nobody looks for a regional surcharge on a cache
+write. A mutation test that exempts `cache_*` from the uplift turns that assertion red.
+
+Quantities are never scaled. A batch tier changes what tokens cost, not how many you send;
+scaling the quantity would corrupt the token totals and the context-window check along with the
+price. Refusal lines pass through unscaled — multiplying nothing produces a zero that reads as free.
+
+**Nothing here defaults to neutral.** Each term has a plausible-looking wrong value and the module
+refuses it instead:
+
+| Term | The tempting default | What happens |
+|---|---|---|
+| Service tier multiplier | 1× for an unpublished tier | Refuses. §A5.10 records one provider's premium tier at **1.8×** where two others use 2× — another vendor's figure does not transfer, and neither does 1. |
+| Residency uplift | 0% when unsourced | Refuses. The router recommends the regional endpoint *because* it is compliant, then quotes it at the non-compliant price. A region the model does not publish refuses outright rather than pricing a route that does not exist. |
+| Tool-use system prompt | 0 tokens when unpublished | Refuses. This is what the provider injects for *enabling* tools, **additional to** the schema JSON §A5.1 already counts. Two meters, two components — folded into one line, nobody can later check they did not overlap. |
+| Server-tool per-call fees | absent from token arithmetic | Priced on their own `server_tool_call` line. A tool the workflow calls and the registry does not price is reported as a hole, not a free call. |
+| Free monthly allowance | assume it is intact | **Billed in full, visibly.** Applying it needs month-to-date usage the estimator is not given; the three options are understate silently, refuse a fee that *is* known, or overstate by at most the allowance and say so. The third, with a warning naming the allowance. |
+| Re-rolls | 1 candidate per image | Flagged. §A5.10: "almost never actually 1", and every candidate bills — so the figure is the *floor* of a generation cost, and the default costs the estimate confidence rather than passing silently. |
+
+Confidence propagates through the multipliers like any other input (§A3.7): a HIGH token count at a
+MEDIUM-confidence tier multiplier is a MEDIUM figure. A multiplier of exactly 1× still floors it —
+an unsure claim that nothing was added is still an unsure claim.
+
+`resolveRequestLayer` resolves all four layers in one pass and refuses as a unit, because a
+partially-applied multiplier looks exactly like a complete answer.
 
 ### Self-hosting — `selfhosted.ts`, §A5.9 and §A5.9.1
 

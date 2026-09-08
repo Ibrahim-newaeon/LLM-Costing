@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/RequestOptions",
+  "$defs": {
+    "RequestOptions": {
+      "type": "object",
+      "properties": {
+        "service_tier": {
+          "default": "standard",
+          "$ref": "#/$defs/ServiceTier"
+        },
+        "region": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tool_choice_mode": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "server_tools": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ServerToolUse"
+          }
+        }
+      }
+    },
+    "ServiceTier": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "batch",
+        "flex",
+        "priority",
+        "fast",
+        "provisioned"
+      ]
+    },
+    "ServerToolUse": {
+      "type": "object",
+      "properties": {
+        "tool": {
+          "type": "string",
+          "minLength": 1
+        },
+        "calls_per_execution": {
+          "type": "number",
+          "minimum": 0
+        },
+        "calls_used_this_month": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "tool",
+        "calls_per_execution"
+      ]
+    }
+  },
+  "title": "RequestOptions",
+  "$comment": "GENERATED from /packages/contracts/src — do not hand-edit. Run `pnpm generate:schemas`. CI fails if this file differs from the regenerated output (§A2)."
+}
