@@ -252,3 +252,16 @@ export function rankingEligibility(m: ModelRow): {
     ceiling: confidences.length ? minConfidence(...confidences) : 'NONE',
   };
 }
+
+/* ─────────────────────── inferred types ───────────────────────
+ * Companions for the schemas above that were defined without one. Every schema in
+ * this package should export both: a consumer that can only import the value has to
+ * write `z.infer<typeof X>` at its own use sites, which is the same shape spelled
+ * out in two places and one edit away from disagreeing.
+ */
+export type ComplianceProfile = z.infer<typeof ComplianceProfile>;
+export type HardwareProfile = z.infer<typeof HardwareProfile>;
+export type Modality = z.infer<typeof Modality>;
+export type Tier = z.infer<typeof Tier>;
+export type TokenizerAvailability = z.infer<typeof TokenizerAvailability>;
+export type TokenizerProfile = z.infer<typeof TokenizerProfile>;

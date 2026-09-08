@@ -467,15 +467,7 @@
         },
         "content_type": {
           "default": "unknown",
-          "type": "string",
-          "enum": [
-            "prose",
-            "code",
-            "structured_json",
-            "tabular",
-            "mixed",
-            "unknown"
-          ]
+          "$ref": "#/$defs/ContentType"
         },
         "tool_schemas_present": {
           "default": false,
@@ -559,6 +551,17 @@
         "han",
         "cyrillic",
         "other"
+      ]
+    },
+    "ContentType": {
+      "type": "string",
+      "enum": [
+        "prose",
+        "code",
+        "structured_json",
+        "tabular",
+        "mixed",
+        "unknown"
       ]
     },
     "ImageMetrics": {

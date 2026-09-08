@@ -118,6 +118,21 @@ export type ParseMeta = z.infer<typeof ParseMeta>;
 
 /* ─────────────────────────── text metrics ─────────────────────────── */
 
+/**
+ * What KIND of text this is. Exported because it is half of a calibration bucket
+ * key (§A4.5.4) — code, JSON and tabular tokenize very differently from prose, and
+ * a ratio measured on one says nothing about the others.
+ */
+export const ContentType = z.enum([
+  'prose',
+  'code',
+  'structured_json',
+  'tabular',
+  'mixed',
+  'unknown',
+]);
+export type ContentType = z.infer<typeof ContentType>;
+
 export const TextMetrics = z
   .object({
     character_count: z.number().int().nonnegative().nullable().default(null),
@@ -153,9 +168,7 @@ export const TextMetrics = z
      * across that gap.
      */
     pdf_has_text_layer: z.boolean().nullable().default(null),
-    content_type: z
-      .enum(['prose', 'code', 'structured_json', 'tabular', 'mixed', 'unknown'])
-      .default('unknown'),
+    content_type: ContentType.default('unknown'),
     tool_schemas_present: z.boolean().default(false),
     tool_schema_character_count: z.number().int().nonnegative().nullable().default(null),
     conversation_turns: z.number().int().positive().nullable().default(null),
@@ -470,3 +483,11 @@ export const WorkflowInput = z
     });
   });
 export type WorkflowInput = z.infer<typeof WorkflowInput>;
+
+/* ─────────────────────── inferred types ───────────────────────
+ * Companions for the schemas above that were defined without one. Every schema in
+ * this package should export both: a consumer that can only import the value has to
+ * write `z.infer<typeof X>` at its own use sites, which is the same shape spelled
+ * out in two places and one edit away from disagreeing.
+ */
+export type PayloadLanguage = z.infer<typeof PayloadLanguage>;

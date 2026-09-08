@@ -8,3 +8,7 @@
 
 export * from './range';
 export * from './vision';
+export * from './text';
+export * from './context';
+export * from './cache';
+export * from './candidate';

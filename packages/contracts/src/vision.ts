@@ -265,3 +265,12 @@ export function probeFitIsSeedable(fit: {
   }
   return { seedable: true, reason: 'Exact unique fit with a passing control. Requires human review before seeding.' };
 }
+
+/* ─────────────────────── inferred types ───────────────────────
+ * Companions for the schemas above that were defined without one. Every schema in
+ * this package should export both: a consumer that can only import the value has to
+ * write `z.infer<typeof X>` at its own use sites, which is the same shape spelled
+ * out in two places and one edit away from disagreeing.
+ */
+export type ContentDensity = z.infer<typeof ContentDensity>;
+export type LegibilityFloor = z.infer<typeof LegibilityFloor>;

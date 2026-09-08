@@ -317,3 +317,16 @@ export const VideoInputProfile = z.object({
   has_deterministic_formula: z.boolean().default(false),
   adaptive_mode_available: z.boolean().default(false),
 });
+
+/* ─────────────────────── inferred types ───────────────────────
+ * Companions for the schemas above that were defined without one. Every schema in
+ * this package should export both: a consumer that can only import the value has to
+ * write `z.infer<typeof X>` at its own use sites, which is the same shape spelled
+ * out in two places and one edit away from disagreeing.
+ */
+export type Currency = z.infer<typeof Currency>;
+export type ImagePricingDimension = z.infer<typeof ImagePricingDimension>;
+export type ServerToolFee = z.infer<typeof ServerToolFee>;
+export type ServiceTierProfile = z.infer<typeof ServiceTierProfile>;
+export type VideoGenProfile = z.infer<typeof VideoGenProfile>;
+export type VideoInputProfile = z.infer<typeof VideoInputProfile>;
