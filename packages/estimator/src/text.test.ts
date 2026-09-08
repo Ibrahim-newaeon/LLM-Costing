@@ -176,7 +176,7 @@ describe('§A4.5.5 — padding is directional', () => {
     const r = countTextTokens({
       ...base,
       metrics: metrics(),
-      exact: { tokens: 1234, method: 'EXACT_TOKENIZER', confidence: 'HIGH', tier: 2 },
+      exact: { tokens: 1234, method: 'EXACT_TOKENIZER', confidence: 'HIGH', tier: 2, covers: 'PROMPT_ONLY' },
     });
     if (r.status !== 'COUNTED') throw new Error(r.reason);
     expect(r.components[0]!.context_safety_tokens).toBeNull();
@@ -187,11 +187,95 @@ describe('§A4.5.5 — padding is directional', () => {
     const r = countTextTokens({
       ...base,
       metrics: metrics(),
-      exact: { tokens: 900, method: 'PROVIDER_COUNT_API', confidence: 'HIGH', tier: 1 },
+      exact: { tokens: 900, method: 'PROVIDER_COUNT_API', confidence: 'HIGH', tier: 1, covers: 'WHOLE_REQUEST' },
     });
     if (r.status !== 'COUNTED') throw new Error(r.reason);
     expect(r.components[0]!.tier).toBe(1);
     expect(r.components[0]!.method).toBe('PROVIDER_COUNT_API');
+  });
+});
+
+/* ══════════════ `covers` — the double-count this shape exists to prevent ══════════════ */
+
+describe('an exact count says what it already contains', () => {
+  it('PROMPT_ONLY still owes framing and tool schemas', () => {
+    const r = countTextTokens({
+      ...base,
+      metrics: metrics(),
+      exact: { tokens: 1000, method: 'EXACT_TOKENIZER', confidence: 'HIGH', tier: 2, covers: 'PROMPT_ONLY' },
+    });
+    if (r.status !== 'COUNTED') throw new Error(r.reason);
+    expect(r.components.map((c) => c.component)).toContain('framing_overhead');
+    expect(r.total.p50).toBeGreaterThan(1000);
+  });
+
+  it('WHOLE_REQUEST is the entire answer — nothing is added to it', () => {
+    // Anthropic's count-tokens endpoint is handed the whole request and its count
+    // "includes system prompts, tool definitions, messages". Adding §A5.1.2 framing
+    // or §A5.1.3 tool schemas on top bills the same tokens twice.
+    const r = countTextTokens({
+      ...base,
+      metrics: metrics(),
+      exact: { tokens: 1000, method: 'PROVIDER_COUNT_API', confidence: 'HIGH', tier: 1, covers: 'WHOLE_REQUEST' },
+    });
+    if (r.status !== 'COUNTED') throw new Error(r.reason);
+    expect(r.components).toHaveLength(1);
+    expect(r.total).toEqual({ p50: 1000, p90: 1000, p99: null });
+    expect(r.components[0]!.note).toMatch(/bill the same tokens twice/);
+  });
+
+  it('WHOLE_REQUEST does not block on unmeasured framing — the count already measured it', () => {
+    // Before `covers` existed this was the harder half of the bug: an Anthropic
+    // tier-1 count REFUSED, because framing_tokens_per_message is unpublished, on a
+    // term the provider's own number already contained.
+    const r = countTextTokens({
+      ...base,
+      metrics: metrics(),
+      tokenizer: tokenizer({
+        framing_tokens_per_message: src(null, prov({ method: 'UNAVAILABLE', confidence: 'NONE', source_url: null })),
+        conversation_preamble_tokens: src(null, prov({ method: 'UNAVAILABLE', confidence: 'NONE', source_url: null })),
+      }),
+      exact: { tokens: 1000, method: 'PROVIDER_COUNT_API', confidence: 'HIGH', tier: 1, covers: 'WHOLE_REQUEST' },
+    });
+    expect(r.status).toBe('COUNTED');
+
+    // The same row with a PROMPT_ONLY count still blocks, because then the framing
+    // really is owed and really is unmeasured.
+    const owed = countTextTokens({
+      ...base,
+      metrics: metrics(),
+      tokenizer: tokenizer({
+        framing_tokens_per_message: src(null, prov({ method: 'UNAVAILABLE', confidence: 'NONE', source_url: null })),
+        conversation_preamble_tokens: src(null, prov({ method: 'UNAVAILABLE', confidence: 'NONE', source_url: null })),
+      }),
+      exact: { tokens: 1000, method: 'EXACT_TOKENIZER', confidence: 'HIGH', tier: 2, covers: 'PROMPT_ONLY' },
+    });
+    expect(owed.status).toBe('UNAVAILABLE');
+  });
+
+  it('WHOLE_REQUEST skips tool schemas even when the task has them', () => {
+    const r = countTextTokens({
+      ...base,
+      metrics: metrics({ tool_schemas_present: true, tool_schema_character_count: 4000 }),
+      exact: { tokens: 1000, method: 'PROVIDER_COUNT_API', confidence: 'HIGH', tier: 1, covers: 'WHOLE_REQUEST' },
+    });
+    if (r.status !== 'COUNTED') throw new Error(r.reason);
+    expect(r.components.map((c) => c.component)).not.toContain('tool_schema');
+    expect(r.total.p50).toBe(1000);
+  });
+
+  it('carries a vendor caveat onto the line', () => {
+    const r = countTextTokens({
+      ...base,
+      metrics: metrics(),
+      exact: {
+        tokens: 1000, method: 'PROVIDER_COUNT_API', confidence: 'HIGH', tier: 1,
+        covers: 'WHOLE_REQUEST',
+        note: 'May include system-added tokens that are not billed.',
+      },
+    });
+    if (r.status !== 'COUNTED') throw new Error(r.reason);
+    expect(r.components[0]!.note).toMatch(/not billed/);
   });
 });
 

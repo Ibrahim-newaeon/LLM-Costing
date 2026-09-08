@@ -31,6 +31,8 @@ import {
   isPriceable,
   type ModelRow,
 } from '@tokenomics/contracts';
+import { countWithLadder, CountCache, type CountTokensPort } from '@tokenomics/tokenizers';
+import { countTextTokens } from './text';
 import { countVisionTokens } from './vision';
 import { buildLine, assembleCandidate } from './candidate';
 import { residencyUplift, resolveServiceTier } from './request';
@@ -242,5 +244,165 @@ describe('the request layer, on real published figures', () => {
     const r = residencyUplift(opus.compliance, 'us');
     expect(r.status).toBe('UNAVAILABLE');
     if (r.status === 'UNAVAILABLE') expect(r.reason).toMatch(/unsourced/);
+  });
+});
+
+/* ══════════════ tier 1 — the refusal becomes a number ══════════════ */
+
+describe('§A4.5 tier 1 turns the text refusal into a costed estimate', () => {
+  // A stub transport. Nothing here touches the network and no API key exists in
+  // this repo; the point is the WIRING, not the vendor's uptime.
+  const port = (input_tokens: number): CountTokensPort => async () => ({
+    status: 200,
+    json: { input_tokens },
+    text: JSON.stringify({ input_tokens }),
+  });
+
+  const request = {
+    model_id: 'claude-opus-5',
+    system: 'You are a contracts analyst.',
+    messages: [{ role: 'user', content: 'Summarize the indemnity clause.' }],
+  };
+
+  const textInput = {
+    model_id: opus.model_id,
+    tokenizer: opus.tokenizer,
+    metrics: {
+      character_count: 4_000,
+      script_mix: { latin: 1 },
+      arabic_register: null,
+      diacritic_density: null,
+      content_type: 'prose' as const,
+      tool_schemas_present: false,
+      tool_schema_character_count: null,
+    },
+    calibration: [],
+    message_count: 1,
+    heuristic_safety_pad_pct: 0.15,
+  };
+
+  it('refuses without a count — nothing has calibrated this model', () => {
+    const r = countTextTokens(textInput);
+    expect(r.status).toBe('UNAVAILABLE');
+  });
+
+  it('produces a real dollar figure once tier 1 answers', async () => {
+    const cache = new CountCache();
+    const counted = await countWithLadder(request, {
+      port: port(1_500),
+      apiKey: 'sk-test-stub',
+      cache,
+      now: () => new Date('2026-09-08T04:16:10.000Z'),
+    });
+    if (counted.status !== 'OK') throw new Error(counted.reason);
+
+    const text = countTextTokens({
+      ...textInput,
+      exact: {
+        tokens: counted.tokens,
+        method: counted.method,
+        confidence: counted.confidence,
+        tier: counted.tier as 0 | 1 | 2,
+        covers: counted.covers,
+        note: counted.note,
+      },
+    });
+    if (text.status !== 'COUNTED') throw new Error(text.reason);
+
+    const candidate = assembleCandidate({
+      model_id: opus.model_id,
+      provider_id: opus.provider,
+      deployment_mode: 'API_MANAGED',
+      currency: 'USD',
+      lines: [
+        buildLine({
+          task_id: 'summarize-1',
+          component: 'prompt_input',
+          quantity: text.total,
+          unit: 'tokens',
+          rate_amount: perToken(rates.input_rate_by_modality.text!.amount),
+          rate_record_id: 'claude-opus-5:input:text',
+          method: text.components[0]!.method,
+          confidence: text.confidence,
+          tier: 1,
+          note: text.components[0]!.note,
+        }),
+      ],
+    });
+
+    // 1500 tokens at $5/1M.
+    expect(candidate.total_cost.p50).toBeCloseTo(1_500 * 5e-6, 12);
+    expect(candidate.confidence).toBe('HIGH');
+    expect(candidate.lines[0]!.tier).toBe(1);
+  });
+
+  it('does NOT add framing on top — the provider’s count already contains it', async () => {
+    // The bug this whole change exists to close. The count endpoint is handed the
+    // whole request and its count "includes system prompts, tool definitions,
+    // messages"; adding §A5.1.2 framing would bill the same tokens twice, and this
+    // row cannot even supply a framing figure — it is UNAVAILABLE.
+    const counted = await countWithLadder(request, { port: port(1_500), apiKey: 'sk-test-stub' });
+    if (counted.status !== 'OK') throw new Error(counted.reason);
+
+    const text = countTextTokens({
+      ...textInput,
+      exact: {
+        tokens: counted.tokens, method: counted.method, confidence: counted.confidence,
+        tier: counted.tier as 0 | 1 | 2, covers: counted.covers, note: counted.note,
+      },
+    });
+    if (text.status !== 'COUNTED') throw new Error(text.reason);
+    expect(text.components).toHaveLength(1);
+    expect(text.total.p50).toBe(1_500);
+    expect(text.components.map((c) => c.component)).not.toContain('framing_overhead');
+  });
+
+  it('carries the vendor’s caveat onto the priced line', async () => {
+    const counted = await countWithLadder(request, { port: port(1_500), apiKey: 'sk-test-stub' });
+    if (counted.status !== 'OK') throw new Error(counted.reason);
+    const text = countTextTokens({
+      ...textInput,
+      exact: {
+        tokens: counted.tokens, method: counted.method, confidence: counted.confidence,
+        tier: counted.tier as 0 | 1 | 2, covers: counted.covers, note: counted.note,
+      },
+    });
+    if (text.status !== 'COUNTED') throw new Error(text.reason);
+    // "may include system-added tokens that are not billed" — the count can exceed
+    // the invoice, and the line says so rather than the discrepancy surfacing later.
+    expect(text.components[0]!.note).toMatch(/not billed/);
+  });
+
+  it('costs the vision and the text line together, on one candidate', async () => {
+    const counted = await countWithLadder(request, { port: port(1_500), apiKey: 'sk-test-stub' });
+    if (counted.status !== 'OK') throw new Error(counted.reason);
+    const vision = countVisionTokens(opus.vision!, { width_px: 1000, height_px: 1000, detail_mode: null });
+    if (vision.status !== 'COUNTED') throw new Error(vision.reason);
+
+    const candidate = assembleCandidate({
+      model_id: opus.model_id,
+      provider_id: opus.provider,
+      deployment_mode: 'API_MANAGED',
+      currency: 'USD',
+      lines: [
+        buildLine({
+          task_id: 'ocr-1', component: 'image_tiles', quantity: exactRange(vision.tokens),
+          unit: 'tokens', rate_amount: perToken(rates.input_rate_by_modality.image!.amount),
+          rate_record_id: 'claude-opus-5:input:image',
+          method: vision.method, confidence: vision.confidence,
+        }),
+        buildLine({
+          task_id: 'summarize-1', component: 'prompt_input', quantity: exactRange(counted.tokens),
+          unit: 'tokens', rate_amount: perToken(rates.input_rate_by_modality.text!.amount),
+          rate_record_id: 'claude-opus-5:input:text',
+          method: counted.method, confidence: counted.confidence, tier: 1,
+        }),
+      ],
+    });
+
+    // The whole point: a multi-modal workflow with one number at the end of it.
+    expect(candidate.total_cost.p50).toBeCloseTo((1296 + 1500) * 5e-6, 12);
+    expect(candidate.confidence).toBe('HIGH');
+    expect(candidate.total_tokens!.input!.p50).toBe(1296 + 1500);
   });
 });
