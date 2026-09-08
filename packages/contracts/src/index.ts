@@ -9,6 +9,7 @@ export * from './assumption';
 export * from './vision';
 export * from './pricing';
 export * from './instance';
+export * from './request';
 export * from './registry';
 export * from './workflow';
 export * from './calibration';

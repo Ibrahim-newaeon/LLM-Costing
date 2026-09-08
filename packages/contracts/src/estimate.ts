@@ -20,6 +20,7 @@ import { Confidence, Method, minConfidence } from './provenance';
 import { Assumption, MissingDatum } from './assumption';
 import { Currency, DeploymentMode } from './pricing';
 import { RateBasis } from './instance';
+import { RequestMultipliers } from './request';
 import { Tier, ProxyBasis } from './registry';
 
 /* ─────────────────────────── ranges ─────────────────────────── */
@@ -83,7 +84,14 @@ export const CostComponent = z.enum([
   'prompt_input', 'framing_overhead', 'tool_schema', 'conversation_history',
   'image_tiles', 'audio_duration', 'video_frames',
   'completion_output', 'reasoning_output',
-  'cache_read', 'cache_write', 'per_request_fee',
+  'cache_read', 'cache_write', 'cache_storage', 'per_request_fee',
+  // §A5.10. `tool_schema` counts the schemas YOU send (§A5.1); this is what the
+  // provider injects on top for merely enabling tools. Two meters, both real, and
+  // one provider reports its own as a separate usage field — folding them into one
+  // line makes it impossible to see that they did not overlap.
+  'tool_use_system_prompt',
+  // Not token-priced at all: per thousand calls, per GB-day, or per session.
+  'server_tool_call',
   'gpu_seconds', 'idle_gpu', 'storage', 'egress', 'ops_labour',
 ]);
 export type CostComponent = z.infer<typeof CostComponent>;
@@ -302,6 +310,12 @@ export const Candidate = z
     /** Dated FX record id. Required whenever display_currency differs from currency. */
     fx_rate_ref: z.string().min(1).nullable().default(null),
     self_hosted_detail: SelfHostedDetail.nullable().default(null),
+    /**
+     * §A5.10 — what was multiplied onto every line, and why. Null means neither
+     * layer applied (standard tier, no regional endpoint), which is a different
+     * claim from "we did not look".
+     */
+    request_multipliers: RequestMultipliers.nullable().default(null),
     confidence: Confidence,
   })
   .superRefine((c, ctx) => {
@@ -467,6 +481,11 @@ export const WarningCode = z.enum([
   'SPOT_RATE_INTERRUPTION_UNMODELLED',
   'UTILIZATION_STATED_VS_DERIVED',
   'VISUAL_TOKENS_DOMINATE_CONTEXT',
+  // §A5.10 request-level multipliers and non-token fees.
+  'SERVER_TOOL_ALLOWANCE_NOT_APPLIED',
+  'SERVICE_TIER_UNAVAILABLE',
+  'RESIDENCY_UPLIFT_APPLIED',
+  'REROLL_COUNT_DEFAULTED',
 ]);
 export type WarningCode = z.infer<typeof WarningCode>;
 

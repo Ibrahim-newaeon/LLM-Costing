@@ -275,6 +275,17 @@
             }
           ]
         },
+        "request_multipliers": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RequestMultipliers"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "confidence": {
           "$ref": "#/$defs/Confidence"
         }
@@ -447,7 +458,10 @@
         "reasoning_output",
         "cache_read",
         "cache_write",
+        "cache_storage",
         "per_request_fee",
+        "tool_use_system_prompt",
+        "server_tool_call",
         "gpu_seconds",
         "idle_gpu",
         "storage",
@@ -728,6 +742,59 @@
       "enum": [
         "ON_DEMAND",
         "SPOT"
+      ]
+    },
+    "RequestMultipliers": {
+      "type": "object",
+      "properties": {
+        "service_tier": {
+          "$ref": "#/$defs/ServiceTier"
+        },
+        "service_tier_multiplier": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "region": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "residency_uplift_pct": {
+          "type": "number",
+          "minimum": 0
+        },
+        "combined_factor": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence"
+        }
+      },
+      "required": [
+        "service_tier",
+        "service_tier_multiplier",
+        "residency_uplift_pct",
+        "combined_factor",
+        "confidence"
+      ]
+    },
+    "ServiceTier": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "batch",
+        "flex",
+        "priority",
+        "fast",
+        "provisioned"
       ]
     },
     "Recommendations": {
@@ -1331,7 +1398,11 @@
         "AUDIO_TRACK_FOLDED_INTO_VIDEO_TOKENS",
         "SPOT_RATE_INTERRUPTION_UNMODELLED",
         "UTILIZATION_STATED_VS_DERIVED",
-        "VISUAL_TOKENS_DOMINATE_CONTEXT"
+        "VISUAL_TOKENS_DOMINATE_CONTEXT",
+        "SERVER_TOOL_ALLOWANCE_NOT_APPLIED",
+        "SERVICE_TIER_UNAVAILABLE",
+        "RESIDENCY_UPLIFT_APPLIED",
+        "REROLL_COUNT_DEFAULTED"
       ]
     }
   },
