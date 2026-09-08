@@ -35,6 +35,7 @@ import { countWithLadder, CountCache, type CountTokensPort } from '@tokenomics/t
 import { countTextTokens } from './text';
 import { countVisionTokens } from './vision';
 import { selectContextTier, contextTierCrossingSaving } from './context';
+import { route, capabilityGate } from '@tokenomics/router';
 import { buildLine, assembleCandidate } from './candidate';
 import { residencyUplift, resolveServiceTier } from './request';
 import { exactRange } from './range';
@@ -527,5 +528,94 @@ describe('the second provider also brings honest gaps', () => {
     // not among them. Carrying a Flash rate across is another model's answer.
     expect(gRates.cache).toBeNull();
     expect(rates.cache).not.toBeNull();
+  });
+});
+
+/* ══════════════ §A7 — the router, against the two real rows ══════════════ */
+
+describe('the router on the real registry', () => {
+  const baseFlags = {
+    requires_reasoning: false, requires_vision: false, requires_tool_calling: false,
+    requires_long_context: false, requires_structured_output: false,
+    is_conversational: false, has_stable_prefix: false, latency_sensitive: false,
+    data_residency_constraint: null,
+  };
+  const task = (task_id: string, over: Record<string, unknown> = {}) =>
+    ({
+      task_id, sequence_index: 0, label: null, type: 'READ', sub_kind: null, volume: 1,
+      expands_from: null, execution_probability: 1, text_metrics: null, image_metrics: null,
+      media_metrics: null, expected_output_band: null, max_tokens: null,
+      flags: { ...baseFlags, ...(over.flags as object ?? {}) },
+      ...over,
+    }) as never;
+
+  it('excludes Gemini from a VISION workflow and keeps it for a TEXT one', () => {
+    // The same row, two workflows. Its geometry is UNAVAILABLE (VERIFY #6), which
+    // is a reason to drop it from image work and no reason at all to drop it from
+    // text — the distinction the capability gate exists to make.
+    const models = [opus, gemini];
+    const vision = capabilityGate({ models, tasks: [task('ocr', { flags: { requires_vision: true } })] });
+    const text = capabilityGate({ models, tasks: [task('summarize')] });
+
+    expect(vision.eligible.map((m) => m.model_id)).toEqual(['claude-opus-5']);
+    expect(vision.excluded[0]!.model_id).toBe('gemini-2.5-pro');
+    expect(text.eligible.map((m) => m.model_id)).toEqual(['claude-opus-5', 'gemini-2.5-pro']);
+  });
+
+  it('reports Gemini’s unknown context window as unverified rather than as a fit', () => {
+    // Google's spec tables are JS-rendered, so the window was never fetched. The
+    // gate cannot check it and says so instead of passing it quietly.
+    const r = capabilityGate({
+      models: [opus, gemini],
+      tasks: [task('summarize')],
+      input_tokens_by_task: { summarize: 500_000 },
+    });
+    const unchecked = r.unverified.filter((u) => u.check === 'context_window');
+    expect(unchecked.map((u) => u.model_id)).toContain('gemini-2.5-pro');
+    expect(unchecked.map((u) => u.model_id)).not.toContain('claude-opus-5');
+  });
+
+  it('picks Gemini for a 100k-token read — cheaper below the 200k threshold', () => {
+    const below = selectContextTier(gRates.context_tiers, 100_000);
+    if (below.status !== 'SELECTED') throw new Error('tier');
+
+    const priced = (id: string, provider: string, amount: number) =>
+      assembleCandidate({
+        model_id: id, provider_id: provider, deployment_mode: 'API_MANAGED', currency: 'USD',
+        lines: [buildLine({
+          task_id: 'read', component: 'prompt_input', quantity: exactRange(100_000),
+          unit: 'tokens', rate_amount: perToken(amount), rate_record_id: `${id}:input`,
+          method: 'PROVIDER_FORMULA', confidence: 'HIGH', tier: 1,
+        })],
+      });
+
+    const r = route({
+      models: [opus, gemini],
+      tasks: [task('read')],
+      candidates: [
+        priced('claude-opus-5', 'anthropic', rates.input_rate_by_modality.text!.amount),
+        priced('gemini-2.5-pro', 'google', below.input_rate.amount),
+      ],
+    });
+
+    // $1.25/1M vs $5/1M on 100k tokens: $0.125 against $0.50.
+    expect(r.recommendations.cheapest!.model_id).toBe('gemini-2.5-pro');
+    expect(r.recommendations.cheapest!.total_cost!.p50).toBeCloseTo(0.125, 10);
+    expect(String(r.recommendations.cheapest!.rationale.threshold)).toMatch(/claude-opus-5/);
+  });
+
+  it('cannot answer best_capability on this registry, and says why', () => {
+    // Neither row carries a quality_score — §A6 forbids inventing one. Two of §A7's
+    // three objectives are therefore unanswerable today, and that is the correct
+    // output rather than a gap to fill with price or context size.
+    const r = route({
+      models: [opus, gemini],
+      tasks: [task('read')],
+      candidates: [],
+    });
+    expect(opus.quality_score).toBeNull();
+    expect(gemini.quality_score).toBeNull();
+    expect(r.recommendations.best_capability).toBeNull();
+    expect(r.recommendations.balanced).toBeNull();
   });
 });

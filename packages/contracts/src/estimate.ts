@@ -405,6 +405,17 @@ export const ExclusionReason = z.enum([
   'VRAM_INFEASIBLE',
   'TOKENIZER_UNAVAILABLE',
   'ASSET_EXCEEDS_CONSTRAINTS',
+  /**
+   * The estimate for this candidate did not finish — some line refused, so its
+   * total is a LOWER BOUND rather than a price.
+   *
+   * Distinct from RATE_MISSING, which names a cause. This names a state: the
+   * missing piece may be the rate, the token count, the geometry or the prior,
+   * and the router does not need to know which in order to refuse to rank it.
+   * Without this, `assembleCandidate` sums refusal lines as zero and a candidate
+   * nothing could price ranks FIRST, at $0.00.
+   */
+  'ESTIMATE_INCOMPLETE',
 ]);
 export type ExclusionReason = z.infer<typeof ExclusionReason>;
 

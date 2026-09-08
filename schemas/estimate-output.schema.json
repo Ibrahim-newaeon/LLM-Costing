@@ -1002,7 +1002,8 @@
         "RATE_STALE",
         "VRAM_INFEASIBLE",
         "TOKENIZER_UNAVAILABLE",
-        "ASSET_EXCEEDS_CONSTRAINTS"
+        "ASSET_EXCEEDS_CONSTRAINTS",
+        "ESTIMATE_INCOMPLETE"
       ]
     },
     "Optimization": {
