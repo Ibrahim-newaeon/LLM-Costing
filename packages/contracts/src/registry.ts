@@ -14,6 +14,7 @@ import {
   ImageGenProfile,
   VideoGenProfile,
   VideoInputProfile,
+  AudioInputProfile,
   ServiceTierProfile,
   Currency,
 } from './pricing';
@@ -149,6 +150,7 @@ export const ModelRow = z
     image_gen: ImageGenProfile.nullable().default(null),
     video_gen: VideoGenProfile.nullable().default(null),
     video_in: VideoInputProfile.nullable().default(null),
+    audio_in: AudioInputProfile.nullable().default(null),
     hardware: HardwareProfile.nullable().default(null),
     compliance: ComplianceProfile,
 
@@ -174,6 +176,15 @@ export const ModelRow = z
     }
     if (m.modalities_out.includes('image') && m.image_gen === null) {
       err('Image output requires an image_gen profile — never fall back to per_token (§A7).', ['image_gen']);
+    }
+    // §A5.3 — an audio-accepting model needs its duration parameters. Without them
+    // the only honest count is none, and a row that claims the modality without them
+    // will be ranked as if it could be priced.
+    if (m.modalities_in.includes('audio') && m.audio_in === null) {
+      err('An audio-accepting model requires an audio_in profile (§A5.3).', ['audio_in']);
+    }
+    if (m.modalities_in.includes('video') && m.video_in === null) {
+      err('A video-accepting model requires a video_in profile (§A5.3).', ['video_in']);
     }
     if (m.modalities_out.includes('video') && m.video_gen === null) {
       err('Video output requires a video_gen profile (may be empty/UNAVAILABLE) (§A5.3).', ['video_gen']);

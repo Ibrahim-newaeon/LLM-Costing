@@ -193,6 +193,17 @@
             }
           ]
         },
+        "audio_in": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AudioInputProfile"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "hardware": {
           "default": null,
           "anyOf": [
@@ -2473,6 +2484,100 @@
         "audio_billed_separately",
         "max_duration_seconds",
         "max_frames"
+      ]
+    },
+    "AudioInputProfile": {
+      "type": "object",
+      "properties": {
+        "billing_basis": {
+          "type": "string",
+          "enum": [
+            "PER_TOKEN",
+            "PER_SECOND"
+          ]
+        },
+        "tokens_per_second": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        },
+        "billing_granularity_seconds": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        },
+        "max_duration_seconds": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        },
+        "multichannel_multiplies": {
+          "default": null,
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "billing_basis",
+        "tokens_per_second",
+        "billing_granularity_seconds",
+        "max_duration_seconds"
       ]
     },
     "HardwareProfile": {

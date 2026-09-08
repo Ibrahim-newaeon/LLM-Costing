@@ -316,6 +316,51 @@ export const VideoGenProfile = z.object({
     .default(null),
 });
 
+/**
+ * §A5.3 audio INPUT — "duration-driven, not byte-driven".
+ *
+ *   audio_tokens = ceil(duration_seconds) x tokens_per_second[model]
+ *
+ * This profile exists because standalone audio had no home. `VideoInputProfile`
+ * carries `audio_tokens_per_second`, but that is the audio TRACK OF A VIDEO —
+ * a different quantity on a different asset, and reading it for a bare audio file
+ * would price one model's video path as another model's audio path.
+ *
+ * The two billing bases below are both real and are not interchangeable. §A5.3
+ * writes the token form; §A5.8's identity writes `audio_seconds x audio_rate`.
+ * A provider does one or the other, and guessing which is a silent mispricing that
+ * scales with the length of the recording.
+ */
+export const AudioInputProfile = z
+  .object({
+    /**
+     * PER_TOKEN — duration converts to tokens at `tokens_per_second`, then bills at
+     *             the audio input rate in tokens.
+     * PER_SECOND — duration bills directly against a `per_second` rate; there is no
+     *             token count and inventing one to display would be a fabricated
+     *             figure with a plausible unit.
+     */
+    billing_basis: z.enum(['PER_TOKEN', 'PER_SECOND']),
+    /** Required in practice for PER_TOKEN. Null there is a refusal, not a zero. */
+    tokens_per_second: sourced(z.number().positive()),
+    /**
+     * §A5.3's ceiling. Null means the whole-second ceiling in the spec formula
+     * applies; a published finer granularity (100 ms, say) overrides it. Not
+     * defaulted to 1, because "the spec says round up to a second" and "this vendor
+     * bills in whole seconds" are different claims and only one of them is sourced.
+     */
+    billing_granularity_seconds: sourced(z.number().positive()),
+    max_duration_seconds: sourced(z.number().positive()),
+    /** Whether a diarized/multichannel track multiplies the count. Unknown ⇒ null. */
+    multichannel_multiplies: z.boolean().nullable().default(null),
+  })
+  .refine((a) => a.billing_basis !== 'PER_SECOND' || a.tokens_per_second.value === null, {
+    message:
+      'A PER_SECOND audio profile must not carry a token equivalence — two billing bases on one row is how the wrong one gets read (§A5.3).',
+    path: ['tokens_per_second'],
+  });
+export type AudioInputProfile = z.infer<typeof AudioInputProfile>;
+
 export const VideoInputProfile = z.object({
   /** §A5.3 — the whole cost. Often user-configurable, so surface it before upload. */
   frame_sample_rate_hz: sourced(z.number().positive()),
