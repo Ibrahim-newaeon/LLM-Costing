@@ -21,6 +21,7 @@ import { VisionProfile } from '../src/vision';
 import { Provenance } from '../src/provenance';
 import { Assumption } from '../src/assumption';
 import { WorkflowInput } from '../src/workflow';
+import { InstanceProfile } from '../src/instance';
 import { EstimateOutput } from '../src/estimate';
 import { TextCalibration, OutputPrior } from '../src/calibration';
 
@@ -38,6 +39,10 @@ const TARGETS: Array<{ file: string; schema: z.ZodType; name: string }> = [
   { file: 'estimate-output.schema.json', schema: EstimateOutput, name: 'EstimateOutput' },
   { file: 'text-calibration.schema.json', schema: TextCalibration, name: 'TextCalibration' },
   { file: 'output-prior.schema.json', schema: OutputPrior, name: 'OutputPrior' },
+  // §A5.9 — the deployment economics the deleted pricing-record.schema.json
+  // carried and nothing replaced. Ingestion writes these rows, so the drift gate
+  // has to guard the document it validates them against.
+  { file: 'instance-profile.schema.json', schema: InstanceProfile, name: 'InstanceProfile' },
 ];
 
 const BANNER =

@@ -1,0 +1,530 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/InstanceProfile",
+  "$defs": {
+    "InstanceProfile": {
+      "type": "object",
+      "properties": {
+        "instance_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cloud_provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "instance_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "region": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "gpu_model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "gpu_count": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        "vram_per_gpu_gib": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "gpu_memory_utilization": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "hourly_rate_on_demand": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Rate"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "hourly_rate_spot": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Rate"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "regional_tax_rate": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        },
+        "storage_rate": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Rate"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "weights_storage_gb": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "egress_rate": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Rate"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "egress_gb_per_1k_requests": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        },
+        "concurrency_efficiency_factor": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "maximum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        },
+        "benchmark_batch_size": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cold_start_seconds": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        },
+        "ops_labour_monthly": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "required": [
+            "value",
+            "provenance"
+          ]
+        },
+        "instance_source_url": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uri"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "instance_id",
+        "cloud_provider",
+        "instance_type",
+        "gpu_model",
+        "gpu_count",
+        "vram_per_gpu_gib",
+        "gpu_memory_utilization",
+        "regional_tax_rate",
+        "egress_gb_per_1k_requests",
+        "concurrency_efficiency_factor",
+        "cold_start_seconds",
+        "ops_labour_monthly",
+        "instance_source_url"
+      ]
+    },
+    "Rate": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number",
+          "minimum": 0
+        },
+        "unit": {
+          "type": "string",
+          "enum": [
+            "per_1m_tokens",
+            "per_1k_tokens",
+            "per_token",
+            "per_image",
+            "per_megapixel",
+            "per_step",
+            "per_second",
+            "per_request",
+            "per_1k_calls",
+            "per_gb_day",
+            "per_gb",
+            "per_1m_tokens_per_hour",
+            "per_gpu_hour",
+            "per_instance_hour"
+          ]
+        },
+        "list_currency": {
+          "default": "USD",
+          "$ref": "#/$defs/Currency"
+        },
+        "fx_rate_used": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "fx_rate_date": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "fx_source_url": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uri"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "effective_from": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+        },
+        "effective_to": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "time_of_day_variant": {
+          "default": "all_hours",
+          "type": "string",
+          "enum": [
+            "all_hours",
+            "peak",
+            "offpeak"
+          ]
+        },
+        "max_age_days": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "conflict": {
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RateConflict"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        }
+      },
+      "required": [
+        "amount",
+        "unit",
+        "effective_from",
+        "effective_to",
+        "provenance"
+      ]
+    },
+    "Currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3
+    },
+    "RateConflict": {
+      "type": "object",
+      "properties": {
+        "competing_record_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "competing_amount": {
+          "type": "number",
+          "minimum": 0
+        },
+        "competing_source_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "delta_pct": {
+          "type": "number"
+        },
+        "resolved": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "competing_record_id",
+        "competing_amount",
+        "competing_source_url",
+        "delta_pct"
+      ]
+    },
+    "Provenance": {
+      "type": "object",
+      "properties": {
+        "method": {
+          "$ref": "#/$defs/Method"
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence"
+        },
+        "source_class": {
+          "$ref": "#/$defs/SourceClass"
+        },
+        "source_url": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uri"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "verified_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "verified_by": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "notes": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "method",
+        "confidence",
+        "source_class",
+        "source_url",
+        "verified_at"
+      ]
+    },
+    "Method": {
+      "type": "string",
+      "enum": [
+        "EXACT_TOKENIZER",
+        "PROVIDER_COUNT_API",
+        "PROVIDER_FORMULA",
+        "MEASURED_PROBE",
+        "MEASURED_BENCHMARK",
+        "TOKENIZER_SCALED",
+        "CALIBRATED_HEURISTIC",
+        "EXACT_PROXY",
+        "USER_SUPPLIED",
+        "DERIVED",
+        "UNAVAILABLE"
+      ]
+    },
+    "Confidence": {
+      "type": "string",
+      "enum": [
+        "HIGH",
+        "MEDIUM",
+        "LOW",
+        "NONE"
+      ]
+    },
+    "SourceClass": {
+      "type": "string",
+      "enum": [
+        "VENDOR_PAGE",
+        "VENDOR_CONFIG",
+        "VENDOR_DOCS",
+        "AGGREGATOR",
+        "MEASURED",
+        "USER_ENTERED"
+      ]
+    }
+  },
+  "title": "InstanceProfile",
+  "$comment": "GENERATED from /packages/contracts/src — do not hand-edit. Run `pnpm generate:schemas`. CI fails if this file differs from the regenerated output (§A2)."
+}

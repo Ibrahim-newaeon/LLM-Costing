@@ -141,6 +141,23 @@ where the fact they describe actually is: `DeploymentMode`, `RateConflict` (rule
 the contracts) and `max_age_days` + `rateFreshness()`. The file itself is now superseded and
 should be deleted.
 
+> **Correction, 2026-09-08.** It was **four**, not three, and the paragraph above overstated the
+> duplication. Only half of `self_hosted_profile` duplicated `HardwareProfile` — the measured
+> throughput fields. The other half was the **instance economics** (`gpu_count`,
+> `vram_per_gpu_gb`, on-demand and spot hourly rates, `regional_tax_rate`, `storage_monthly`,
+> `egress_per_gb`, `concurrency_efficiency_factor`), and that had no counterpart anywhere in the
+> contracts. It went out with the file and stayed missing until §A5.9 needed it.
+>
+> It is back as `packages/contracts/src/instance.ts` — `InstanceProfile` and `DeploymentPlan` —
+> as a separate row rather than a revived pricing record. A model row describes a model; an
+> instance row describes a rented machine; one model runs on many instances and one instance
+> serves many models. Folding them together is what made the old record duplicate four other
+> shapes to begin with.
+>
+> The lesson is narrower than "don't delete things": the deletion note asserted a completeness
+> check ("exactly three things were missing") that had been run against `ModelRow` and not against
+> the self-hosting path, and it read as though it had been run against both.
+
 ## Open queue
 
 1. ~~**Add the missing contract layer.**~~ **Closed 2026-09-07.** `Assumption` (one superset type,
@@ -170,11 +187,19 @@ should be deleted.
    presented as exact and must be tagged honestly before it moves.
 8. **Optional, high leverage** — `docs/mcp-surface-a16.md` specs an MCP server so an agent can
    price its own call before dispatching it.
+9. **`ttft_seconds` needs a stated convention.** §A5.9 writes
+   `request_seconds = ttft + prefill + decode`, which treats TTFT as the latency *before* prefill
+   begins. The industry's published "time to first token" usually **includes** prefill, so a
+   `HardwareProfile` row populated from a vendor benchmark double-counts the prefill term. The
+   formula is implemented exactly as specified and `Throughput.ttft_seconds` carries the warning;
+   what is missing is a sentence in SPEC §A5.9 saying which of the two the field is, and an
+   ingestion rule that enforces it.
 
 ## Build order
 
 **Contracts** ✅ (Zod canonical, JSON Schema generated with a CI drift gate)
-→ **estimator** ◐ (pure functions, fully unit-tested — vision counting done)
+→ **estimator** ◐ (pure functions, fully unit-tested — vision, text, output, cache, tiers,
+   assembly, self-hosting done)
 → tokenizers (§A4.5 tiers) + Layer 0 parser (§A4.4)
 → pricing ingestion → registry → router → UI → e2e.
 
@@ -269,6 +294,43 @@ budget first. Guessing that would be guessing a provider fact.
 
 An `unbounded` band with no cap is refused outright — nothing bounds the cost, so the p90 would be
 unfalsifiable.
+
+### Self-hosting — `selfhosted.ts`, §A5.9 and §A5.9.1
+
+Costing flips from per-token to per-second of GPU wall-clock. The arithmetic is not the hard part;
+the four errors §A5.9 names are, because each is a one-line change and none of them produces a
+number that looks wrong. Each is closed here by a **type or a control-flow path**, not a comment —
+a comment is what the implementations that got these wrong already had.
+
+| §A5.9 error | What closes it |
+|---|---|
+| 1. `kv_heads`, not attention heads (~7× under GQA) | `KvGeometry` has no `attention_heads` member, and `kvGeometryFrom()` is the only constructor. Passing the query count requires widening the type. |
+| 2. MoE weights use **total** params | `weightsBytes` reads `params_b_active` only where `is_moe === false`, i.e. where it equals the total. An MoE row with no total returns UNAVAILABLE. |
+| 3. FlashAttention does not reduce KV cache | `supports_flash_attention` is never read in the file, and cannot be — `KvGeometry` does not carry it. KV quantization is the lever that does move the term, and a test pins fp16/fp8 at exactly 2×. |
+| 4. `gpu_memory_utilization` caps the **total** | One `availableVramBytes()` figure; weights + KV + activations are compared against it together. No term gets its own budget. |
+
+**The gate has three states.** A deployment whose activation buffer has never been measured has a
+*lower bound*, and a lower bound that fits proves nothing — so it reports `INDETERMINATE` and names
+the field that would settle it. A lower bound that already **exceeds** the budget does settle it,
+in the one direction a floor can: `INFEASIBLE`.
+
+**The idle GPU is billed once.** §A5.9's `÷ utilization` is what pays for idle time, so a separate
+always-on charge on top double-counts it — and the result still looks plausible. `selfHostedCost`
+returns the two lines that sum to *exactly* the spec formula (`gpu_seconds` + `idle_gpu`), so the
+idle penalty is visible in the breakdown without being charged twice. A test asserts the identity
+to 12 decimal places.
+
+**The crossover is a staircase, not a line.** Two things make the naive chart lie. Utilization is a
+*function of volume*, so holding it fixed puts the self-hosted line through the origin and there is
+no crossover to find. And an always-on instance has **no marginal per-request cost at all** — you
+pay for the GPU either way — so cost is flat until the instance saturates and then steps by a whole
+instance. A test walks a case where the first two stairs are both too expensive and the crossover
+only opens on the third; a linear model reports it 2× too early.
+
+**Unit bases differ by field, deliberately.** `vram_per_gpu_gib` is GiB because that is what the
+runtime reports; `image_activation_buffer_gb` is GB because SPEC §A5.9.1 names the field that way.
+Rather than reinterpret either — 7.4% at the exact point where the answer is "does it fit" —
+everything converts to **bytes** at its own boundary and only bytes are compared.
 
 **Two gaps in the contracts surfaced by building this**, both recorded rather than guessed:
 

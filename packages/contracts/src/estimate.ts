@@ -19,6 +19,7 @@ import { z } from 'zod';
 import { Confidence, Method, minConfidence } from './provenance';
 import { Assumption, MissingDatum } from './assumption';
 import { Currency, DeploymentMode } from './pricing';
+import { RateBasis } from './instance';
 import { Tier, ProxyBasis } from './registry';
 
 /* ─────────────────────────── ranges ─────────────────────────── */
@@ -213,18 +214,68 @@ export const billableQuantity = (l: EstimateLine): Range | null => l.quantity;
 
 /* ─────────────────────────── candidates ─────────────────────────── */
 
-export const SelfHostedDetail = z.object({
-  vram_feasible: z.boolean(),
-  required_vram_gb: z.number().positive().nullable().default(null),
-  available_vram_gb: z.number().positive().nullable().default(null),
-  request_seconds: Range.nullable().default(null),
-  /** Exclusive of 0: a candidate you never call has no per-request cost to compare. */
-  utilization_factor: z.number().gt(0).max(1),
-  idle_cost_per_day: z.number().nonnegative().nullable().default(null),
-  ops_labour_monthly: z.number().nonnegative().nullable().default(null),
-  /** Stored, never blended. Spot and on-demand are different risk products. */
-  rate_basis: z.enum(['ON_DEMAND', 'SPOT']),
-});
+export const SelfHostedDetail = z
+  .object({
+    /**
+     * Which machine. Without it the figure cannot be reproduced or re-priced when
+     * the instance rate moves — the same gap `pricing_snapshot_id` closes for
+     * token rates.
+     */
+    instance_id: z.string().min(1).nullable().default(null),
+    /** Stored, never blended. Spot and on-demand are different risk products. */
+    rate_basis: RateBasis,
+
+    vram_feasible: z.boolean(),
+    /**
+     * GiB throughout, matching InstanceProfile.vram_per_gpu_gib. Mixing GiB and
+     * decimal GB across a comparison is a ~7% error at the exact point where the
+     * answer is "does it fit".
+     */
+    required_vram_gib: z.number().positive().nullable().default(null),
+    available_vram_gib: z.number().positive().nullable().default(null),
+    /**
+     * The three terms separately. A single total tells the user they cannot deploy;
+     * these tell them which lever moves it — quantize the weights, cut the planned
+     * context, or drop the batch size.
+     */
+    weights_vram_gib: z.number().positive().nullable().default(null),
+    kv_cache_vram_gib: z.number().nonnegative().nullable().default(null),
+    activation_vram_gib: z.number().nonnegative().nullable().default(null),
+
+    request_seconds: Range.nullable().default(null),
+    /**
+     * §A5.9.1 — prefill's share of `request_seconds`. On document VLM work this
+     * runs close to 100%, which is the opposite of chat, and it is the diagnostic
+     * that says which throughput figure the estimate is actually sensitive to.
+     */
+    prefill_share_pct: z.number().min(0).max(100).nullable().default(null),
+
+    /** Exclusive of 0: a candidate you never call has no per-request cost to compare. */
+    utilization_factor: z.number().gt(0).max(1),
+    /**
+     * True when the estimator computed utilization from the workload rather than
+     * being told it. The number is the same kind of thing either way; where it came
+     * from is not, and §A5.9 calls this the honest lever precisely because it is the
+     * one a vendor comparison is most tempted to set for you.
+     */
+    utilization_is_derived: z.boolean().default(false),
+
+    idle_cost_per_day: z.number().nonnegative().nullable().default(null),
+    ops_labour_monthly: z.number().nonnegative().nullable().default(null),
+  })
+  .superRefine((d, ctx) => {
+    // A refusal has to say by how much it missed. "Does not fit" with no figures is
+    // indistinguishable from "we could not work it out", and the two call for
+    // completely different next actions from the user.
+    if (!d.vram_feasible && (d.required_vram_gib === null || d.available_vram_gib === null)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'An infeasible deployment must report both required and available VRAM — by how much it missed is the actionable part (§A5.9).',
+        path: ['required_vram_gib'],
+      });
+    }
+  });
 export type SelfHostedDetail = z.infer<typeof SelfHostedDetail>;
 
 export const Candidate = z
@@ -408,6 +459,10 @@ export const WarningCode = z.enum([
   'RESIZE_SAVES_NOTHING', 'RESIZE_BELOW_LEGIBILITY_FLOOR',
   'PROVIDER_WILL_NORMALIZE', 'REROUTED_FOR_ASSET_CONSTRAINT',
   'REROUTE_BLOCKED_BY_RESIDENCY',
+  // §A5.9 self-hosting.
+  'SPOT_RATE_INTERRUPTION_UNMODELLED',
+  'UTILIZATION_STATED_VS_DERIVED',
+  'VISUAL_TOKENS_DOMINATE_CONTEXT',
 ]);
 export type WarningCode = z.infer<typeof WarningCode>;
 

@@ -32,9 +32,20 @@ export type DeploymentMode = z.infer<typeof DeploymentMode>;
  * This is that rule's only home in the contracts. The prior
  * /schemas/pricing-record.schema.json carried it on a record type whose payload
  * duplicated TextRateProfile, ContextTier, CacheProfile and VisionProfile; that
- * record is not being recreated (2026-09-07 decision). What it had and the
+ * record is not being recreated (2026-09-07 decision).
+ *
+ * ⚠️ CORRECTION (2026-09-08). The sentence that stood here — "what it had and the
  * contracts lacked was exactly three things: DeploymentMode, the staleness gate,
- * and this. They belong on the rate itself, where the disagreement actually is.
+ * and this" — was wrong, and wrong in the direction that hides work. It was FOUR.
+ * The record's `self_hosted_profile` also carried the instance economics
+ * (gpu_count, vram_per_gpu, on-demand and spot hourly rates, regional tax, storage,
+ * egress, concurrency_efficiency_factor), and only its throughput fields duplicated
+ * HardwareProfile. That half had no counterpart in the contracts and was lost with
+ * the file, which blocked §A5.9 until instance.ts restored it. See instance.ts for
+ * the full accounting.
+ *
+ * The three named below still belong on the rate itself, where the disagreement
+ * actually is.
  *
  * Field naming follows Rate: `competing_amount`, not the old `competing_value`.
  */
@@ -78,8 +89,13 @@ export const Rate = z
       'per_request',
       'per_1k_calls',
       'per_gb_day',
+      'per_gb', // egress: charged by volume moved, with no period attached
       'per_1m_tokens_per_hour', // §A5.10 cache storage
+      // §A5.9 — the two are NOT interchangeable. On an 8-GPU box, reading one as the
+      // other is an 8× error, and it lands in the direction that makes self-hosting
+      // look cheap. InstanceProfile refuses any other unit on an hourly rate.
       'per_gpu_hour',
+      'per_instance_hour',
     ]),
     list_currency: Currency.default('USD'),
     fx_rate_used: z.number().positive().nullable().default(null),

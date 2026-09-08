@@ -8,6 +8,7 @@ export * from './provenance';
 export * from './assumption';
 export * from './vision';
 export * from './pricing';
+export * from './instance';
 export * from './registry';
 export * from './workflow';
 export * from './calibration';
