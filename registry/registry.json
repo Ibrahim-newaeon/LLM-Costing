@@ -1,0 +1,429 @@
+{
+  "schema_version": "2.0.0",
+  "generated_at": "2026-09-08T04:16:10.000Z",
+  "models": [
+    {
+      "model_id": "claude-opus-5",
+      "display_name": "Claude Opus 5",
+      "provider": "anthropic",
+      "provider_origin": "US",
+      "tier": "FRONTIER",
+      "pricing_model": "usage",
+      "modalities_in": [
+        "text",
+        "image"
+      ],
+      "modalities_out": [
+        "text"
+      ],
+      "context_window": {
+        "value": 1000000,
+        "provenance": {
+          "method": "PROVIDER_FORMULA",
+          "confidence": "HIGH",
+          "source_class": "VENDOR_DOCS",
+          "source_url": "https://platform.claude.com/docs/en/about-claude/models/overview",
+          "verified_at": "2026-09-08T04:16:10.000Z",
+          "verified_by": null,
+          "notes": null
+        }
+      },
+      "max_output": {
+        "value": 128000,
+        "provenance": {
+          "method": "PROVIDER_FORMULA",
+          "confidence": "HIGH",
+          "source_class": "VENDOR_DOCS",
+          "source_url": "https://platform.claude.com/docs/en/about-claude/models/overview",
+          "verified_at": "2026-09-08T04:16:10.000Z",
+          "verified_by": null,
+          "notes": null
+        }
+      },
+      "is_reasoning_model": true,
+      "supports_tools": true,
+      "supports_caching": true,
+      "supports_vision": true,
+      "open_weights": false,
+      "license": null,
+      "served_quantization": "unknown",
+      "tokenizer": {
+        "availability": "REMOTE_API",
+        "identifier": null,
+        "revision_hash": null,
+        "proxy_for": null,
+        "proxy_basis": null,
+        "measured_delta_pct": null,
+        "tokenizer_multiplier": {
+          "value": null,
+          "provenance": {
+            "method": "UNAVAILABLE",
+            "confidence": "NONE",
+            "source_class": "VENDOR_DOCS",
+            "source_url": null,
+            "verified_at": null,
+            "verified_by": null,
+            "notes": "Calibrated from observed runs; no capture exists yet."
+          }
+        },
+        "framing_tokens_per_message": {
+          "value": null,
+          "provenance": {
+            "method": "UNAVAILABLE",
+            "confidence": "NONE",
+            "source_class": "VENDOR_DOCS",
+            "source_url": null,
+            "verified_at": null,
+            "verified_by": null,
+            "notes": "Not published by the vendor and not measured here."
+          }
+        },
+        "conversation_preamble_tokens": {
+          "value": null,
+          "provenance": {
+            "method": "UNAVAILABLE",
+            "confidence": "NONE",
+            "source_class": "VENDOR_DOCS",
+            "source_url": null,
+            "verified_at": null,
+            "verified_by": null,
+            "notes": "Not published by the vendor and not measured here."
+          }
+        }
+      },
+      "text_rates": [
+        {
+          "variant": "standard",
+          "currency": "USD",
+          "input_rate_by_modality": {
+            "text": {
+              "amount": 5,
+              "unit": "per_1m_tokens",
+              "list_currency": "USD",
+              "fx_rate_used": null,
+              "fx_rate_date": null,
+              "fx_source_url": null,
+              "effective_from": "2026-09-08T04:16:10.000Z",
+              "effective_to": null,
+              "time_of_day_variant": "all_hours",
+              "max_age_days": 30,
+              "conflict": null,
+              "provenance": {
+                "method": "PROVIDER_FORMULA",
+                "confidence": "HIGH",
+                "source_class": "VENDOR_DOCS",
+                "source_url": "https://platform.claude.com/docs/en/about-claude/pricing",
+                "verified_at": "2026-09-08T04:16:10.000Z",
+                "verified_by": null,
+                "notes": null
+              }
+            },
+            "image": {
+              "amount": 5,
+              "unit": "per_1m_tokens",
+              "list_currency": "USD",
+              "fx_rate_used": null,
+              "fx_rate_date": null,
+              "fx_source_url": null,
+              "effective_from": "2026-09-08T04:16:10.000Z",
+              "effective_to": null,
+              "time_of_day_variant": "all_hours",
+              "max_age_days": 30,
+              "conflict": null,
+              "provenance": {
+                "method": "PROVIDER_FORMULA",
+                "confidence": "HIGH",
+                "source_class": "VENDOR_DOCS",
+                "source_url": "https://platform.claude.com/docs/en/about-claude/pricing",
+                "verified_at": "2026-09-08T04:16:10.000Z",
+                "verified_by": null,
+                "notes": null
+              }
+            },
+            "audio": null,
+            "video": null
+          },
+          "output_rate": {
+            "amount": 25,
+            "unit": "per_1m_tokens",
+            "list_currency": "USD",
+            "fx_rate_used": null,
+            "fx_rate_date": null,
+            "fx_source_url": null,
+            "effective_from": "2026-09-08T04:16:10.000Z",
+            "effective_to": null,
+            "time_of_day_variant": "all_hours",
+            "max_age_days": 30,
+            "conflict": null,
+            "provenance": {
+              "method": "PROVIDER_FORMULA",
+              "confidence": "HIGH",
+              "source_class": "VENDOR_DOCS",
+              "source_url": "https://platform.claude.com/docs/en/about-claude/pricing",
+              "verified_at": "2026-09-08T04:16:10.000Z",
+              "verified_by": null,
+              "notes": null
+            }
+          },
+          "reasoning_output_rate": null,
+          "per_request_fee": null,
+          "context_tiers": null,
+          "cache": {
+            "write_rate": {
+              "amount": 6.25,
+              "unit": "per_1m_tokens",
+              "list_currency": "USD",
+              "fx_rate_used": null,
+              "fx_rate_date": null,
+              "fx_source_url": null,
+              "effective_from": "2026-09-08T04:16:10.000Z",
+              "effective_to": null,
+              "time_of_day_variant": "all_hours",
+              "max_age_days": 30,
+              "conflict": null,
+              "provenance": {
+                "method": "DERIVED",
+                "confidence": "HIGH",
+                "source_class": "VENDOR_DOCS",
+                "source_url": "https://platform.claude.com/docs/en/about-claude/pricing",
+                "verified_at": "2026-09-08T04:16:10.000Z",
+                "verified_by": null,
+                "notes": "1.25x the $5/1M base input rate (5-minute cache write)."
+              }
+            },
+            "read_rate": {
+              "amount": 0.5,
+              "unit": "per_1m_tokens",
+              "list_currency": "USD",
+              "fx_rate_used": null,
+              "fx_rate_date": null,
+              "fx_source_url": null,
+              "effective_from": "2026-09-08T04:16:10.000Z",
+              "effective_to": null,
+              "time_of_day_variant": "all_hours",
+              "max_age_days": 30,
+              "conflict": null,
+              "provenance": {
+                "method": "DERIVED",
+                "confidence": "HIGH",
+                "source_class": "VENDOR_DOCS",
+                "source_url": "https://platform.claude.com/docs/en/about-claude/pricing",
+                "verified_at": "2026-09-08T04:16:10.000Z",
+                "verified_by": null,
+                "notes": "0.1x the $5/1M base input rate (cache hits/refreshes, most models)."
+              }
+            },
+            "write_multipliers_by_ttl": {
+              "300": 1.25,
+              "3600": 2
+            },
+            "min_cacheable_tokens": {
+              "value": null,
+              "provenance": {
+                "method": "UNAVAILABLE",
+                "confidence": "NONE",
+                "source_class": "VENDOR_DOCS",
+                "source_url": null,
+                "verified_at": null,
+                "verified_by": null,
+                "notes": "Minimum cacheable prefix not on the pricing page; not fetched."
+              }
+            },
+            "ttl_seconds": {
+              "value": null,
+              "provenance": {
+                "method": "UNAVAILABLE",
+                "confidence": "NONE",
+                "source_class": "VENDOR_DOCS",
+                "source_url": null,
+                "verified_at": null,
+                "verified_by": null,
+                "notes": "TTL bucket lengths not on the pricing page; not fetched."
+              }
+            },
+            "is_automatic": false,
+            "storage_rate_per_hour": null
+          },
+          "tool_use_system_prompt_tokens": [],
+          "server_tool_fees": []
+        }
+      ],
+      "service_tiers": [
+        {
+          "tier": "batch",
+          "multiplier": {
+            "value": 0.5,
+            "provenance": {
+              "method": "PROVIDER_FORMULA",
+              "confidence": "HIGH",
+              "source_class": "VENDOR_DOCS",
+              "source_url": "https://platform.claude.com/docs/en/about-claude/pricing",
+              "verified_at": "2026-09-08T04:16:10.000Z",
+              "verified_by": null,
+              "notes": "Stated as a 50% discount on input and output tokens."
+            }
+          },
+          "available": true,
+          "excludes": [],
+          "unavailable_in_regions": []
+        }
+      ],
+      "vision": {
+        "geometry": {
+          "geometry": "PATCH_GRID",
+          "patch_px": {
+            "value": 28,
+            "provenance": {
+              "method": "PROVIDER_FORMULA",
+              "confidence": "HIGH",
+              "source_class": "VENDOR_DOCS",
+              "source_url": "https://platform.claude.com/docs/en/build-with-claude/vision",
+              "verified_at": "2026-09-08T04:16:10.000Z",
+              "verified_by": null,
+              "notes": "Each patch is a 28x28-pixel block."
+            }
+          },
+          "bound": {
+            "bound_type": "TOKEN_CAP",
+            "token_cap": {
+              "value": 4784,
+              "provenance": {
+                "method": "PROVIDER_FORMULA",
+                "confidence": "HIGH",
+                "source_class": "VENDOR_DOCS",
+                "source_url": "https://platform.claude.com/docs/en/build-with-claude/vision",
+                "verified_at": "2026-09-08T04:16:10.000Z",
+                "verified_by": null,
+                "notes": "High-resolution tier max visual tokens."
+              }
+            }
+          }
+        },
+        "low_detail": {
+          "kind": "UNSUPPORTED"
+        },
+        "constraints": {
+          "max_edge_px": {
+            "value": 2576,
+            "provenance": {
+              "method": "PROVIDER_FORMULA",
+              "confidence": "HIGH",
+              "source_class": "VENDOR_DOCS",
+              "source_url": "https://platform.claude.com/docs/en/build-with-claude/vision",
+              "verified_at": "2026-09-08T04:16:10.000Z",
+              "verified_by": null,
+              "notes": "High-resolution tier max long edge; the downscale target, not the accepted maximum (8000x8000)."
+            }
+          },
+          "min_edge_px": {
+            "value": null,
+            "provenance": {
+              "method": "UNAVAILABLE",
+              "confidence": "NONE",
+              "source_class": "VENDOR_DOCS",
+              "source_url": null,
+              "verified_at": null,
+              "verified_by": null,
+              "notes": "No minimum edge stated on the vision page."
+            }
+          },
+          "shortest_edge_target_px": {
+            "value": null,
+            "provenance": {
+              "method": "PROVIDER_FORMULA",
+              "confidence": "HIGH",
+              "source_class": "VENDOR_DOCS",
+              "source_url": "https://platform.claude.com/docs/en/build-with-claude/vision",
+              "verified_at": "2026-09-08T04:16:10.000Z",
+              "verified_by": null,
+              "notes": "Images within the limits are not resized; no upscale target exists."
+            }
+          },
+          "max_bytes": {
+            "value": 10000000,
+            "provenance": {
+              "method": "PROVIDER_FORMULA",
+              "confidence": "HIGH",
+              "source_class": "VENDOR_DOCS",
+              "source_url": "https://platform.claude.com/docs/en/build-with-claude/vision",
+              "verified_at": "2026-09-08T04:16:10.000Z",
+              "verified_by": null,
+              "notes": "\"10 MB (base64-encoded) when using the Claude API directly.\" The page does not say whether MB is 10^6 or 2^20; 10^6 recorded, which is the smaller and therefore the stricter gate."
+            }
+          },
+          "max_pages": {
+            "value": null,
+            "provenance": {
+              "method": "UNAVAILABLE",
+              "confidence": "NONE",
+              "source_class": "VENDOR_DOCS",
+              "source_url": null,
+              "verified_at": null,
+              "verified_by": null,
+              "notes": "PDF page limit not stated on the vision page."
+            }
+          },
+          "allowed_mime": [
+            "image/jpeg",
+            "image/png",
+            "image/gif",
+            "image/webp"
+          ],
+          "provider_auto_normalizes": true,
+          "min_legible_edge_px": [],
+          "max_context_tokens": {
+            "value": 1000000,
+            "provenance": {
+              "method": "PROVIDER_FORMULA",
+              "confidence": "HIGH",
+              "source_class": "VENDOR_DOCS",
+              "source_url": "https://platform.claude.com/docs/en/about-claude/models/overview",
+              "verified_at": "2026-09-08T04:16:10.000Z",
+              "verified_by": null,
+              "notes": null
+            }
+          }
+        },
+        "provenance": {
+          "method": "PROVIDER_FORMULA",
+          "confidence": "HIGH",
+          "source_class": "VENDOR_DOCS",
+          "source_url": "https://platform.claude.com/docs/en/build-with-claude/vision",
+          "verified_at": "2026-09-08T04:16:10.000Z",
+          "verified_by": null,
+          "notes": null
+        }
+      },
+      "image_gen": null,
+      "video_gen": null,
+      "video_in": null,
+      "audio_in": null,
+      "hardware": null,
+      "compliance": {
+        "data_residency_region": [
+          "us"
+        ],
+        "is_prc_hosted": false,
+        "contractual_dpa_available": true,
+        "residency_uplift_pct": {
+          "value": null,
+          "provenance": {
+            "method": "UNAVAILABLE",
+            "confidence": "NONE",
+            "source_class": "VENDOR_DOCS",
+            "source_url": null,
+            "verified_at": null,
+            "verified_by": null,
+            "notes": "The 1.1x inference_geo multiplier is scoped to 'Claude 4.6 and later models' and the docs do not state whether Claude Opus 5 is in that set. See docs/verify-resolution.md VERIFY #5."
+          }
+        },
+        "notes": "US-only inference is available via the inference_geo parameter; its 1.1x multiplier is unresolved for this model."
+      },
+      "quality_score": null,
+      "quality_score_source_url": null,
+      "effective_from": "2026-09-08T04:16:10.000Z",
+      "effective_to": null,
+      "deprecation_date": null
+    }
+  ]
+}

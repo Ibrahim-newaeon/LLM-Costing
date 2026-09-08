@@ -177,3 +177,53 @@ Sources, both retrieved 2026-09-07; **neither page displays a publication or las
 <https://platform.claude.com/docs/en/build-with-claude/vision>,
 <https://platform.claude.com/docs/en/build-with-claude/vision-coordinates>
 (reached via a 302 from `docs.claude.com/en/docs/build-with-claude/vision`).
+
+---
+
+## VERIFY #5 — does the 1.1× US-only inference multiplier apply to Claude Opus 5? (raised 2026-09-08, OPEN)
+
+Building the first real registry row surfaced a question the documentation does not answer.
+
+Anthropic's pricing page publishes the multiplier plainly:
+
+> For Claude 4.6 and later models, specifying US-only inference through the
+> `inference_geo` parameter incurs a 1.1x multiplier on all token pricing categories,
+> including input tokens, output tokens, cache writes, and cache reads.
+
+Source: <https://platform.claude.com/docs/en/about-claude/pricing> (retrieved 2026-09-08; the
+page displays no publication date)
+
+**The gap is the model set, not the figure.** "Claude 4.6 and later models" is not enumerated
+anywhere reachable. The models overview lists Claude Fable 5.1, Claude Opus 5, Claude Sonnet 5 and
+Claude Haiku 4.5 with no version-ordering statement, no release dates and no generational
+classification — asked directly, the page states none. Whether "Opus 5" is "4.6 and later" is
+therefore an inference about a naming scheme, not a fact on a page.
+
+**What was recorded.** `compliance.residency_uplift_pct` on `claude-opus-5` is `UNAVAILABLE`, with
+the reason in its provenance. The consequence is deliberate and tested: `residencyUplift()` refuses
+the moment a region is requested, so the US-only route is quoted at neither the default price nor a
+guessed one. Recording `1.1` would have been the version-ordering inference; recording `0` would
+have priced compliance as free, which §A5.10 names as the specific way a residency-aware router
+misleads.
+
+**Two neighbouring statements carry the same scope and were handled differently**, because the
+evidence differs:
+
+| Statement | Scope | What was recorded | Why |
+|---|---|---|---|
+| 1.1× `inference_geo` multiplier | "Claude 4.6 and later models" | UNAVAILABLE | Both alternatives are claims; neither is supported. |
+| Full 1M context at standard pricing | "Claude 4.6 and later models" | `context_tiers: null` | Null is *also* the correct value for "no tier is published anywhere", which is unambiguously true — no threshold and no second rate appear on any page. The membership question does not change the answer. |
+
+**To close it:** one page that either enumerates the models in the "4.6 and later" set, or states
+the `inference_geo` multiplier against a named model. Until then the compliant Gulf/US-residency
+route cannot be priced for this row, which is the honest state rather than a defect.
+
+### It also found a contract defect
+
+`TextRateProfile.input_rate_by_modality` is a `z.record` over an enum key, which in Zod 4 is
+**exhaustive**: a text-and-image model must write `audio: null, video: null` rather than omit them.
+The first real row failed to parse against it.
+
+The behaviour is right — an omitted key is indistinguishable from a modality nobody considered, and
+a missing audio rate must not read as "no audio charge" — but it was undocumented, and nothing in
+the repo had ever parsed a real row to discover it. Documented in `pricing.ts` rather than relaxed.
