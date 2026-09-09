@@ -28,6 +28,21 @@ importers:
         specifier: ^4.23.13
         version: 4.23.13
 
+  packages/e2e:
+    devDependencies:
+      '@tokenomics/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@tokenomics/estimator':
+        specifier: workspace:*
+        version: link:../estimator
+      '@tokenomics/parser':
+        specifier: workspace:*
+        version: link:../parser
+      '@tokenomics/router':
+        specifier: workspace:*
+        version: link:../router
+
   packages/estimator:
     dependencies:
       '@tokenomics/contracts':

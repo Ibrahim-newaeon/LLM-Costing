@@ -1,0 +1,12 @@
+{
+  "name": "@tokenomics/e2e",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {},
+  "devDependencies": {
+    "@tokenomics/contracts": "workspace:*",
+    "@tokenomics/estimator": "workspace:*",
+    "@tokenomics/parser": "workspace:*",
+    "@tokenomics/router": "workspace:*"
+  }
+}
