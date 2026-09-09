@@ -65,8 +65,27 @@ const SEED: DefaultsSeed = [
   { doc_class: 'image_unspecified', input_tokens: null, output_tokens: null, image_width_px: 1024, image_height_px: 1024, image_detail: 'high', source: 'USER_SUPPLIED_BASELINE' },
 ];
 
-/** One real costed candidate: a 1000x1000 image on Opus, the figure Anthropic publishes. */
+/**
+ * One real costed candidate: a 1000x1000 image on Opus, the figure Anthropic publishes.
+ *
+ * `model_id` is free ONLY so the arithmetic tests can stand up ten candidates. It is
+ * checked against the registry: pricing another vendor's row with Anthropic's geometry
+ * would be that vendor's answer wearing the right unit, which is what this repo exists
+ * to refuse. A synthetic id like `model-3` cannot be mistaken for a claim about anyone;
+ * `gemini-2.5-pro` can, and an earlier draft of this file did exactly that.
+ *
+ * The guard is here rather than in a comment because a comment did not stop it.
+ */
 function visionCandidate(model_id: string): Candidate {
+  const impersonated = registry.models.find(
+    (m) => m.model_id === model_id && m.model_id !== opus.model_id,
+  );
+  if (impersonated) {
+    throw new Error(
+      `visionCandidate would price ${model_id} using ${opus.model_id}'s geometry. ` +
+        `Use a synthetic id for arithmetic, or textCandidate() to compare real rows.`,
+    );
+  }
   const count = countVisionTokens(opus.vision!, { width_px: 1000, height_px: 1000, detail_mode: null });
   if (count.status !== 'COUNTED') throw new Error(count.reason);
   const line = buildLine({
@@ -92,11 +111,10 @@ function visionCandidate(model_id: string): Candidate {
 /**
  * A text candidate priced at THAT model's own published input rate.
  *
- * ⚠️ There is deliberately no `visionCandidate(gemini)`. Gemini's vision geometry
- * is UNAVAILABLE (VERIFY #6), so a Gemini image line does not exist at any price —
- * cloning Anthropic's 1296-token figure onto a Google model id would be another
- * model's answer wearing the right unit, which is the exact failure this repo is
- * built to refuse. A text workflow is the honest way to compare these two rows.
+ * ⚠️ There is deliberately no `visionCandidate(gemini)` — Gemini's vision geometry is
+ * UNAVAILABLE (VERIFY #6), so a Gemini image line does not exist at any price. This is
+ * the honest way to compare the two rows, and `visionCandidate` now throws rather than
+ * relying on anyone reading that sentence.
  */
 function textCandidate(row: ModelRow, tokens: number): Candidate {
   const rate = row.text_rates[0]!.input_rate_by_modality.text!;
@@ -182,6 +200,14 @@ describe('the parse is billed once for the estimate, not once per candidate', ()
     const rateRefs = e.candidates.flatMap((c) => c.lines.map((l) => l.rate_record_id ?? ''));
     expect(rateRefs.some((r) => r.includes('cheap'))).toBe(false);
     expect(e.system_overhead[0]!.parser_model_id).toBe('some-cheap-model');
+  });
+
+  it('refuses to price a real vendor row with another vendor’s geometry', () => {
+    // The guard on visionCandidate, exercised. An earlier draft of this file priced
+    // a Gemini image line by cloning Anthropic's 1296-token figure — Gemini's
+    // geometry is UNAVAILABLE, so that line does not exist at any price.
+    expect(() => visionCandidate('model-3')).not.toThrow();
+    expect(() => visionCandidate(gemini.model_id)).toThrow(/geometry/);
   });
 
   it('the parser model need not be one of the models being compared', () => {
