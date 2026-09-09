@@ -39,6 +39,7 @@ import {
   type InstanceProfile,
   type Range,
   type RateBasis,
+  type EstimateWarning,
 } from '@tokenomics/contracts';
 import { exactRange } from './range';
 
@@ -256,6 +257,7 @@ export interface VramFeasibility {
   image_share_of_context: number | null;
   missing: string[];
   notes: string[];
+  warnings: EstimateWarning[];
 }
 
 export interface VramInput {
@@ -336,6 +338,22 @@ export function vramFeasibility(input: VramInput): VramFeasibility {
     verdict = 'FEASIBLE';
   }
 
+  const imageShare =
+    hardware.max_context_tokens === null ? null : visual / hardware.max_context_tokens;
+
+  // One of the eighteen §A11 found: the number was already computed and reported,
+  // and nothing said it mattered. A context window mostly filled with image tokens
+  // is a capability limit wearing a cost limit for cover — the text you meant to
+  // send does not fit, and the bill does not show you why.
+  const warnings: EstimateWarning[] = [];
+  if (imageShare !== null && imageShare >= VISUAL_CONTEXT_DOMINANCE_THRESHOLD) {
+    warnings.push({
+      code: 'VISUAL_TOKENS_DOMINATE_CONTEXT',
+      message: `Images occupy ${(imageShare * 100).toFixed(0)}% of the ${hardware.max_context_tokens}-token context. What is left is the room the prompt actually has.`,
+      severity: 'WARN',
+    });
+  }
+
   return {
     verdict,
     required_bytes: required,
@@ -345,10 +363,10 @@ export function vramFeasibility(input: VramInput): VramFeasibility {
     kv_cache_bytes: kv,
     activation_bytes: activation,
     context_clamped: clamp.clamped,
-    image_share_of_context:
-      hardware.max_context_tokens === null ? null : visual / hardware.max_context_tokens,
+    image_share_of_context: imageShare,
     missing,
     notes,
+    warnings,
   };
 }
 
@@ -466,6 +484,13 @@ export const DAYS_PER_MONTH = 30.436875;
 export const UTILIZATION_DIVERGENCE_TOLERANCE = 0.1;
 
 /** Below this, self-hosting is being compared on a GPU that is mostly idle. */
+/**
+ * The share of a context window above which images are said to DOMINATE it. A
+ * reporting threshold, not a published figure: half the window is the point at
+ * which the remaining room is the minority of what was bought.
+ */
+export const VISUAL_CONTEXT_DOMINANCE_THRESHOLD = 0.5;
+
 export const LOW_UTILIZATION_WARN_THRESHOLD = 0.2;
 
 export interface Utilization {
@@ -540,7 +565,7 @@ export type SelfHostedCostResult =
       /** Informational. Already inside the idle_gpu line — do NOT add it again. */
       idle_cost_per_day: number | null;
       instance_daily_amount: number;
-      warnings: string[];
+      warnings: EstimateWarning[];
       notes: string[];
     }
   | { status: 'UNAVAILABLE'; missing: string[] };
@@ -579,7 +604,7 @@ export interface SelfHostedCostInput {
 export function selfHostedCost(input: SelfHostedCostInput): SelfHostedCostResult {
   const { instance, plan, timing } = input;
   const missing: string[] = [];
-  const warnings: string[] = [];
+  const warnings: EstimateWarning[] = [];
   const notes: string[] = [];
 
   const hourly = instanceHourlyAmount(instance, plan.rate_basis);
@@ -601,10 +626,12 @@ export function selfHostedCost(input: SelfHostedCostInput): SelfHostedCostResult
   const currency = hourly.rate.list_currency;
 
   if (plan.rate_basis === 'SPOT') {
-    warnings.push('SPOT_RATE_INTERRUPTION_UNMODELLED');
-    notes.push(
-      'Costed at the spot rate. Eviction, re-queueing and the capacity risk that makes spot cheap are not modelled here, so this is the price of an uninterrupted run, not the expected price.',
-    );
+    warnings.push({
+      code: 'SPOT_RATE_INTERRUPTION_UNMODELLED',
+      message:
+        'Costed at the spot rate. Eviction, re-queueing and the capacity risk that makes spot cheap are not modelled here, so this is the price of an uninterrupted run, not the expected price.',
+      severity: 'WARN',
+    });
   }
 
   const components: SelfHostedComponent[] = [
@@ -639,7 +666,13 @@ export function selfHostedCost(input: SelfHostedCostInput): SelfHostedCostResult
     });
     idlePerDay = instanceDaily * (1 - util.value);
 
-    if (util.value < LOW_UTILIZATION_WARN_THRESHOLD) warnings.push('LOW_UTILIZATION_SELF_HOSTED');
+    if (util.value < LOW_UTILIZATION_WARN_THRESHOLD) {
+      warnings.push({
+        code: 'LOW_UTILIZATION_SELF_HOSTED',
+        message: `The instance is ${(util.value * 100).toFixed(0)}% utilized. Most of what is billed is idle GPU, and the per-request figure is dominated by capacity nobody used.`,
+        severity: 'WARN',
+      });
+    }
   } else {
     // Scale-to-zero. Nothing is billed while nothing is served, so there is no idle
     // line — but the cold starts are real GPU seconds and somebody pays for them.
@@ -719,10 +752,11 @@ export function selfHostedCost(input: SelfHostedCostInput): SelfHostedCostResult
   }
 
   if (util.diverges) {
-    warnings.push('UTILIZATION_STATED_VS_DERIVED');
-    notes.push(
-      `Stated utilization ${util.stated} and the ${util.derived} implied by ${perDayRequests} requests/day x ${timing.effective_seconds.p50.toFixed(3)}s disagree. Both are reported; neither is averaged into the other.`,
-    );
+    warnings.push({
+      code: 'UTILIZATION_STATED_VS_DERIVED',
+      message: `Stated utilization ${util.stated} and the ${util.derived} implied by ${perDayRequests} requests/day x ${timing.effective_seconds.p50.toFixed(3)}s disagree. Both are reported; neither is averaged into the other.`,
+      severity: 'WARN',
+    });
   }
   if (util.exceeds_single_instance) {
     notes.push(

@@ -9,6 +9,7 @@ import { describe, it, expect } from 'vitest';
 import { Provenance, RequestOptions, ImageMetrics } from '@tokenomics/contracts';
 import { buildLine } from './candidate';
 import {
+
   resolveServiceTier,
   residencyUplift,
   toolUseSystemPromptTokens,
@@ -18,6 +19,10 @@ import {
   applyRequestMultipliers,
   resolveRequestLayer,
 } from './request';
+
+/** Warnings are `{code, message, severity}` now, so an assertion reads one half or the other. */
+const codes = (ws: readonly { code: string }[]) => ws.map((w) => w.code);
+const messages = (ws: readonly { message: string }[]) => ws.map((w) => w.message).join(' ');
 
 const prov = (over: Partial<any> = {}) =>
   Provenance.parse({
@@ -262,7 +267,7 @@ describe('serverToolFees', () => {
     const r = serverToolFees(fees as any, uses);
     expect(r.charges[0]!.free_calls).toBe(100);
     expect(r.charges[0]!.billable_calls).toBe(200);
-    expect(r.warnings).not.toContain('SERVER_TOOL_ALLOWANCE_NOT_APPLIED');
+    expect(codes(r.warnings)).not.toContain('SERVER_TOOL_ALLOWANCE_NOT_APPLIED');
   });
 
   it('does NOT grant an allowance it cannot verify — it bills and says so', () => {
@@ -273,7 +278,7 @@ describe('serverToolFees', () => {
     const r = serverToolFees(fees as any, uses);
     expect(r.charges[0]!.free_calls).toBe(0);
     expect(r.charges[0]!.billable_calls).toBe(300);
-    expect(r.warnings).toContain('SERVER_TOOL_ALLOWANCE_NOT_APPLIED');
+    expect(codes(r.warnings)).toContain('SERVER_TOOL_ALLOWANCE_NOT_APPLIED');
     expect(r.notes.join(' ')).toMatch(/overstates by at most the allowance/);
   });
 
@@ -359,7 +364,7 @@ describe('applyRequestMultipliers', () => {
     lines.forEach((l, i) => {
       expect(r.lines[i]!.cost!.p50).toBeCloseTo(l.cost!.p50 * 1.15, 15);
     });
-    expect(r.warnings).toContain('RESIDENCY_UPLIFT_APPLIED');
+    expect(codes(r.warnings)).toContain('RESIDENCY_UPLIFT_APPLIED');
   });
 
   it('compounds the two layers in the order §A5.10 writes them', () => {
@@ -434,7 +439,19 @@ describe('resolveRequestLayer', () => {
   it('refuses as a unit — a partially applied multiplier looks like a complete answer', () => {
     const r = resolveRequestLayer(input({ tier_profiles: [] }));
     expect(r.status).toBe('UNAVAILABLE');
-    if (r.status === 'UNAVAILABLE') expect(r.warnings).toContain('SERVICE_TIER_UNAVAILABLE');
+    if (r.status === 'UNAVAILABLE') expect(codes(r.warnings)).toContain('SERVICE_TIER_UNAVAILABLE');
+  });
+
+  it('the code and the sentence explaining it travel together', () => {
+    // Found by mutation: replacing the warning's message with 'x' turned nothing
+    // red, so nothing was checking that a code arrives with anything a reader can
+    // act on. A bare SERVICE_TIER_UNAVAILABLE tells you a tier failed, not which
+    // one or why — and reuniting the two halves is the whole point of this change.
+    const r = resolveRequestLayer(input({ tier_profiles: [] }));
+    if (r.status !== 'UNAVAILABLE') throw new Error('expected UNAVAILABLE');
+    const w = r.warnings.find((x) => x.code === 'SERVICE_TIER_UNAVAILABLE')!;
+    expect(w.message).toBe(r.reasons[0]);
+    expect(w.message.length).toBeGreaterThan(20);
   });
 
   it('an unresolvable region blocks the whole layer, not just the uplift', () => {

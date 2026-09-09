@@ -11,6 +11,11 @@ import { VisionProfile, AudioInputProfile, VideoInputProfile, MediaMetrics } fro
 import { countAudioTokens, countVideoTokens, sampleFrames, billableDuration } from './media';
 import { isExact } from './range';
 
+/** Warnings are `{code, message, severity}` now, so an assertion reads one half or the other. */
+const codes = (ws: readonly { code: string }[]) => ws.map((w) => w.code);
+const messages = (ws: readonly { message: string }[]) => ws.map((w) => w.message).join(' ');
+
+
 /* ─────────────────────────── fixtures ─────────────────────────── */
 
 const prov = (over: Record<string, unknown> = {}) => ({
@@ -333,8 +338,8 @@ describe('sampleFrames', () => {
     expect(r.fps_used).toBe(1);
     expect(r.frames).toBe(60);
     expect(r.fps_request_ignored).toBe(true);
-    expect(r.warnings).toContain('FPS_NOT_CONFIGURABLE');
-    expect(r.notes.join(' ')).toMatch(/changes nothing, including the cost/);
+    expect(codes(r.warnings)).toContain('FPS_NOT_CONFIGURABLE');
+    expect(messages(r.warnings)).toMatch(/changes nothing, including the cost/);
   });
 
   it('clamps at max_frames and says coverage stops rising too', () => {
@@ -342,8 +347,8 @@ describe('sampleFrames', () => {
     if (r.status !== 'OK') throw new Error(r.reason);
     expect(r.frames).toBe(100);
     expect(r.clamped).toBe(true);
-    expect(r.warnings).toContain('VIDEO_FRAMES_CLAMPED_TO_MAX');
-    expect(r.notes.join(' ')).toMatch(/more thinly sampled/);
+    expect(codes(r.warnings)).toContain('VIDEO_FRAMES_CLAMPED_TO_MAX');
+    expect(messages(r.warnings)).toMatch(/more thinly sampled/);
   });
 
   it('refuses an unsourced sample rate — it is the whole cost', () => {
@@ -367,7 +372,7 @@ describe('video: §A5.3 forces LOW without a deterministic formula', () => {
     if (r.status !== 'COUNTED') throw new Error(r.reason);
     expect(r.confidence).toBe('HIGH');
     expect(r.method).toBe('PROVIDER_FORMULA');
-    expect(r.warnings).not.toContain('VIDEO_HIGH_VARIANCE');
+    expect(codes(r.warnings)).not.toContain('VIDEO_HIGH_VARIANCE');
   });
 
   it('caps at LOW without one, however well sourced every constant is', () => {
@@ -377,7 +382,7 @@ describe('video: §A5.3 forces LOW without a deterministic formula', () => {
     if (r.status !== 'COUNTED') throw new Error(r.reason);
     expect(r.confidence).toBe('LOW');
     expect(r.method).toBe('CALIBRATED_HEURISTIC');
-    expect(r.warnings).toContain('VIDEO_HIGH_VARIANCE');
+    expect(codes(r.warnings)).toContain('VIDEO_HIGH_VARIANCE');
     // and the quantity is unchanged — the ceiling moves confidence, not the number
     expect(r.quantity.p50).toBe(60 * FRAME_TOKENS);
   });
@@ -411,7 +416,7 @@ describe('video: which side of the + the audio track lands on', () => {
     if (r.status !== 'COUNTED') throw new Error(r.reason);
     expect(r.separate_audio).toBeNull();
     expect(r.quantity.p50).toBe(60 * FRAME_TOKENS + 60 * 25);
-    expect(r.warnings).toContain('AUDIO_TRACK_FOLDED_INTO_VIDEO_TOKENS');
+    expect(codes(r.warnings)).toContain('AUDIO_TRACK_FOLDED_INTO_VIDEO_TOKENS');
   });
 
   it('returns its own line where it is charged apart, and does not double-count', () => {

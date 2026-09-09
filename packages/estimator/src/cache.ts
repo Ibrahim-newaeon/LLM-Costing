@@ -25,6 +25,7 @@ import {
   type CacheProfile,
   type Confidence,
   type Rate,
+  type EstimateWarning,
 } from '@tokenomics/contracts';
 
 export interface CacheInput {
@@ -62,7 +63,7 @@ export interface CacheEvaluation {
   storage_dominates: boolean;
   assumptions: Assumption[];
   confidence: Confidence;
-  warnings: string[];
+  warnings: EstimateWarning[];
 }
 
 export type CacheResult =
@@ -122,7 +123,7 @@ export function evaluateCache(input: CacheInput): CacheResult {
     };
   }
 
-  const warnings: string[] = [];
+  const warnings: EstimateWarning[] = [];
   const confidences: Confidence[] = [
     read.provenance.confidence,
     write.provenance.confidence,
@@ -166,22 +167,31 @@ export function evaluateCache(input: CacheInput): CacheResult {
   const storageDominates = storage > readSaving && storage > 0;
 
   if (netSaving < 0) {
-    warnings.push(
-      `Caching COSTS ${(-netSaving).toFixed(6)} more than it saves at a ${hit_ratio} hit ratio. ` +
+    warnings.push({
+      code: 'CACHE_NET_LOSS',
+      message:
+        `Caching COSTS ${(-netSaving).toFixed(6)} more than it saves at a ${hit_ratio} hit ratio. ` +
         'The write premium and storage are not recovered at this call volume.',
-    );
+      severity: 'WARN',
+    });
   }
   if (storageDominates) {
-    warnings.push(
-      'The hourly storage charge exceeds the read saving. A long-lived cache on a low-traffic ' +
+    warnings.push({
+      code: 'CACHE_STORAGE_DOMINATES',
+      message:
+        'The hourly storage charge exceeds the read saving. A long-lived cache on a low-traffic ' +
         'workload is a net loss, and this is the case the pre-v2.0 cache model could not express.',
-    );
+      severity: 'WARN',
+    });
   }
   if (write.amount > input_rate.amount) {
-    warnings.push(
-      `This provider charges a PREMIUM to write the cache (${write.amount} vs ${input_rate.amount} ` +
+    warnings.push({
+      code: 'CACHE_WRITE_PREMIUM',
+      message:
+        `This provider charges a PREMIUM to write the cache (${write.amount} vs ${input_rate.amount} ` +
         'base input). A low hit ratio makes caching actively worse than not caching.',
-    );
+      severity: 'WARN',
+    });
   }
 
   const assumptions: Assumption[] = [
@@ -208,6 +218,6 @@ export function evaluateCache(input: CacheInput): CacheResult {
     storage_dominates: storageDominates,
     assumptions,
     confidence: minConfidence(...confidences),
-    warnings: warnings.filter((w) => w !== ''),
+    warnings,
   };
 }

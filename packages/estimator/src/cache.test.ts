@@ -2,6 +2,11 @@ import { describe, it, expect } from 'vitest';
 import { CacheProfile, Rate } from '@tokenomics/contracts';
 import { evaluateCache } from './cache';
 
+/** Warnings are `{code, message, severity}` now, so an assertion reads one half or the other. */
+const codes = (ws: readonly { code: string }[]) => ws.map((w) => w.code);
+const messages = (ws: readonly { message: string }[]) => ws.map((w) => w.message).join(' ');
+
+
 const prov = {
   method: 'PROVIDER_FORMULA',
   confidence: 'HIGH',
@@ -53,7 +58,12 @@ describe('evaluateCache', () => {
     const r = evaluateCache({ ...base, profile: profile(), hit_ratio: 0.05 });
     if (r.status !== 'EVALUATED') throw new Error('expected EVALUATED');
     expect(r.net_saving).toBeLessThan(0);
-    expect(r.warnings.join(' ')).toContain('PREMIUM');
+    // Both codes: the loss, and the reason for it. Before this, the module wrote
+    // both sentences and neither could leave it — a cache that costs more than it
+    // saves reached the estimate as silence.
+    expect(codes(r.warnings)).toContain('CACHE_NET_LOSS');
+    expect(codes(r.warnings)).toContain('CACHE_WRITE_PREMIUM');
+    expect(messages(r.warnings)).toContain('PREMIUM');
   });
 
   it('refuses a hit ratio with no stated basis — that is how caching looks free', () => {
@@ -114,7 +124,8 @@ describe('§A5.10 — the hourly storage term', () => {
     if (r.status !== 'EVALUATED') throw new Error('expected EVALUATED');
     expect(r.storage_dominates).toBe(true);
     expect(r.net_saving).toBeLessThan(0);
-    expect(r.warnings.join(' ')).toContain('net loss');
+    expect(codes(r.warnings)).toContain('CACHE_STORAGE_DOMINATES');
+    expect(messages(r.warnings)).toContain('net loss');
   });
 
   it('the same cache pays for itself at high volume', () => {
