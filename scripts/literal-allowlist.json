@@ -66,8 +66,8 @@
       "reason": "LOW_UTILIZATION_WARN_THRESHOLD — when to warn that a GPU is mostly idle. A warning threshold, not a price."
     },
     "packages/estimator/src/selfhosted.ts|0.5": {
-      "count": 1,
-      "reason": "Bytes per parameter at int4. Definitional to the dtype, not a vendor decision — and the comment beside it records that a real int4 checkpoint occupies more."
+      "count": 2,
+      "reason": "Two distinct 0.5s, both named constants. (1) Bytes per parameter at int4 — definitional to the dtype, and the comment beside it records that a real int4 checkpoint occupies more. (2) VISUAL_CONTEXT_DOMINANCE_THRESHOLD — the share of a context window above which images are said to dominate it; a reporting threshold, not a published figure."
     },
     "packages/estimator/src/selfhosted.ts|0.9": {
       "count": 1,

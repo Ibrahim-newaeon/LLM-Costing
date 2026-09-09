@@ -22,6 +22,8 @@ error bars — and a refusal where a number would be a guess.
 | `packages/contracts/` | Zod contracts — the canonical shapes |
 | `packages/estimator/` | Pure functions over the contracts. Visual token counting so far (§A5.2) |
 | `packages/parser/` | §A4.4 Layer 0 — deterministic L1 request parse. No model, no network, no clock |
+| `packages/router/` | §A7 — capability gate, three objectives, split routing |
+| `packages/e2e/` | §A11 — the chain, and the ledger of every unraised `WarningCode` |
 | `scripts/` | Workspace-wide gates. `check-literals.mjs` enforces rule 1 in CI |
 | `schemas/` | Seven JSON Schemas, all **generated** from the contracts and gated in CI |
 | `prompts/analyzer.system.md` | Runtime analyzer system prompt; ships at `/prompts/` in the built app |
@@ -376,6 +378,86 @@ table. This is a regression guard, not a bug fix. It did catch that the four
 `parseConfidence` penalties in the parser are unnamed weights, which is why they now
 carry written reasons.
 
+## §A11 — the chain, and the eighteen warnings nobody could see
+
+Every other suite here tests a module against its own contract, and every one
+passes. §A11 exists for the defects where each module is individually correct and
+the seam between them is not. It found one immediately.
+
+`packages/e2e` drives the whole chain — prose → `parseL1` → `WorkflowInput` →
+estimator → `route` → `EstimateOutput` — and `assembleEstimate()` is the box that
+had never been built. `assembleCandidate` stops at one `Candidate`; every
+`EstimateOutput` that had existed was hand-written inside a test, which is the
+condition under which a rule holds in the contracts and never holds in the product.
+It **computes** `confidence` and `needs_human_review` rather than accepting them,
+because the contract refines on both and taking them as parameters means writing
+the derivation twice.
+
+§A12's headline item is now proven in its own words: **parser overhead once per
+estimate, 1 vs 10 candidates**, stated as arithmetic — candidate cost scales with
+the comparison set, the parse does not.
+
+### Eighteen of thirty-two `WarningCode`s were raised nowhere
+
+Not "modules forget to emit codes". **The warning channel was two different things
+sharing a name.** Only `output.ts` typed its warnings as codes; `media.ts` and
+`selfhosted.ts` pushed a *code* with the sentence in a separate `notes` array,
+`cache.ts` pushed *prose* with no code, `request.ts` pushed a mixture through a
+`Set<string>`. `EstimateWarning` is `{code, message, severity}` — each module had
+one half, and the pairing is unrecoverable because `notes` also collects messages
+that have no warning.
+
+Flipping the channel to `EstimateWarning[]` **was** the survey; the compiler named
+every site. Where they landed:
+
+| | |
+|---|---|
+| **Raised — 8** | `VISUAL_TOKENS_DOMINATE_CONTEXT`, `NEAR_CONTEXT_TIER_THRESHOLD`, `ASSET_EXCEEDS_MAX_EDGE`, `PROVIDER_WILL_NORMALIZE`, `RESIZE_BELOW_LEGIBILITY_FLOOR`, `ESCALATION_FAILED`, `STALE_FX_RATE`, `MEDIA_PAYLOAD_NOT_REMOTE_COUNTED` |
+| **Layer not built — 9** | tier-2 proxy codes, §A6 ingestion codes, the asset reroute, tier-3 padding, the calibration corpus |
+| **Unreachable — 1** | `CACHE_KEY_MISSING_TOKENIZER_REVISION`. The contract *rejects* such a line outright, so the data can never exist to warn about. Prevention beats notification — which makes the enum member dead weight, not a gap |
+
+`warnings.test.ts` holds the ledger and fails three ways: a new unraised code, a
+reason that outlived its defect, and drift in the count. It earned its keep on the
+merge — eight codes stopped being unraised and the enum grew to 35, and both
+assertions fired rather than passing quietly.
+
+### Two that needed more than an emission
+
+**`STALE_FX_RATE`** needed a function. `rateFreshness` asks whether the *rate* was
+re-checked; on a non-USD row the list price can sit unchanged for a year while the
+conversion that made it dollars has moved. `fx_rate_date` had been required since
+the contract was written and **nothing read it** — the same defect `rateInForce`
+was written for, one field along. The window is the rate's **own** `max_age_days`:
+a row claiming 30-day re-verification is claiming how fast it goes out of date, so
+a conversion older than that is stale by its own standard. No policy invented.
+
+**`MEDIA_PAYLOAD_NOT_REMOTE_COUNTED`** had no guard at all. A text-only count on a
+media-bearing request is not wrong by itself — a text line and a vision line are
+composed and added. What is wrong is a count that *claims* to cover the whole
+request when it cannot have seen the media: a local tokenizer skips image blocks,
+and tagged `WHOLE_REQUEST` that number suppresses the framing components **and**
+tells the caller nothing else is owed, so every image is priced at zero. Only tier
+1 has seen the media, and Anthropic says so — the count *"includes … images and
+PDFs"*. `payload_has_media` is required rather than optional, so a caller who
+forgets cannot fall into the unsafe path.
+
+### What the mutations caught that the tests did not
+
+Twice, a mutation survived and exposed a hole the suite could not see.
+
+Inverting §A3.7 at the estimate level — taking the **strongest** candidate instead
+of the weakest — turned nothing red, because every test compared candidates of
+*equal* confidence, where min and max coincide. The fix is the shape that matters
+in practice: a HIGH candidate beside one that refused. A sweep afterwards confirmed
+the hole was local; the other two call sites already used differing values.
+
+Replacing a warning's message with `'x'` also turned nothing red. Nothing was
+checking that a code arrives with anything a reader can act on — which is the
+entire point of pairing them.
+
+**Keep both patterns.** A min/max rule needs a test where the two differ, and
+equal-valued fixtures hide it.
+
 ## Tier 1 — reading the endpoint properly, and the bug that found
 
 `packages/tokenizers` is the first package allowed to do I/O. `estimator` states in its own index
@@ -584,7 +666,8 @@ request fits. It says so rather than passing it silently. An unexamined pass is 
 → **tokenizers** ◐ (§A4.5 tiers 0 and 1 done; no tier 2 for Anthropic)
 → **parser** ◐ (§A4.4 L1 deterministic; L2 model-assisted not built — L1 escalates to it)
 → **router** ✅ (§A7 gate, three objectives, split routing — pure)
-→ pricing ingestion → registry → UI → e2e.
+→ **e2e** ✅ (§A11 chain + §A12's checkable items; `assembleEstimate` is the last box)
+→ pricing ingestion → registry → UI.
 
 **Estimator before UI.** The math is the product.
 
