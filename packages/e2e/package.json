@@ -8,6 +8,7 @@
     "@tokenomics/estimator": "workspace:*",
     "@tokenomics/parser": "workspace:*",
     "@tokenomics/router": "workspace:*",
-    "@tokenomics/calibrate": "workspace:*"
+    "@tokenomics/calibrate": "workspace:*",
+    "@tokenomics/ingest": "workspace:*"
   }
 }

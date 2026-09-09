@@ -24,8 +24,10 @@ error bars — and a refusal where a number would be a guess.
 | `packages/parser/` | §A4.4 Layer 0 — deterministic L1 request parse. No model, no network, no clock |
 | `packages/router/` | §A7 — capability gate, three objectives, split routing |
 | `packages/e2e/` | §A11 — the chain, and the ledger of every unraised `WarningCode` |
+| `packages/ingest/` | §A4.2 / §A6 — pricing ingestion: snapshot, observations, two-source comparison, conflict queue. The second package allowed I/O |
+| `registry/sources/` | Per-feed config with reasons (`litellm.json`) and the last saved observation set the next pull is diffed against |
 | `scripts/` | Workspace-wide gates. `check-literals.mjs` enforces rule 1 in CI |
-| `schemas/` | Seven JSON Schemas, all **generated** from the contracts and gated in CI |
+| `schemas/` | Fourteen JSON Schemas, all **generated** from the contracts and gated in CI |
 | `prompts/analyzer.system.md` | Runtime analyzer system prompt; ships at `/prompts/` in the built app |
 | `prototype/` | Working Vite/React prototype recovered from `~/llm-token-calculator`. Reference only — see `docs/prototype-salvage.md` |
 | `reference/` | The published reference page. **Stale** — 8 drift sites, no generator. Kept so it is not lost, not because it is current |
@@ -334,7 +336,9 @@ Where that lands is itself a finding: `RateConflict` is rule 5's only implementa
 in the contracts and it lives on `Rate`, shaped for money (`competing_amount`,
 `delta_pct`). A vendor contradicting itself about a **sourced constant** — a
 tokens-per-second, a tile size, a resolution limit — has nowhere to be recorded, and
-can only appear as a plain absence.
+can only appear as a plain absence. *(Closed structurally by §A6 below: every `sourced()`
+value now carries a `SourcedConflict` slot. The Gemini video row that would hold this one
+is still unbuilt.)*
 
 ### A fixture that had never been checked against its contract
 
@@ -412,8 +416,8 @@ every site. Where they landed:
 
 | | |
 |---|---|
-| **Raised — 8** | `VISUAL_TOKENS_DOMINATE_CONTEXT`, `NEAR_CONTEXT_TIER_THRESHOLD`, `ASSET_EXCEEDS_MAX_EDGE`, `PROVIDER_WILL_NORMALIZE`, `RESIZE_BELOW_LEGIBILITY_FLOOR`, `ESCALATION_FAILED`, `STALE_FX_RATE`, `MEDIA_PAYLOAD_NOT_REMOTE_COUNTED` |
-| **Layer not built — 9** | tier-2 proxy codes, §A6 ingestion codes, the asset reroute, tier-3 padding, the calibration corpus |
+| **Raised — 8, then 11** | `VISUAL_TOKENS_DOMINATE_CONTEXT`, `NEAR_CONTEXT_TIER_THRESHOLD`, `ASSET_EXCEEDS_MAX_EDGE`, `PROVIDER_WILL_NORMALIZE`, `RESIZE_BELOW_LEGIBILITY_FLOOR`, `ESCALATION_FAILED`, `STALE_FX_RATE`, `MEDIA_PAYLOAD_NOT_REMOTE_COUNTED`; later `MODEL_DEPRECATED` (#23) and, with ingestion, `PRICE_CHANGED_SINCE_LAST_RUN` and `RATE_CONFLICT_UNRESOLVED` |
+| **Layer not built — 9, then 7** | tier-2 proxy codes, the asset reroute, tier-3 padding, the calibration corpus. The two §A6 codes left this row when ingestion was built |
 | **Unreachable — 1** | `CACHE_KEY_MISSING_TOKENIZER_REVISION`. The contract *rejects* such a line outright, so the data can never exist to warn about. Prevention beats notification — which makes the enum member dead weight, not a gap |
 
 `warnings.test.ts` holds the ledger and fails three ways: a new unraised code, a
@@ -457,6 +461,101 @@ entire point of pairing them.
 
 **Keep both patterns.** A min/max rule needs a test where the two differ, and
 equal-valued fixtures hide it.
+
+## §A6 — ingestion, and rule 5 running for the first time
+
+Until now every figure in `registry.json` was read by a person from a vendor page and
+typed in with its URL and date. That is the right way for a figure to *enter* — the
+project's rule — and it leaves the registry with no way to notice when the world moves.
+`packages/ingest` is §A4.2's Tier A: pull a machine-readable feed, record what came back,
+compare it to the registry, and report. **It never writes a rate.** The only thing it can
+put on a row is a `conflict` slot beside a figure a human sourced.
+
+```
+takeSnapshot     feed body → Snapshot {source_url, retrieved_at, sha256, bytes}   I/O, via a port
+extractLiteLLM   body → Observation[]  (RATE | LIMIT | LIFECYCLE), in the feed's own unit
+compareRates     Observation vs registry Rate → one of seven outcomes
+diffObservations two pulls of one source → PriceChangeEvent[]
+applyConflicts   CONFLICT → registry with the slot set; the figure untouched
+openConflicts    the review queue — every unresolved conflict, both kinds
+```
+
+The first feed is LiteLLM's `model_prices_and_context_window.json`, an **aggregator**, so
+every observation it yields is `AGGREGATOR` at `MEDIUM` — the contract refuses HIGH for that
+class, and it refuses it at the observation, not somewhere downstream. Which LiteLLM key
+describes a registry row is **data with a reason** (`registry/sources/litellm.json`): the
+feed lists one product under a dozen keys at different prices because Bedrock, Vertex,
+OpenRouter and the vendor's own API are different routes, and picking the closest-looking
+key would be guessing a rate. The currency is also config, with the sentence from LiteLLM's
+docs that states it and the date it was read.
+
+### Seven outcomes, because "they disagree" is the least of it
+
+| Outcome | Meaning |
+|---|---|
+| `AGREE` | Same figure after explicit unit normalization (per token ↔ per 1k ↔ per 1M; nothing else converts) |
+| `WITHIN_TOLERANCE` | Different figure, inside the tolerance — reported with its delta so drift can be watched |
+| `CONFLICT` | Beyond tolerance. A `RateConflict` is built with **both figures in the registry's unit**, a signed delta, and `resolved: false` |
+| `REGISTRY_UNSOURCED` | The row has the slot and never sourced it — a lead for a human, not a value to write |
+| `NO_SLOT` | A tier boundary the registry does not draw, a variant it does not carry — not rounded to the nearest tier |
+| `NOT_COMPARABLE` | Different currencies or a non-token unit. Never converted (§A4.2) |
+| `ZERO_BASE` | Registry says free, feed says not. No finite percentage exists, so none is invented |
+
+`tolerance_pct` is **required with no default**. §A3 names `PRICE_CONFLICT_TOLERANCE_PCT` and
+gives it no value; a default in code would be a policy nobody wrote down applied to every
+conflict. The runner takes it per run.
+
+### On the real feed
+
+`pnpm -F @tokenomics/ingest ingest:litellm --tolerance-pct 2`, live, 2026-09-09: the feed hashed
+identically to a pull eighteen minutes earlier (`aed90403…`, 2,338,687 bytes), and **every comparable
+figure agreed** — Anthropic's four rates, Gemini's base and above-200k input and output. What it
+found instead was the other five outcomes doing their job:
+
+- Gemini's cache-read rate at both tiers: `REGISTRY_UNSOURCED`. The registry row has no cache
+  profile; the feed states one. A lead to read on Google's page, not a value.
+- Gemini `context_window` and `max_output`: the feed states 1,048,576 and 65,535; the registry
+  has `UNAVAILABLE` (Google's spec tables are JS-rendered). Reported as claims for a human.
+- `claude-opus-5` `deprecation_date`: the feed claims 2027-07-24; the registry has null. A
+  lifecycle claim from an aggregator is reported, never written — the vendor's page decides.
+
+Zero conflicts, so the conflict path is proven on **synthetic** observations named as such
+(`example.invalid` sources, the real reading doubled) and by mutation: averaging the two
+figures, ignoring the tolerance, silencing an unresolved conflict, downgrading it to WARN,
+overwriting another source's conflict, dropping constants from the queue, an off-by-one in the
+tier lookup, guessing a missing key, and dropping REMOVED events each turned between one and
+five tests red. One mutation survived — removing the `outcome !== 'CONFLICT'` check in
+`applyConflicts` — and it is equivalent: every non-conflict comparison carries `conflict: null`,
+so the second check already refuses it.
+
+### Rule 5 gets a second home, and a reader
+
+`Rate.conflict` has been on the contract since the rate was written and, until
+`rateConflictWarnings`, **nothing read it** — the fourth field found by the grep that found
+`effective_from`, `fx_rate_date` and `deprecation_date`. Ingestion could have filled it and an
+estimate would have priced straight through. The warning is `BLOCKING`, because rule 5 says an
+unresolved conflict marks `needs_human_review` and `assembleEstimate` derives that flag from
+severity alone; the estimate still renders, at the registry figure. `packages/e2e/src/ingest.test.ts`
+drives a synthetic conflict from the feed to `needs_human_review: true` and checks the line was
+priced at $5/M — not $10, and not $7.50.
+
+Finding 3.15 — *rule 5 has no home for a conflict on a sourced constant* — is closed
+structurally. Every `sourced()` value now carries `conflict: SourcedConflict | null`: two or
+more candidates, each with its URL, retrieval time and a locator on the page, `resolved: false`
+until a human decides, and `value` left as whatever the reader could honestly commit to. It is
+deliberately **not** a generalisation of `RateConflict`: that record answers "which of two rows
+is right", this one "what did the source actually say". `openConflicts` reads both, so the
+review queue is one list. VERIFY #7 itself is not yet recorded — the Gemini row has no
+`video_in` profile to hang it on, and building that profile means reading the rest of the
+video page, which is the data item, not this one.
+
+### What "verified" means here
+
+The prototype's refresh script set `verified: true` when a price string appeared on a page.
+`Snapshot.content_sha256` is what that flag was actually measuring, under its honest name:
+`unchangedSince(a, b)` says the bytes did not move. It says nothing about whether any model
+has any price. That still needs a person and the vendor's page — which is what the comparison
+is *for*.
 
 ## Tier 1 — reading the endpoint properly, and the bug that found
 
@@ -658,6 +757,24 @@ request fits. It says so rather than passing it silently. An unexamined pass is 
 | 100k-token read | **Gemini wins**: $0.125 against Anthropic's $0.50, at $1.25/1M below the 200k tier |
 | Best-capability | **Null** — no sourced `quality_score` on either row |
 
+### A withdrawn model is not rankable; a deprecated one is, with a warning
+
+`ModelRow` has carried `effective_to` and `deprecation_date` since the contract was written,
+and until #23 **nothing read them** — the third field found by the grep that found
+`rateInForce`'s dates and `fx_rate_date`. The consequence here is worse than a mispriced
+rate: the router would recommend a model that has been shut down, at a price that is
+arithmetically correct for something you cannot call. Not hypothetical — Google's models page
+lists shut-down endpoints in a "Previous models" section beside live ones (retrieved 2026-09-08
+from https://ai.google.dev/gemini-api/docs/models; the page shows no date).
+
+`modelInService(row, at)` returns **four** states, because two would merge facts with different
+fixes. `WITHDRAWN` (past `effective_to`) and `NOT_YET_AVAILABLE` are excluded with
+`MODEL_NOT_IN_SERVICE`. **`DEPRECATED` is deliberately not excluded**: the endpoint still
+answers, it may honestly be the cheapest option today, so it stays eligible and raises
+`MODEL_DEPRECATED` — "migrate off this model" is the useful sentence. The lifecycle check runs
+**before** the capability gate, with a test pinning the order: "it has been withdrawn" sends the
+reader to the right fix; "it lacks vision" sends them to the wrong one.
+
 ## Build order
 
 **Contracts** ✅ (Zod canonical, JSON Schema generated with a CI drift gate)
@@ -667,7 +784,9 @@ request fits. It says so rather than passing it silently. An unexamined pass is 
 → **parser** ◐ (§A4.4 L1 deterministic; L2 model-assisted not built — L1 escalates to it)
 → **router** ✅ (§A7 gate, three objectives, split routing — pure)
 → **e2e** ✅ (§A11 chain + §A12's checkable items; `assembleEstimate` is the last box)
-→ pricing ingestion → registry → UI.
+→ **ingestion** ◐ (§A4.2 Tier A: snapshot → observations → two-source comparison → conflict
+   queue, with LiteLLM as the first feed; Tier B manual overrides and OpenRouter not built)
+→ registry → UI.
 
 **Estimator before UI.** The math is the product.
 

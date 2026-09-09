@@ -1,0 +1,327 @@
+[
+  {
+    "model_id": "claude-opus-5",
+    "snapshot_id": "litellm@2026-09-09T10:56:12.719Z",
+    "source_key": "claude-opus-5",
+    "provenance": {
+      "method": "PROVIDER_FORMULA",
+      "confidence": "MEDIUM",
+      "source_class": "AGGREGATOR",
+      "source_url": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
+      "verified_at": "2026-09-09T10:56:12.719Z",
+      "verified_by": null,
+      "notes": "LiteLLM key \"claude-opus-5\" (litellm_provider: anthropic); LiteLLM cites https://docs.anthropic.com/en/docs/about-claude/models/overview"
+    },
+    "kind": "RATE",
+    "key": {
+      "direction": "input",
+      "modality": "text",
+      "variant": "standard",
+      "above_tokens": null
+    },
+    "amount": 0.000005,
+    "unit": "per_token",
+    "currency": "USD"
+  },
+  {
+    "model_id": "claude-opus-5",
+    "snapshot_id": "litellm@2026-09-09T10:56:12.719Z",
+    "source_key": "claude-opus-5",
+    "provenance": {
+      "method": "PROVIDER_FORMULA",
+      "confidence": "MEDIUM",
+      "source_class": "AGGREGATOR",
+      "source_url": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
+      "verified_at": "2026-09-09T10:56:12.719Z",
+      "verified_by": null,
+      "notes": "LiteLLM key \"claude-opus-5\" (litellm_provider: anthropic); LiteLLM cites https://docs.anthropic.com/en/docs/about-claude/models/overview"
+    },
+    "kind": "RATE",
+    "key": {
+      "direction": "output",
+      "modality": null,
+      "variant": "standard",
+      "above_tokens": null
+    },
+    "amount": 0.000025,
+    "unit": "per_token",
+    "currency": "USD"
+  },
+  {
+    "model_id": "claude-opus-5",
+    "snapshot_id": "litellm@2026-09-09T10:56:12.719Z",
+    "source_key": "claude-opus-5",
+    "provenance": {
+      "method": "PROVIDER_FORMULA",
+      "confidence": "MEDIUM",
+      "source_class": "AGGREGATOR",
+      "source_url": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
+      "verified_at": "2026-09-09T10:56:12.719Z",
+      "verified_by": null,
+      "notes": "LiteLLM key \"claude-opus-5\" (litellm_provider: anthropic); LiteLLM cites https://docs.anthropic.com/en/docs/about-claude/models/overview"
+    },
+    "kind": "RATE",
+    "key": {
+      "direction": "cache_write",
+      "modality": "text",
+      "variant": "standard",
+      "above_tokens": null
+    },
+    "amount": 0.00000625,
+    "unit": "per_token",
+    "currency": "USD"
+  },
+  {
+    "model_id": "claude-opus-5",
+    "snapshot_id": "litellm@2026-09-09T10:56:12.719Z",
+    "source_key": "claude-opus-5",
+    "provenance": {
+      "method": "PROVIDER_FORMULA",
+      "confidence": "MEDIUM",
+      "source_class": "AGGREGATOR",
+      "source_url": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
+      "verified_at": "2026-09-09T10:56:12.719Z",
+      "verified_by": null,
+      "notes": "LiteLLM key \"claude-opus-5\" (litellm_provider: anthropic); LiteLLM cites https://docs.anthropic.com/en/docs/about-claude/models/overview"
+    },
+    "kind": "RATE",
+    "key": {
+      "direction": "cache_read",
+      "modality": "text",
+      "variant": "standard",
+      "above_tokens": null
+    },
+    "amount": 5e-7,
+    "unit": "per_token",
+    "currency": "USD"
+  },
+  {
+    "model_id": "claude-opus-5",
+    "snapshot_id": "litellm@2026-09-09T10:56:12.719Z",
+    "source_key": "claude-opus-5",
+    "provenance": {
+      "method": "PROVIDER_FORMULA",
+      "confidence": "MEDIUM",
+      "source_class": "AGGREGATOR",
+      "source_url": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
+      "verified_at": "2026-09-09T10:56:12.719Z",
+      "verified_by": null,
+      "notes": "LiteLLM key \"claude-opus-5\" (litellm_provider: anthropic); LiteLLM cites https://docs.anthropic.com/en/docs/about-claude/models/overview"
+    },
+    "kind": "LIMIT",
+    "which": "context_window",
+    "value": 1000000
+  },
+  {
+    "model_id": "claude-opus-5",
+    "snapshot_id": "litellm@2026-09-09T10:56:12.719Z",
+    "source_key": "claude-opus-5",
+    "provenance": {
+      "method": "PROVIDER_FORMULA",
+      "confidence": "MEDIUM",
+      "source_class": "AGGREGATOR",
+      "source_url": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
+      "verified_at": "2026-09-09T10:56:12.719Z",
+      "verified_by": null,
+      "notes": "LiteLLM key \"claude-opus-5\" (litellm_provider: anthropic); LiteLLM cites https://docs.anthropic.com/en/docs/about-claude/models/overview"
+    },
+    "kind": "LIMIT",
+    "which": "max_output",
+    "value": 128000
+  },
+  {
+    "model_id": "claude-opus-5",
+    "snapshot_id": "litellm@2026-09-09T10:56:12.719Z",
+    "source_key": "claude-opus-5",
+    "provenance": {
+      "method": "PROVIDER_FORMULA",
+      "confidence": "MEDIUM",
+      "source_class": "AGGREGATOR",
+      "source_url": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
+      "verified_at": "2026-09-09T10:56:12.719Z",
+      "verified_by": null,
+      "notes": "LiteLLM key \"claude-opus-5\" (litellm_provider: anthropic); LiteLLM cites https://docs.anthropic.com/en/docs/about-claude/models/overview; feed states date only: 2027-07-24"
+    },
+    "kind": "LIFECYCLE",
+    "which": "deprecation_date",
+    "value": "2027-07-24T00:00:00.000Z"
+  },
+  {
+    "model_id": "gemini-2.5-pro",
+    "snapshot_id": "litellm@2026-09-09T10:56:12.719Z",
+    "source_key": "gemini/gemini-2.5-pro",
+    "provenance": {
+      "method": "PROVIDER_FORMULA",
+      "confidence": "MEDIUM",
+      "source_class": "AGGREGATOR",
+      "source_url": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
+      "verified_at": "2026-09-09T10:56:12.719Z",
+      "verified_by": null,
+      "notes": "LiteLLM key \"gemini/gemini-2.5-pro\" (litellm_provider: gemini); LiteLLM cites https://cloud.google.com/vertex-ai/generative-ai/pricing"
+    },
+    "kind": "RATE",
+    "key": {
+      "direction": "input",
+      "modality": "text",
+      "variant": "standard",
+      "above_tokens": null
+    },
+    "amount": 0.00000125,
+    "unit": "per_token",
+    "currency": "USD"
+  },
+  {
+    "model_id": "gemini-2.5-pro",
+    "snapshot_id": "litellm@2026-09-09T10:56:12.719Z",
+    "source_key": "gemini/gemini-2.5-pro",
+    "provenance": {
+      "method": "PROVIDER_FORMULA",
+      "confidence": "MEDIUM",
+      "source_class": "AGGREGATOR",
+      "source_url": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
+      "verified_at": "2026-09-09T10:56:12.719Z",
+      "verified_by": null,
+      "notes": "LiteLLM key \"gemini/gemini-2.5-pro\" (litellm_provider: gemini); LiteLLM cites https://cloud.google.com/vertex-ai/generative-ai/pricing"
+    },
+    "kind": "RATE",
+    "key": {
+      "direction": "output",
+      "modality": null,
+      "variant": "standard",
+      "above_tokens": null
+    },
+    "amount": 0.00001,
+    "unit": "per_token",
+    "currency": "USD"
+  },
+  {
+    "model_id": "gemini-2.5-pro",
+    "snapshot_id": "litellm@2026-09-09T10:56:12.719Z",
+    "source_key": "gemini/gemini-2.5-pro",
+    "provenance": {
+      "method": "PROVIDER_FORMULA",
+      "confidence": "MEDIUM",
+      "source_class": "AGGREGATOR",
+      "source_url": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
+      "verified_at": "2026-09-09T10:56:12.719Z",
+      "verified_by": null,
+      "notes": "LiteLLM key \"gemini/gemini-2.5-pro\" (litellm_provider: gemini); LiteLLM cites https://cloud.google.com/vertex-ai/generative-ai/pricing"
+    },
+    "kind": "RATE",
+    "key": {
+      "direction": "cache_read",
+      "modality": "text",
+      "variant": "standard",
+      "above_tokens": null
+    },
+    "amount": 1.25e-7,
+    "unit": "per_token",
+    "currency": "USD"
+  },
+  {
+    "model_id": "gemini-2.5-pro",
+    "snapshot_id": "litellm@2026-09-09T10:56:12.719Z",
+    "source_key": "gemini/gemini-2.5-pro",
+    "provenance": {
+      "method": "PROVIDER_FORMULA",
+      "confidence": "MEDIUM",
+      "source_class": "AGGREGATOR",
+      "source_url": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
+      "verified_at": "2026-09-09T10:56:12.719Z",
+      "verified_by": null,
+      "notes": "LiteLLM key \"gemini/gemini-2.5-pro\" (litellm_provider: gemini); LiteLLM cites https://cloud.google.com/vertex-ai/generative-ai/pricing"
+    },
+    "kind": "RATE",
+    "key": {
+      "direction": "cache_read",
+      "modality": "text",
+      "variant": "standard",
+      "above_tokens": 200000
+    },
+    "amount": 2.5e-7,
+    "unit": "per_token",
+    "currency": "USD"
+  },
+  {
+    "model_id": "gemini-2.5-pro",
+    "snapshot_id": "litellm@2026-09-09T10:56:12.719Z",
+    "source_key": "gemini/gemini-2.5-pro",
+    "provenance": {
+      "method": "PROVIDER_FORMULA",
+      "confidence": "MEDIUM",
+      "source_class": "AGGREGATOR",
+      "source_url": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
+      "verified_at": "2026-09-09T10:56:12.719Z",
+      "verified_by": null,
+      "notes": "LiteLLM key \"gemini/gemini-2.5-pro\" (litellm_provider: gemini); LiteLLM cites https://cloud.google.com/vertex-ai/generative-ai/pricing"
+    },
+    "kind": "RATE",
+    "key": {
+      "direction": "input",
+      "modality": "text",
+      "variant": "standard",
+      "above_tokens": 200000
+    },
+    "amount": 0.0000025,
+    "unit": "per_token",
+    "currency": "USD"
+  },
+  {
+    "model_id": "gemini-2.5-pro",
+    "snapshot_id": "litellm@2026-09-09T10:56:12.719Z",
+    "source_key": "gemini/gemini-2.5-pro",
+    "provenance": {
+      "method": "PROVIDER_FORMULA",
+      "confidence": "MEDIUM",
+      "source_class": "AGGREGATOR",
+      "source_url": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
+      "verified_at": "2026-09-09T10:56:12.719Z",
+      "verified_by": null,
+      "notes": "LiteLLM key \"gemini/gemini-2.5-pro\" (litellm_provider: gemini); LiteLLM cites https://cloud.google.com/vertex-ai/generative-ai/pricing"
+    },
+    "kind": "RATE",
+    "key": {
+      "direction": "output",
+      "modality": null,
+      "variant": "standard",
+      "above_tokens": 200000
+    },
+    "amount": 0.000015,
+    "unit": "per_token",
+    "currency": "USD"
+  },
+  {
+    "model_id": "gemini-2.5-pro",
+    "snapshot_id": "litellm@2026-09-09T10:56:12.719Z",
+    "source_key": "gemini/gemini-2.5-pro",
+    "provenance": {
+      "method": "PROVIDER_FORMULA",
+      "confidence": "MEDIUM",
+      "source_class": "AGGREGATOR",
+      "source_url": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
+      "verified_at": "2026-09-09T10:56:12.719Z",
+      "verified_by": null,
+      "notes": "LiteLLM key \"gemini/gemini-2.5-pro\" (litellm_provider: gemini); LiteLLM cites https://cloud.google.com/vertex-ai/generative-ai/pricing"
+    },
+    "kind": "LIMIT",
+    "which": "context_window",
+    "value": 1048576
+  },
+  {
+    "model_id": "gemini-2.5-pro",
+    "snapshot_id": "litellm@2026-09-09T10:56:12.719Z",
+    "source_key": "gemini/gemini-2.5-pro",
+    "provenance": {
+      "method": "PROVIDER_FORMULA",
+      "confidence": "MEDIUM",
+      "source_class": "AGGREGATOR",
+      "source_url": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
+      "verified_at": "2026-09-09T10:56:12.719Z",
+      "verified_by": null,
+      "notes": "LiteLLM key \"gemini/gemini-2.5-pro\" (litellm_provider: gemini); LiteLLM cites https://cloud.google.com/vertex-ai/generative-ai/pricing"
+    },
+    "kind": "LIMIT",
+    "which": "max_output",
+    "value": 65535
+  }
+]

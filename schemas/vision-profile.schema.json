@@ -51,6 +51,17 @@
                 },
                 "provenance": {
                   "$ref": "#/$defs/Provenance"
+                },
+                "conflict": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/SourcedConflict"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -84,6 +95,17 @@
                         },
                         "provenance": {
                           "$ref": "#/$defs/Provenance"
+                        },
+                        "conflict": {
+                          "default": null,
+                          "anyOf": [
+                            {
+                              "$ref": "#/$defs/SourcedConflict"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         }
                       },
                       "required": [
@@ -121,6 +143,17 @@
                         },
                         "provenance": {
                           "$ref": "#/$defs/Provenance"
+                        },
+                        "conflict": {
+                          "default": null,
+                          "anyOf": [
+                            {
+                              "$ref": "#/$defs/SourcedConflict"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         }
                       },
                       "required": [
@@ -145,6 +178,17 @@
                         },
                         "provenance": {
                           "$ref": "#/$defs/Provenance"
+                        },
+                        "conflict": {
+                          "default": null,
+                          "anyOf": [
+                            {
+                              "$ref": "#/$defs/SourcedConflict"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         }
                       },
                       "required": [
@@ -192,6 +236,17 @@
                 },
                 "provenance": {
                   "$ref": "#/$defs/Provenance"
+                },
+                "conflict": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/SourcedConflict"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -216,6 +271,17 @@
                 },
                 "provenance": {
                   "$ref": "#/$defs/Provenance"
+                },
+                "conflict": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/SourcedConflict"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -240,6 +306,17 @@
                 },
                 "provenance": {
                   "$ref": "#/$defs/Provenance"
+                },
+                "conflict": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/SourcedConflict"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -264,6 +341,17 @@
                 },
                 "provenance": {
                   "$ref": "#/$defs/Provenance"
+                },
+                "conflict": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/SourcedConflict"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -291,6 +379,17 @@
                     },
                     "provenance": {
                       "$ref": "#/$defs/Provenance"
+                    },
+                    "conflict": {
+                      "default": null,
+                      "anyOf": [
+                        {
+                          "$ref": "#/$defs/SourcedConflict"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -323,6 +422,17 @@
                     },
                     "provenance": {
                       "$ref": "#/$defs/Provenance"
+                    },
+                    "conflict": {
+                      "default": null,
+                      "anyOf": [
+                        {
+                          "$ref": "#/$defs/SourcedConflict"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -367,6 +477,17 @@
                 },
                 "provenance": {
                   "$ref": "#/$defs/Provenance"
+                },
+                "conflict": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/SourcedConflict"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -391,6 +512,17 @@
                 },
                 "provenance": {
                   "$ref": "#/$defs/Provenance"
+                },
+                "conflict": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/SourcedConflict"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -429,6 +561,17 @@
                 },
                 "provenance": {
                   "$ref": "#/$defs/Provenance"
+                },
+                "conflict": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/SourcedConflict"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -466,6 +609,17 @@
                 },
                 "provenance": {
                   "$ref": "#/$defs/Provenance"
+                },
+                "conflict": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/SourcedConflict"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -490,6 +644,17 @@
                 },
                 "provenance": {
                   "$ref": "#/$defs/Provenance"
+                },
+                "conflict": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/SourcedConflict"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -514,6 +679,17 @@
                 },
                 "provenance": {
                   "$ref": "#/$defs/Provenance"
+                },
+                "conflict": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/SourcedConflict"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -538,6 +714,17 @@
                 },
                 "provenance": {
                   "$ref": "#/$defs/Provenance"
+                },
+                "conflict": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/SourcedConflict"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -713,6 +900,65 @@
         "USER_ENTERED"
       ]
     },
+    "SourcedConflict": {
+      "type": "object",
+      "properties": {
+        "candidates": {
+          "minItems": 2,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SourcedConflictCandidate"
+          }
+        },
+        "resolved": {
+          "default": false,
+          "type": "boolean"
+        },
+        "notes": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "candidates"
+      ]
+    },
+    "SourcedConflictCandidate": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": [
+            "number",
+            "string",
+            "boolean"
+          ]
+        },
+        "source_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "retrieved_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+        },
+        "locator": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "value",
+        "source_url",
+        "retrieved_at"
+      ]
+    },
     "LowDetailBehaviour": {
       "oneOf": [
         {
@@ -739,6 +985,17 @@
                 },
                 "provenance": {
                   "$ref": "#/$defs/Provenance"
+                },
+                "conflict": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/SourcedConflict"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -798,6 +1055,17 @@
             },
             "provenance": {
               "$ref": "#/$defs/Provenance"
+            },
+            "conflict": {
+              "default": null,
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourcedConflict"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -822,6 +1090,17 @@
             },
             "provenance": {
               "$ref": "#/$defs/Provenance"
+            },
+            "conflict": {
+              "default": null,
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourcedConflict"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -846,6 +1125,17 @@
             },
             "provenance": {
               "$ref": "#/$defs/Provenance"
+            },
+            "conflict": {
+              "default": null,
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourcedConflict"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -870,6 +1160,17 @@
             },
             "provenance": {
               "$ref": "#/$defs/Provenance"
+            },
+            "conflict": {
+              "default": null,
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourcedConflict"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -894,6 +1195,17 @@
             },
             "provenance": {
               "$ref": "#/$defs/Provenance"
+            },
+            "conflict": {
+              "default": null,
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourcedConflict"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -936,6 +1248,17 @@
             },
             "provenance": {
               "$ref": "#/$defs/Provenance"
+            },
+            "conflict": {
+              "default": null,
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourcedConflict"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -979,6 +1302,17 @@
             },
             "provenance": {
               "$ref": "#/$defs/Provenance"
+            },
+            "conflict": {
+              "default": null,
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourcedConflict"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
