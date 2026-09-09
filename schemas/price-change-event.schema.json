@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/PriceChangeEvent",
+  "$defs": {
+    "PriceChangeEvent": {
+      "type": "object",
+      "properties": {
+        "model_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "key": {
+          "$ref": "#/$defs/RateKey"
+        },
+        "change": {
+          "type": "string",
+          "enum": [
+            "CHANGED",
+            "ADDED",
+            "REMOVED"
+          ]
+        },
+        "unit": {
+          "$ref": "#/$defs/RateUnit"
+        },
+        "currency": {
+          "$ref": "#/$defs/Currency"
+        },
+        "previous_amount": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "current_amount": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "delta_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "previous_snapshot_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "current_snapshot_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "model_id",
+        "key",
+        "change",
+        "unit",
+        "currency",
+        "previous_amount",
+        "current_amount",
+        "delta_pct",
+        "previous_snapshot_id",
+        "current_snapshot_id"
+      ]
+    },
+    "RateKey": {
+      "type": "object",
+      "properties": {
+        "direction": {
+          "type": "string",
+          "enum": [
+            "input",
+            "output",
+            "cache_write",
+            "cache_read",
+            "reasoning_output"
+          ]
+        },
+        "modality": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "text",
+                "image",
+                "audio",
+                "video"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "variant": {
+          "default": "standard",
+          "$ref": "#/$defs/ServiceTier"
+        },
+        "above_tokens": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "direction",
+        "modality"
+      ]
+    },
+    "ServiceTier": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "batch",
+        "flex",
+        "priority",
+        "fast",
+        "provisioned"
+      ]
+    },
+    "RateUnit": {
+      "type": "string",
+      "enum": [
+        "per_1m_tokens",
+        "per_1k_tokens",
+        "per_token",
+        "per_image",
+        "per_megapixel",
+        "per_step",
+        "per_second",
+        "per_request",
+        "per_1k_calls",
+        "per_gb_day",
+        "per_gb",
+        "per_1m_tokens_per_hour",
+        "per_gpu_hour",
+        "per_instance_hour"
+      ]
+    },
+    "Currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3
+    }
+  },
+  "title": "PriceChangeEvent",
+  "$comment": "GENERATED from /packages/contracts/src — do not hand-edit. Run `pnpm generate:schemas`. CI fails if this file differs from the regenerated output (§A2)."
+}

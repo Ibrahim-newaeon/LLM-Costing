@@ -1,0 +1,344 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/Observation",
+  "$defs": {
+    "Observation": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/RateObservation"
+        },
+        {
+          "$ref": "#/$defs/LimitObservation"
+        },
+        {
+          "$ref": "#/$defs/LifecycleObservation"
+        }
+      ]
+    },
+    "RateObservation": {
+      "type": "object",
+      "properties": {
+        "model_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "snapshot_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "kind": {
+          "type": "string",
+          "const": "RATE"
+        },
+        "key": {
+          "$ref": "#/$defs/RateKey"
+        },
+        "amount": {
+          "type": "number",
+          "minimum": 0
+        },
+        "unit": {
+          "$ref": "#/$defs/RateUnit"
+        },
+        "currency": {
+          "$ref": "#/$defs/Currency"
+        }
+      },
+      "required": [
+        "model_id",
+        "snapshot_id",
+        "source_key",
+        "provenance",
+        "kind",
+        "key",
+        "amount",
+        "unit",
+        "currency"
+      ]
+    },
+    "Provenance": {
+      "type": "object",
+      "properties": {
+        "method": {
+          "$ref": "#/$defs/Method"
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence"
+        },
+        "source_class": {
+          "$ref": "#/$defs/SourceClass"
+        },
+        "source_url": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uri"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "verified_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "verified_by": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "notes": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "method",
+        "confidence",
+        "source_class",
+        "source_url",
+        "verified_at"
+      ]
+    },
+    "Method": {
+      "type": "string",
+      "enum": [
+        "EXACT_TOKENIZER",
+        "PROVIDER_COUNT_API",
+        "PROVIDER_FORMULA",
+        "MEASURED_PROBE",
+        "MEASURED_BENCHMARK",
+        "TOKENIZER_SCALED",
+        "CALIBRATED_HEURISTIC",
+        "EXACT_PROXY",
+        "USER_SUPPLIED",
+        "DERIVED",
+        "UNAVAILABLE"
+      ]
+    },
+    "Confidence": {
+      "type": "string",
+      "enum": [
+        "HIGH",
+        "MEDIUM",
+        "LOW",
+        "NONE"
+      ]
+    },
+    "SourceClass": {
+      "type": "string",
+      "enum": [
+        "VENDOR_PAGE",
+        "VENDOR_CONFIG",
+        "VENDOR_DOCS",
+        "AGGREGATOR",
+        "MEASURED",
+        "USER_ENTERED"
+      ]
+    },
+    "RateKey": {
+      "type": "object",
+      "properties": {
+        "direction": {
+          "type": "string",
+          "enum": [
+            "input",
+            "output",
+            "cache_write",
+            "cache_read",
+            "reasoning_output"
+          ]
+        },
+        "modality": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "text",
+                "image",
+                "audio",
+                "video"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "variant": {
+          "default": "standard",
+          "$ref": "#/$defs/ServiceTier"
+        },
+        "above_tokens": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "direction",
+        "modality"
+      ]
+    },
+    "ServiceTier": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "batch",
+        "flex",
+        "priority",
+        "fast",
+        "provisioned"
+      ]
+    },
+    "RateUnit": {
+      "type": "string",
+      "enum": [
+        "per_1m_tokens",
+        "per_1k_tokens",
+        "per_token",
+        "per_image",
+        "per_megapixel",
+        "per_step",
+        "per_second",
+        "per_request",
+        "per_1k_calls",
+        "per_gb_day",
+        "per_gb",
+        "per_1m_tokens_per_hour",
+        "per_gpu_hour",
+        "per_instance_hour"
+      ]
+    },
+    "Currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3
+    },
+    "LimitObservation": {
+      "type": "object",
+      "properties": {
+        "model_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "snapshot_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "kind": {
+          "type": "string",
+          "const": "LIMIT"
+        },
+        "which": {
+          "type": "string",
+          "enum": [
+            "context_window",
+            "max_output"
+          ]
+        },
+        "value": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "model_id",
+        "snapshot_id",
+        "source_key",
+        "provenance",
+        "kind",
+        "which",
+        "value"
+      ]
+    },
+    "LifecycleObservation": {
+      "type": "object",
+      "properties": {
+        "model_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "snapshot_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "kind": {
+          "type": "string",
+          "const": "LIFECYCLE"
+        },
+        "which": {
+          "type": "string",
+          "enum": [
+            "deprecation_date"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+        }
+      },
+      "required": [
+        "model_id",
+        "snapshot_id",
+        "source_key",
+        "provenance",
+        "kind",
+        "which",
+        "value"
+      ]
+    }
+  },
+  "title": "Observation",
+  "$comment": "GENERATED from /packages/contracts/src — do not hand-edit. Run `pnpm generate:schemas`. CI fails if this file differs from the regenerated output (§A2)."
+}

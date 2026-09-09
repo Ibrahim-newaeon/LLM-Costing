@@ -1,0 +1,107 @@
+{
+  "_fixture": {
+    "what": "Verbatim excerpt of LiteLLM model_prices_and_context_window.json: the entries for the keys the registry maps. Nothing in `feed` was edited. Prices here are an AGGREGATOR reading, capped at MEDIUM by the contract; they are evidence the registry is checked against, never a seed.",
+    "source_url": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
+    "retrieved_at": "2026-09-09T10:37:59.000Z",
+    "retrieved_with": "curl -sS -L on the maintainer machine; full file hashed before excerpting",
+    "full_file_sha256": "aed904030df782f3a9c9043c40d60d4eec3c99ea1dd201f5d9b5fc7eff34e1cc",
+    "full_file_bytes": 2338687,
+    "keys": [
+      "claude-opus-5",
+      "gemini/gemini-2.5-pro"
+    ]
+  },
+  "feed": {
+    "claude-opus-5": {
+      "deprecation_date": "2027-07-24",
+      "cache_creation_input_token_cost": 0.00000625,
+      "cache_creation_input_token_cost_above_1hr": 0.00001,
+      "cache_read_input_token_cost": 5e-7,
+      "input_cost_per_token": 0.000005,
+      "litellm_provider": "anthropic",
+      "max_input_tokens": 1000000,
+      "max_output_tokens": 128000,
+      "max_tokens": 128000,
+      "mode": "chat",
+      "output_cost_per_token": 0.000025,
+      "search_context_cost_per_query": {
+        "search_context_size_high": 0.01,
+        "search_context_size_low": 0.01,
+        "search_context_size_medium": 0.01
+      },
+      "supports_adaptive_thinking": true,
+      "supports_mid_conversation_system": true,
+      "supports_assistant_prefill": false,
+      "supports_computer_use": true,
+      "supports_function_calling": true,
+      "supports_pdf_input": true,
+      "supports_prompt_caching": true,
+      "supports_reasoning": true,
+      "supports_response_schema": true,
+      "supports_native_structured_output": true,
+      "supports_sampling_params": false,
+      "supports_tool_choice": true,
+      "supports_vision": true,
+      "supports_xhigh_reasoning_effort": true,
+      "supports_max_reasoning_effort": true,
+      "provider_specific_entry": {
+        "us": 1.1,
+        "fast": 2
+      },
+      "supports_output_config": true,
+      "supports_speed": true,
+      "prompt_cache_min_tokens": 512,
+      "source": "https://docs.anthropic.com/en/docs/about-claude/models/overview"
+    },
+    "gemini/gemini-2.5-pro": {
+      "cache_read_input_token_cost": 1.25e-7,
+      "cache_read_input_token_cost_above_200k_tokens": 2.5e-7,
+      "input_cost_per_token": 0.00000125,
+      "input_cost_per_token_above_200k_tokens": 0.0000025,
+      "input_cost_per_token_priority": 0.00000125,
+      "input_cost_per_token_above_200k_tokens_priority": 0.0000025,
+      "litellm_provider": "gemini",
+      "max_input_tokens": 1048576,
+      "max_output_tokens": 65535,
+      "max_tokens": 65535,
+      "mode": "chat",
+      "output_cost_per_token": 0.00001,
+      "output_cost_per_token_above_200k_tokens": 0.000015,
+      "output_cost_per_token_priority": 0.00001,
+      "output_cost_per_token_above_200k_tokens_priority": 0.000015,
+      "rpm": 2000,
+      "source": "https://cloud.google.com/vertex-ai/generative-ai/pricing",
+      "supported_endpoints": [
+        "/v1/chat/completions",
+        "/v1/completions"
+      ],
+      "supported_modalities": [
+        "text",
+        "image",
+        "audio",
+        "video"
+      ],
+      "supported_output_modalities": [
+        "text"
+      ],
+      "supports_audio_input": true,
+      "supports_function_calling": true,
+      "supports_pdf_input": true,
+      "supports_prompt_caching": true,
+      "supports_reasoning": true,
+      "supports_response_schema": true,
+      "supports_system_messages": true,
+      "supports_tool_choice": true,
+      "supports_video_input": true,
+      "supports_vision": true,
+      "supports_web_search": true,
+      "tpm": 800000,
+      "search_context_cost_per_query": {
+        "search_context_size_low": 0.035,
+        "search_context_size_medium": 0.035,
+        "search_context_size_high": 0.035
+      },
+      "google_maps_grounding_cost_per_query": 0.025
+    }
+  }
+}

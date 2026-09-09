@@ -71,6 +71,37 @@ export type RateConflict = z.infer<typeof RateConflict>;
 export type Freshness = 'FRESH' | 'STALE' | 'UNVERIFIED' | 'NO_POLICY';
 
 /**
+ * The unit a rate is quoted in. Lifted out of `Rate` (2026-09-09) so that an
+ * ingested observation can name its unit against the SAME list — a second enum in
+ * the ingest package would be the two-definitions defect one field over.
+ *
+ * ⚠️ Token units are three scalings of one quantity and NOT interchangeable by
+ * eye: an aggregator quotes per token (5e-6), a vendor page per million (5). The
+ * comparison in `@tokenomics/ingest` normalizes explicitly and refuses any pair it
+ * cannot.
+ */
+export const RateUnit = z.enum([
+  'per_1m_tokens',
+  'per_1k_tokens',
+  'per_token',
+  'per_image',
+  'per_megapixel',
+  'per_step',
+  'per_second',
+  'per_request',
+  'per_1k_calls',
+  'per_gb_day',
+  'per_gb', // egress: charged by volume moved, with no period attached
+  'per_1m_tokens_per_hour', // §A5.10 cache storage
+  // §A5.9 — the two are NOT interchangeable. On an 8-GPU box, reading one as the
+  // other is an 8× error, and it lands in the direction that makes self-hosting
+  // look cheap. InstanceProfile refuses any other unit on an hourly rate.
+  'per_gpu_hour',
+  'per_instance_hour',
+]);
+export type RateUnit = z.infer<typeof RateUnit>;
+
+/**
  * §A4.2 — the vendor's NATIVE currency is the source of truth. A converted figure
  * is never stored as primary, because a CNY rate frozen at yesterday's USD is a
  * silent mispricing on every Chinese provider.
@@ -78,25 +109,7 @@ export type Freshness = 'FRESH' | 'STALE' | 'UNVERIFIED' | 'NO_POLICY';
 export const Rate = z
   .object({
     amount: z.number().nonnegative(),
-    unit: z.enum([
-      'per_1m_tokens',
-      'per_1k_tokens',
-      'per_token',
-      'per_image',
-      'per_megapixel',
-      'per_step',
-      'per_second',
-      'per_request',
-      'per_1k_calls',
-      'per_gb_day',
-      'per_gb', // egress: charged by volume moved, with no period attached
-      'per_1m_tokens_per_hour', // §A5.10 cache storage
-      // §A5.9 — the two are NOT interchangeable. On an 8-GPU box, reading one as the
-      // other is an 8× error, and it lands in the direction that makes self-hosting
-      // look cheap. InstanceProfile refuses any other unit on an hourly rate.
-      'per_gpu_hour',
-      'per_instance_hour',
-    ]),
+    unit: RateUnit,
     list_currency: Currency.default('USD'),
     fx_rate_used: z.number().positive().nullable().default(null),
     fx_rate_date: z.string().datetime().nullable().default(null),

@@ -25,6 +25,7 @@ import { InstanceProfile } from '../src/instance';
 import { RequestOptions } from '../src/request';
 import { EstimateOutput } from '../src/estimate';
 import { TextCalibration, OutputPrior } from '../src/calibration';
+import { Snapshot, Observation, PriceChangeEvent } from '../src/ingest';
 
 const OUT_DIR = join(__dirname, '..', '..', '..', 'schemas');
 
@@ -46,6 +47,11 @@ const TARGETS: Array<{ file: string; schema: z.ZodType; name: string }> = [
   { file: 'instance-profile.schema.json', schema: InstanceProfile, name: 'InstanceProfile' },
   // §A5.10 — the request-level choices that are not properties of any model row.
   { file: 'request-options.schema.json', schema: RequestOptions, name: 'RequestOptions' },
+  // §A4.2 / §A6 — what a pull of a pricing source leaves behind. The ingest
+  // package writes these; anything that stores or displays them validates here.
+  { file: 'snapshot.schema.json', schema: Snapshot, name: 'Snapshot' },
+  { file: 'observation.schema.json', schema: Observation, name: 'Observation' },
+  { file: 'price-change-event.schema.json', schema: PriceChangeEvent, name: 'PriceChangeEvent' },
 ];
 
 const BANNER =

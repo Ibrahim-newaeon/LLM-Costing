@@ -36,6 +36,9 @@ importers:
       '@tokenomics/estimator':
         specifier: workspace:*
         version: link:../estimator
+      '@tokenomics/ingest':
+        specifier: workspace:*
+        version: link:../ingest
       '@tokenomics/parser':
         specifier: workspace:*
         version: link:../parser
@@ -55,6 +58,19 @@ importers:
       '@tokenomics/tokenizers':
         specifier: workspace:*
         version: link:../tokenizers
+
+  packages/ingest:
+    dependencies:
+      '@tokenomics/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      zod:
+        specifier: ^4.5.4
+        version: 4.5.4
+    devDependencies:
+      tsx:
+        specifier: ^4.23.13
+        version: 4.23.13
 
   packages/parser:
     dependencies:

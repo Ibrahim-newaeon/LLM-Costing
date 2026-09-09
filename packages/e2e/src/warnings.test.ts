@@ -42,8 +42,6 @@ import {
  */
 const NOT_YET_RAISED: Record<string, string> = {
   // ── the layer does not exist yet. Legitimately unraised. ────────────────────
-  PRICE_CHANGED_SINCE_LAST_RUN: '§A6 ingestion (backlog 1.3) — needs two runs to compare.',
-  RATE_CONFLICT_UNRESOLVED: '§A6 ingestion (backlog 1.3). VERIFY #7 shows a single source can conflict with itself, so this will be reachable sooner than ingestion — but nothing reads `Rate.conflict` yet.',
   PROXY_TOKENIZER_IN_USE: '§A4.5 tier 2 (backlog 1.5) — no proxy tokenizer exists.',
   PROXY_SCRIPT_MISMATCH: '§A4.5 tier 2 (backlog 1.5).',
   PROXY_DRIFT_EXCEEDED: '§A4.5 tier 2 (backlog 1.5).',
@@ -100,7 +98,7 @@ describe('every WarningCode is raised, or recorded as not raised and why', () =>
     expect(unknown, 'NOT_YET_RAISED names a code the enum does not have.').toEqual([]);
   });
 
-  it('the ledger is 10 of 36, and that ratio is the point', () => {
+  it('the ledger is 8 of 36, and that ratio is the point', () => {
     // Not a vanity assertion. If this number moves without somebody editing the
     // list above, the enum grew a member nothing emits — the exact way the
     // original eighteen accumulated.
@@ -112,7 +110,10 @@ describe('every WarningCode is raised, or recorded as not raised and why', () =>
     // contract refuses the data outright. The enum grew to 35 when #20 gave the
     // three cache conditions codes they had never had, and to 36 when MODEL_DEPRECATED
     // was added for a model that is still callable but has an announced shutdown.
-    expect(Object.keys(NOT_YET_RAISED)).toHaveLength(10);
+    // §A6 ingestion then raised the two codes that had waited for it:
+    // PRICE_CHANGED_SINCE_LAST_RUN from the snapshot diff, RATE_CONFLICT_UNRESOLVED
+    // from the first thing to read `Rate.conflict`.
+    expect(Object.keys(NOT_YET_RAISED)).toHaveLength(8);
     expect(codes).toHaveLength(36);
   });
 });
