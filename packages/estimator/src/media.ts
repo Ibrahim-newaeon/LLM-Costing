@@ -43,6 +43,7 @@ import {
   type Range,
   type VideoInputProfile,
   type VisionProfile,
+  type EstimateWarning,
 } from '@tokenomics/contracts';
 import { exactRange } from './range';
 import { countVisionTokens, type VisionRequest } from './vision';
@@ -56,7 +57,7 @@ export interface MediaCounted {
   unit: 'tokens' | 'seconds';
   method: Method;
   confidence: Confidence;
-  warnings: string[];
+  warnings: EstimateWarning[];
   notes: string[];
 }
 
@@ -118,7 +119,7 @@ export function countAudioTokens(profile: AudioInputProfile, m: MediaMetrics): M
   }
 
   const notes: string[] = [];
-  const warnings: string[] = [];
+  const warnings: EstimateWarning[] = [];
 
   const maxDuration = profile.max_duration_seconds.value;
   if (maxDuration !== null && m.duration_seconds > maxDuration) {
@@ -183,7 +184,7 @@ export interface FrameSampling {
   fps_request_ignored: boolean;
   /** True when max_frames bit — the provider samples fewer than the rate implies. */
   clamped: boolean;
-  warnings: string[];
+  warnings: EstimateWarning[];
   notes: string[];
 }
 
@@ -212,7 +213,7 @@ export function sampleFrames(profile: VideoInputProfile, m: MediaMetrics): Frame
     };
   }
 
-  const warnings: string[] = [];
+  const warnings: EstimateWarning[] = [];
   const notes: string[] = [];
   let fps = modelFps;
   let ignored = false;
@@ -223,10 +224,11 @@ export function sampleFrames(profile: VideoInputProfile, m: MediaMetrics): Frame
       notes.push(`Sampling at the requested ${fps} Hz rather than the model default of ${modelFps} Hz.`);
     } else {
       ignored = true;
-      warnings.push('FPS_NOT_CONFIGURABLE');
-      notes.push(
-        `A sample rate of ${m.frame_sample_rate_hz} Hz was requested, but this model does not expose the setting and samples at ${modelFps} Hz. The request changes nothing, including the cost.`,
-      );
+      warnings.push({
+        code: 'FPS_NOT_CONFIGURABLE',
+        message: `A sample rate of ${m.frame_sample_rate_hz} Hz was requested, but this model does not expose the setting and samples at ${modelFps} Hz. The request changes nothing, including the cost.`,
+        severity: 'WARN',
+      });
     }
   }
 
@@ -238,10 +240,11 @@ export function sampleFrames(profile: VideoInputProfile, m: MediaMetrics): Frame
   if (maxFrames !== null && uncapped > maxFrames) {
     frames = maxFrames;
     clamped = true;
-    warnings.push('VIDEO_FRAMES_CLAMPED_TO_MAX');
-    notes.push(
-      `The rate implies ${uncapped} frames and the model caps at ${maxFrames}. The cost stops rising at the cap, but so does the coverage — beyond here a longer video is not more expensive, it is more thinly sampled.`,
-    );
+    warnings.push({
+      code: 'VIDEO_FRAMES_CLAMPED_TO_MAX',
+      message: `The rate implies ${uncapped} frames and the model caps at ${maxFrames}. The cost stops rising at the cap, but so does the coverage — beyond here a longer video is not more expensive, it is more thinly sampled.`,
+      severity: 'WARN',
+    });
   }
 
   return { status: 'OK', frames, fps_used: fps, fps_request_ignored: ignored, clamped, warnings, notes };
@@ -373,10 +376,11 @@ export function countVideoTokens(input: VideoCountInput): VideoCount {
         p90: videoTokens.p90 + audioTokens,
         p99: videoTokens.p99 === null ? null : videoTokens.p99 + audioTokens,
       };
-      warnings.push('AUDIO_TRACK_FOLDED_INTO_VIDEO_TOKENS');
-      notes.push(
-        `Audio track metered with the frames on this model, so ${audioTokens} tokens are inside the video figure rather than on their own line.`,
-      );
+      warnings.push({
+        code: 'AUDIO_TRACK_FOLDED_INTO_VIDEO_TOKENS',
+        message: `Audio track metered with the frames on this model, so ${audioTokens} tokens are inside the video figure rather than on their own line.`,
+        severity: 'INFO',
+      });
     }
   }
 
@@ -392,10 +396,12 @@ export function countVideoTokens(input: VideoCountInput): VideoCount {
   let confidence = inputs;
   if (!video.has_deterministic_formula) {
     confidence = minConfidence(inputs, 'LOW');
-    warnings.push('VIDEO_HIGH_VARIANCE');
-    notes.push(
-      'This provider publishes no deterministic frame-sampling formula, so the count is what the documented parameters imply rather than what the provider guarantees. §A5.3 caps that at LOW however well sourced the individual constants are.',
-    );
+    warnings.push({
+      code: 'VIDEO_HIGH_VARIANCE',
+      message:
+        'This provider publishes no deterministic frame-sampling formula, so the count is what the documented parameters imply rather than what the provider guarantees. §A5.3 caps that at LOW however well sourced the individual constants are.',
+      severity: 'WARN',
+    });
   }
 
   return {

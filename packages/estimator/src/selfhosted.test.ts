@@ -9,6 +9,7 @@
 import { describe, it, expect } from 'vitest';
 import { Provenance, InstanceProfile, DeploymentPlan, BYTES_PER_GIB } from '@tokenomics/contracts';
 import {
+
   kvGeometryFrom,
   kvCacheBytes,
   clampedContextTokens,
@@ -22,6 +23,10 @@ import {
   bytesToGib,
   DAYS_PER_MONTH,
 } from './selfhosted';
+
+/** Warnings are `{code, message, severity}` now, so an assertion reads one half or the other. */
+const codes = (ws: readonly { code: string }[]) => ws.map((w) => w.code);
+const messages = (ws: readonly { message: string }[]) => ws.map((w) => w.message).join(' ');
 
 const prov = (over: Partial<any> = {}) =>
   Provenance.parse({
@@ -274,6 +279,21 @@ describe('visual tokens land in the same context and the same cache', () => {
       visual_tokens: 2_048,
     });
     expect(r.image_share_of_context).toBeCloseTo(0.5, 10);
+    // §A11 found this one: the share was computed and reported, and nothing said
+    // it mattered. Half the window gone to images is the room the prompt has left.
+    expect(codes(r.warnings)).toContain('VISUAL_TOKENS_DOMINATE_CONTEXT');
+    expect(messages(r.warnings)).toMatch(/50% of the 4096-token context/);
+  });
+
+  it('does not cry wolf below the threshold', () => {
+    const r = vramFeasibility({
+      hardware: hardware({ max_context_tokens: 4_096 }),
+      instance: instance(),
+      plan: plan({ planned_context_tokens: 100 }),
+      visual_tokens: 256,
+    });
+    expect(r.image_share_of_context).toBeCloseTo(0.0625, 10);
+    expect(codes(r.warnings)).not.toContain('VISUAL_TOKENS_DOMINATE_CONTEXT');
   });
 
   it('the clamp makes the memory figure SMALLER, which is why it cannot be read as good news', () => {
@@ -380,14 +400,14 @@ describe('selfHostedCost', () => {
   it('warns on a mostly-idle GPU', () => {
     const r = selfHostedCost({ instance: instance(), plan: plan({ utilization_factor: 0.05 }), timing });
     if (r.status !== 'OK') throw new Error('cost');
-    expect(r.warnings).toContain('LOW_UTILIZATION_SELF_HOSTED');
+    expect(codes(r.warnings)).toContain('LOW_UTILIZATION_SELF_HOSTED');
   });
 
   it('says out loud that a spot price is the price of an uninterrupted run', () => {
     const i = instance({ hourly_rate_spot: rate(1.2, 'per_gpu_hour') });
     const r = selfHostedCost({ instance: i, plan: plan({ rate_basis: 'SPOT' }), timing });
     if (r.status !== 'OK') throw new Error('cost');
-    expect(r.warnings).toContain('SPOT_RATE_INTERRUPTION_UNMODELLED');
+    expect(codes(r.warnings)).toContain('SPOT_RATE_INTERRUPTION_UNMODELLED');
   });
 
   it('refuses rather than quoting the other basis when the requested one has no rate', () => {

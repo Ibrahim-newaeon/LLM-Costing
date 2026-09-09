@@ -39,6 +39,7 @@ import {
   type ServiceTier,
   type ServiceTierProfile,
   type TextRateProfile,
+  type EstimateWarning,
 } from '@tokenomics/contracts';
 import { exactRange } from './range';
 
@@ -247,7 +248,7 @@ export interface ServerToolResult {
   charges: ServerToolCharge[];
   /** Tools the request will call that the model row does not price. */
   unpriced: Array<{ tool: string; reason: string }>;
-  warnings: string[];
+  warnings: EstimateWarning[];
   notes: string[];
 }
 
@@ -289,7 +290,10 @@ export function serverToolFees(
 ): ServerToolResult {
   const charges: ServerToolCharge[] = [];
   const unpriced: Array<{ tool: string; reason: string }> = [];
-  const warnings = new Set<string>();
+  // An array, not a Set. The Set deduped bare codes to one entry; now each
+  // occurrence carries the message naming the tool it is about, and collapsing
+  // three tools into one warning would throw away which three.
+  const warnings: EstimateWarning[] = [];
   const notes: string[] = [];
 
   for (const use of uses) {
@@ -318,8 +322,8 @@ export function serverToolFees(
 
     if (fee.free_allowance_per_month !== null) {
       if (use.calls_used_this_month === null) {
-        warnings.add('SERVER_TOOL_ALLOWANCE_NOT_APPLIED');
         note = `A free allowance of ${fee.free_allowance_per_month}/month is published for '${use.tool}', but calls already made this month are unknown, so every call is billed. This overstates by at most the allowance.`;
+        warnings.push({ code: 'SERVER_TOOL_ALLOWANCE_NOT_APPLIED', message: note, severity: 'WARN' });
         notes.push(note);
       } else {
         const remaining = Math.max(0, fee.free_allowance_per_month - use.calls_used_this_month);
@@ -339,7 +343,7 @@ export function serverToolFees(
     });
   }
 
-  return { charges, unpriced, warnings: [...warnings], notes };
+  return { charges, unpriced, warnings, notes };
 }
 
 /* ═══════════════════════ 5. re-rolls ═══════════════════════ */
@@ -405,7 +409,7 @@ export interface MultiplierInput {
 export interface AppliedMultipliers {
   lines: EstimateLine[];
   multipliers: RequestMultipliers;
-  warnings: string[];
+  warnings: EstimateWarning[];
 }
 
 const scale = (r: Range | null, f: number): Range | null =>
@@ -438,8 +442,14 @@ export function applyRequestMultipliers(
   input: MultiplierInput,
 ): AppliedMultipliers {
   const factor = input.service_tier_multiplier * (1 + input.residency_uplift_pct);
-  const warnings: string[] = [];
-  if (input.residency_uplift_pct > 0) warnings.push('RESIDENCY_UPLIFT_APPLIED');
+  const warnings: EstimateWarning[] = [];
+  if (input.residency_uplift_pct > 0) {
+    warnings.push({
+      code: 'RESIDENCY_UPLIFT_APPLIED',
+      message: `A ${(input.residency_uplift_pct * 100).toFixed(1)}% residency uplift applies to every token category on this route, cache reads and writes included.`,
+      severity: 'INFO',
+    });
+  }
 
   const floor = minConfidence(input.service_tier_confidence, input.residency_confidence);
 
@@ -488,10 +498,10 @@ export type RequestLayerResult =
       multipliers: MultiplierInput;
       tool_system_prompt: ToolSystemPromptResult;
       server_tools: ServerToolResult;
-      warnings: string[];
+      warnings: EstimateWarning[];
       notes: string[];
     }
-  | { status: 'UNAVAILABLE'; reasons: string[]; warnings: string[] };
+  | { status: 'UNAVAILABLE'; reasons: string[]; warnings: EstimateWarning[] };
 
 /**
  * Resolve everything §A5.10 adds, in one pass, so a caller cannot apply three of the
@@ -503,13 +513,17 @@ export type RequestLayerResult =
  */
 export function resolveRequestLayer(input: RequestLayerInput): RequestLayerResult {
   const reasons: string[] = [];
-  const warnings: string[] = [];
+  const warnings: EstimateWarning[] = [];
   const notes: string[] = [];
 
   const tier = resolveServiceTier(input.tier_profiles, input.options.service_tier, input.options.region);
   if (tier.status === 'UNAVAILABLE') {
     reasons.push(tier.reason);
-    warnings.push(tier.warning);
+    // The code and the sentence explaining it travel together from here on. They
+    // used to sit in two arrays with nothing linking them, and `notes` collected
+    // messages that had no warning too — so downstream could not tell which note
+    // belonged to which code, or whether one existed at all.
+    warnings.push({ code: tier.warning, message: tier.reason, severity: 'WARN' });
   }
 
   const residency = residencyUplift(input.compliance, input.options.region);

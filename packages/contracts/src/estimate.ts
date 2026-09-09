@@ -529,6 +529,13 @@ export const WarningCode = z.enum([
   'RESIZE_SAVES_NOTHING', 'RESIZE_BELOW_LEGIBILITY_FLOOR',
   'PROVIDER_WILL_NORMALIZE', 'REROUTED_FOR_ASSET_CONSTRAINT',
   'REROUTE_BLOCKED_BY_RESIDENCY',
+  // §A5.6 / §A5.8 caching. `cache.ts` already detects all three and already writes
+  // a sentence about each; none of them had a code, so none could reach
+  // `EstimateOutput.warnings` and the sentence died inside the module. Caching
+  // costing more than it saves is not a footnote — it is the answer.
+  'CACHE_NET_LOSS',
+  'CACHE_STORAGE_DOMINATES',
+  'CACHE_WRITE_PREMIUM',
   // §A5.3 audio / video.
   'FPS_NOT_CONFIGURABLE',
   'VIDEO_FRAMES_CLAMPED_TO_MAX',
