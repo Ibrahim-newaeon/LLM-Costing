@@ -88,8 +88,13 @@ describe('§A6 → §A11: a conflict travels from the feed to the estimate', () 
       method: 'PROVIDER_FORMULA',
       confidence: 'HIGH',
     });
-    const parsed = parseL1({ text: 'summarize the report', seed: SEED });
+    // "this text", not "the report": a document of unknown kind carries the parser's
+    // own blocking pdf_has_text_layer gap, which sets needs_human_review on its own
+    // and would make the assertion below pass for a reason unrelated to the conflict.
+    // Found when the sibling priors test asserted the flag FALSE and it was not.
+    const parsed = parseL1({ text: 'summarize this text', seed: SEED });
     if (parsed.status !== 'PARSED') throw new Error(parsed.reason);
+    expect(parsed.workflow.missing_data.some((m) => m.blocks_estimate)).toBe(false);
 
     const estimate = assembleEstimate({
       estimate_id: 'e-conflict',
@@ -103,11 +108,14 @@ describe('§A6 → §A11: a conflict travels from the feed to the estimate', () 
       warnings: rateConflictWarnings([rate]),
     });
 
+    // With no blocking gap and no NONE confidence, only a BLOCKING warning can set
+    // this — asserted FIRST so that a conflict downgraded to WARN fails here, on the
+    // flag, and not merely on the severity line below.
+    expect(estimate.needs_human_review).toBe(true);
     const w = estimate.warnings.find((x) => x.code === 'RATE_CONFLICT_UNRESOLVED')!;
     expect(w.severity).toBe('BLOCKING');
     expect(w.message).toContain('5 per_1m_tokens USD');
     expect(w.message).toContain('states 10');
-    expect(estimate.needs_human_review).toBe(true);
     expect(estimate.candidates[0]!.lines[0]!.cost!.p50).toBeCloseTo(0.0075, 9); // 1500 tokens at $5/M — the registry rate, not 10, not 7.5
   });
 
@@ -119,7 +127,7 @@ describe('§A6 → §A11: a conflict travels from the feed to the estimate', () 
     const warnings = priceChangeWarnings(diffObservations(previous, observations));
     expect(warnings).toHaveLength(1);
 
-    const parsed = parseL1({ text: 'summarize the report', seed: SEED });
+    const parsed = parseL1({ text: 'summarize this text', seed: SEED });
     if (parsed.status !== 'PARSED') throw new Error(parsed.reason);
     const estimate = assembleEstimate({
       estimate_id: 'e-moved',
