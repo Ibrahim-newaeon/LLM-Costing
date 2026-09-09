@@ -43,25 +43,18 @@ import {
 const NOT_YET_RAISED: Record<string, string> = {
   // ── the layer does not exist yet. Legitimately unraised. ────────────────────
   PRICE_CHANGED_SINCE_LAST_RUN: '§A6 ingestion (backlog 1.3) — needs two runs to compare.',
-  RATE_CONFLICT_UNRESOLVED: '§A6 ingestion (backlog 1.3). Note VERIFY #7 shows a single source can conflict with itself, so this will be reachable sooner than ingestion.',
+  RATE_CONFLICT_UNRESOLVED: '§A6 ingestion (backlog 1.3). VERIFY #7 shows a single source can conflict with itself, so this will be reachable sooner than ingestion — but nothing reads `Rate.conflict` yet.',
   PROXY_TOKENIZER_IN_USE: '§A4.5 tier 2 (backlog 1.5) — no proxy tokenizer exists.',
   PROXY_SCRIPT_MISMATCH: '§A4.5 tier 2 (backlog 1.5).',
   PROXY_DRIFT_EXCEEDED: '§A4.5 tier 2 (backlog 1.5).',
-  REROUTED_FOR_ASSET_CONSTRAINT: 'Asset-constraint reroute is not built.',
-  REROUTE_BLOCKED_BY_RESIDENCY: 'Asset-constraint reroute is not built.',
-  HEURISTIC_ON_UNCALIBRATED_SCRIPT: '§A4.5 tier 3 heuristic is not built; text.ts refuses instead of padding.',
+  REROUTED_FOR_ASSET_CONSTRAINT: 'The asset-constraint reroute is not built.',
+  REROUTE_BLOCKED_BY_RESIDENCY: 'The asset-constraint reroute is not built.',
+  HEURISTIC_ON_UNCALIBRATED_SCRIPT: '§A4.5 tier 3 padding is not built; text.ts refuses instead, so there is no padded heuristic to warn about.',
   CALIBRATION_SAMPLE_TOO_SMALL: 'No calibration corpus exists yet (backlog 2.1).',
 
-  // ── the module SHIPS and does the right thing silently. Defects. ────────────
-  NEAR_CONTEXT_TIER_THRESHOLD: 'DEFECT — context.ts computes `near_threshold` correctly and has a passing test; nothing converts it. Surfaced through the chain below, but no caller inside the estimator does it.',
-  ASSET_EXCEEDS_MAX_EDGE: 'DEFECT — vision.ts refuses an oversized asset the provider will not normalize, in its own reason string.',
-  RESIZE_BELOW_LEGIBILITY_FLOOR: 'DEFECT — vision.ts blocks below the legibility floor via AssetDisposition, not this code.',
-  PROVIDER_WILL_NORMALIZE: 'DEFECT — vision.ts records normalization in a note.',
-  VISUAL_TOKENS_DOMINATE_CONTEXT: 'DEFECT — selfhosted.ts reports the image share of context as a number, with no warning attached.',
-  CACHE_KEY_MISSING_TOKENIZER_REVISION: 'DEFECT — estimate.ts refines on `key_includes_tokenizer_revision` and raises a ZodError instead. Worse: that field is a boolean the line asserts about ITSELF, and nothing checks it against the actual cache key.',
-  ESCALATION_FAILED: 'DEFECT — ladder.ts falls through rather than substituting a number when tier 1 fails, and has a passing test for it, but emits no warning. A downgraded estimate is indistinguishable from a clean one.',
-  MEDIA_PAYLOAD_NOT_REMOTE_COUNTED: 'DEFECT — the guard exists in the tier ladder but names no code.',
-  STALE_FX_RATE: 'DEFECT — pricing.ts carries fx fields and rateFreshness, and nothing joins them to this code.',
+  // ── unreachable by construction. Not a defect, and not fixable by emitting it. ──
+  CACHE_KEY_MISSING_TOKENIZER_REVISION:
+    'UNREACHABLE. `EstimateLine` REJECTS a cache outcome whose key omits the tokenizer revision — a ZodError, not a warning — so the data can never exist to warn about. Prevention beats notification, which makes this enum member dead weight rather than a gap. Remove it or keep it documented; do not "fix" it by emitting it somewhere it cannot fire.',
 };
 
 function productionSources(): string {
@@ -107,12 +100,19 @@ describe('every WarningCode is raised, or recorded as not raised and why', () =>
     expect(unknown, 'NOT_YET_RAISED names a code the enum does not have.').toEqual([]);
   });
 
-  it('the ledger is 18 of 32, and that ratio is the point', () => {
+  it('the ledger is 10 of 35, and that ratio is the point', () => {
     // Not a vanity assertion. If this number moves without somebody editing the
     // list above, the enum grew a member nothing emits — the exact way the
-    // eighteen accumulated.
-    expect(Object.keys(NOT_YET_RAISED)).toHaveLength(18);
-    expect(codes).toHaveLength(32);
+    // original eighteen accumulated.
+    //
+    // History, because the shape of the fix is the useful part: §A11 found 18 of 32
+    // unraised. Nine were layers nobody had built. Of the nine that were defects,
+    // eight are now raised — VISUAL_TOKENS_DOMINATE_CONTEXT (#20), six in #21, and
+    // the §A12 media guard (#22) — and one turned out to be unreachable because the
+    // contract refuses the data outright. The enum grew to 35 when #20 gave the
+    // three cache conditions codes they had never had.
+    expect(Object.keys(NOT_YET_RAISED)).toHaveLength(10);
+    expect(codes).toHaveLength(35);
   });
 });
 
