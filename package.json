@@ -4,6 +4,8 @@
   "scripts": {
     "generate:schemas": "pnpm -F @tokenomics/contracts generate:schemas",
     "check:schemas": "pnpm -F @tokenomics/contracts check:schemas",
+    "check:literals": "node scripts/check-literals.mjs --check",
+    "record:literals": "node scripts/check-literals.mjs --write",
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },

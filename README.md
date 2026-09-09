@@ -22,6 +22,9 @@ error bars — and a refusal where a number would be a guess.
 | `packages/contracts/` | Zod contracts — the canonical shapes |
 | `packages/estimator/` | Pure functions over the contracts. Visual token counting so far (§A5.2) |
 | `packages/parser/` | §A4.4 Layer 0 — deterministic L1 request parse. No model, no network, no clock |
+| `packages/router/` | §A7 — capability gate, three objectives, split routing |
+| `packages/e2e/` | §A11 — the chain, and the ledger of every unraised `WarningCode` |
+| `scripts/` | Workspace-wide gates. `check-literals.mjs` enforces rule 1 in CI |
 | `schemas/` | Seven JSON Schemas, all **generated** from the contracts and gated in CI |
 | `prompts/analyzer.system.md` | Runtime analyzer system prompt; ships at `/prompts/` in the built app |
 | `prototype/` | Working Vite/React prototype recovered from `~/llm-token-calculator`. Reference only — see `docs/prototype-salvage.md` |
@@ -286,6 +289,175 @@ The last row is the contract doing the work: one wrong id fails `WorkflowInput.p
 test that parses a workflow goes red at once. The third is the narrowest — one test — which is
 honest about its coverage rather than flattering.
 
+## §A5.3 — a provider may price a video frame off its own scale
+
+`VideoInputProfile` had exactly one cost path: frames sampled at
+`frame_sample_rate_hz`, each priced through the model's **image** geometry.
+`per_frame_uses_vision_geometry: false` could say *"not that"*, and then there was
+nothing to multiply by, so such a model refused outright. The refusal message named
+the gap itself: *"no alternative per-frame count is published."*
+
+Google publishes one. From
+[ai.google.dev/gemini-api/docs/tokens](https://ai.google.dev/gemini-api/docs/tokens)
+(page footer: last updated 2026-09-04 UTC), read 2026-09-08:
+
+| | |
+|---|---|
+| Video, bullet list | *"263 tokens per second (applies to static processing)"* |
+| Video, table below it | *"~100 tokens/second by default (low resolution) or ~300 tokens/second (high resolution). All frames sampled at 1 FPS."* |
+| Images | *"≤384 pixels in both dimensions count as 258 tokens. Larger images are tiled into 768x768 pixel tiles, each counting as 258 tokens."* |
+
+None of 100, 263 or 300 is 258. Pricing a Gemini frame through Gemini's image
+geometry would have produced a different number in the same unit — the failure that
+reads as an answer rather than as an error.
+
+`tokens_per_frame` is **per sampled frame, not per second.** The two coincide only
+at 1 fps, and the frame is the quantity that scales: `sampleFrames` already derives
+the count from duration × fps and clamps at `max_frames`, so a per-second field
+would multiply the fps in twice and skip the clamp. Google's own note — *"token
+usage scales proportionally with the configured FPS"* — is the per-frame reading. A
+vendor publishing per-second converts at its own default rate, and that division is
+`method: 'DERIVED'`.
+
+A refinement refuses a row carrying both paths. Two prices for one frame makes which
+one gets read an implementation detail, which is the same defect as two definitions
+of a contract shape.
+
+### And Gemini video is still not priced — VERIFY #7
+
+Not for want of a field. **The same page states 263 tokens/second in one place and
+~100/~300 in another, both labelled static processing.** Rule 5: reported, never
+merged. 263 sits between 100 and 300, which makes averaging look reasonable and
+would fabricate a fourth number no source states.
+
+Where that lands is itself a finding: `RateConflict` is rule 5's only implementation
+in the contracts and it lives on `Rate`, shaped for money (`competing_amount`,
+`delta_pct`). A vendor contradicting itself about a **sourced constant** — a
+tokens-per-second, a tile size, a resolution limit — has nowhere to be recorded, and
+can only appear as a plain absence.
+
+### A fixture that had never been checked against its contract
+
+`videoProfile()` in `media.test.ts` returned `any` from a hand-built literal, so the
+video fixtures were never validated against `VideoInputProfile`. Adding a required
+field should have broken every call site at compile time — the property the tier-1
+`covers` change relied on deliberately. Instead one test failed at run time with
+`Cannot read properties of undefined`. It now parses, as its sibling `audioProfile`
+always did. `hardware` in `selfhosted.test.ts` and the `EstimateLine` literals in
+`request.test.ts` still do not.
+
+## Rule 1, made mechanical
+
+§A12's first checklist item is a grep: *"finds zero numeric price literals, tile
+constants, or tokens-per-second values in `/packages` and `/apps`"*. A grep run by
+hand proves the tree on the day somebody remembers to run it.
+
+`pnpm check:literals` runs in CI. Every numeric literal in a non-test source under
+`packages/*/src` is either **structural** (0, 1, 2 — indices, arity, tier numbers)
+or recorded in `scripts/literal-allowlist.json` **with a reason a human wrote**.
+Counts are matched exactly, so a second occurrence of an already-allowed value is
+also drift, and an entry whose literal has gone is reported as stale — a list that
+only grows stops being a record.
+
+Keyed on `(file, value)` and deliberately **not** on line number: a gate that churns
+on every edit above it gets regenerated without being read.
+
+It is a lexer, not a parser. TypeScript 7 is the native port and ships no JS
+compiler API, and a parser dependency for a lint of our own source is not worth its
+supply chain. It blanks comments and string bodies with a small state machine and
+then matches numbers, so its failure direction is **over**-reporting: an unusual
+construct produces a spurious entry that someone annotates, never a rate that slips
+through silently.
+
+Proven in four directions on 2026-09-09 — a planted `0.000005`, a second occurrence
+of an allowed `0.1`, a blanked reason, and a stale entry each turn it red.
+
+The sweep found **no rule-1 violation**: 59 entries, all structural arity, calendar
+and unit conversions, HTTP statuses, named thresholds, and the Chinese numeral
+table. This is a regression guard, not a bug fix. It did catch that the four
+`parseConfidence` penalties in the parser are unnamed weights, which is why they now
+carry written reasons.
+
+## §A11 — the chain, and the eighteen warnings nobody could see
+
+Every other suite here tests a module against its own contract, and every one
+passes. §A11 exists for the defects where each module is individually correct and
+the seam between them is not. It found one immediately.
+
+`packages/e2e` drives the whole chain — prose → `parseL1` → `WorkflowInput` →
+estimator → `route` → `EstimateOutput` — and `assembleEstimate()` is the box that
+had never been built. `assembleCandidate` stops at one `Candidate`; every
+`EstimateOutput` that had existed was hand-written inside a test, which is the
+condition under which a rule holds in the contracts and never holds in the product.
+It **computes** `confidence` and `needs_human_review` rather than accepting them,
+because the contract refines on both and taking them as parameters means writing
+the derivation twice.
+
+§A12's headline item is now proven in its own words: **parser overhead once per
+estimate, 1 vs 10 candidates**, stated as arithmetic — candidate cost scales with
+the comparison set, the parse does not.
+
+### Eighteen of thirty-two `WarningCode`s were raised nowhere
+
+Not "modules forget to emit codes". **The warning channel was two different things
+sharing a name.** Only `output.ts` typed its warnings as codes; `media.ts` and
+`selfhosted.ts` pushed a *code* with the sentence in a separate `notes` array,
+`cache.ts` pushed *prose* with no code, `request.ts` pushed a mixture through a
+`Set<string>`. `EstimateWarning` is `{code, message, severity}` — each module had
+one half, and the pairing is unrecoverable because `notes` also collects messages
+that have no warning.
+
+Flipping the channel to `EstimateWarning[]` **was** the survey; the compiler named
+every site. Where they landed:
+
+| | |
+|---|---|
+| **Raised — 8** | `VISUAL_TOKENS_DOMINATE_CONTEXT`, `NEAR_CONTEXT_TIER_THRESHOLD`, `ASSET_EXCEEDS_MAX_EDGE`, `PROVIDER_WILL_NORMALIZE`, `RESIZE_BELOW_LEGIBILITY_FLOOR`, `ESCALATION_FAILED`, `STALE_FX_RATE`, `MEDIA_PAYLOAD_NOT_REMOTE_COUNTED` |
+| **Layer not built — 9** | tier-2 proxy codes, §A6 ingestion codes, the asset reroute, tier-3 padding, the calibration corpus |
+| **Unreachable — 1** | `CACHE_KEY_MISSING_TOKENIZER_REVISION`. The contract *rejects* such a line outright, so the data can never exist to warn about. Prevention beats notification — which makes the enum member dead weight, not a gap |
+
+`warnings.test.ts` holds the ledger and fails three ways: a new unraised code, a
+reason that outlived its defect, and drift in the count. It earned its keep on the
+merge — eight codes stopped being unraised and the enum grew to 35, and both
+assertions fired rather than passing quietly.
+
+### Two that needed more than an emission
+
+**`STALE_FX_RATE`** needed a function. `rateFreshness` asks whether the *rate* was
+re-checked; on a non-USD row the list price can sit unchanged for a year while the
+conversion that made it dollars has moved. `fx_rate_date` had been required since
+the contract was written and **nothing read it** — the same defect `rateInForce`
+was written for, one field along. The window is the rate's **own** `max_age_days`:
+a row claiming 30-day re-verification is claiming how fast it goes out of date, so
+a conversion older than that is stale by its own standard. No policy invented.
+
+**`MEDIA_PAYLOAD_NOT_REMOTE_COUNTED`** had no guard at all. A text-only count on a
+media-bearing request is not wrong by itself — a text line and a vision line are
+composed and added. What is wrong is a count that *claims* to cover the whole
+request when it cannot have seen the media: a local tokenizer skips image blocks,
+and tagged `WHOLE_REQUEST` that number suppresses the framing components **and**
+tells the caller nothing else is owed, so every image is priced at zero. Only tier
+1 has seen the media, and Anthropic says so — the count *"includes … images and
+PDFs"*. `payload_has_media` is required rather than optional, so a caller who
+forgets cannot fall into the unsafe path.
+
+### What the mutations caught that the tests did not
+
+Twice, a mutation survived and exposed a hole the suite could not see.
+
+Inverting §A3.7 at the estimate level — taking the **strongest** candidate instead
+of the weakest — turned nothing red, because every test compared candidates of
+*equal* confidence, where min and max coincide. The fix is the shape that matters
+in practice: a HIGH candidate beside one that refused. A sweep afterwards confirmed
+the hole was local; the other two call sites already used differing values.
+
+Replacing a warning's message with `'x'` also turned nothing red. Nothing was
+checking that a code arrives with anything a reader can act on — which is the
+entire point of pairing them.
+
+**Keep both patterns.** A min/max rule needs a test where the two differ, and
+equal-valued fixtures hide it.
+
 ## Tier 1 — reading the endpoint properly, and the bug that found
 
 `packages/tokenizers` is the first package allowed to do I/O. `estimator` states in its own index
@@ -494,7 +666,8 @@ request fits. It says so rather than passing it silently. An unexamined pass is 
 → **tokenizers** ◐ (§A4.5 tiers 0 and 1 done; no tier 2 for Anthropic)
 → **parser** ◐ (§A4.4 L1 deterministic; L2 model-assisted not built — L1 escalates to it)
 → **router** ✅ (§A7 gate, three objectives, split routing — pure)
-→ pricing ingestion → registry → UI → e2e.
+→ **e2e** ✅ (§A11 chain + §A12's checkable items; `assembleEstimate` is the last box)
+→ pricing ingestion → registry → UI.
 
 **Estimator before UI.** The math is the product.
 

@@ -31,3 +31,12 @@ jobs:
       # Proven in both directions on 2026-09-07: hand-editing a generated file turns it red.
       - name: Schema drift gate
         run: pnpm check:schemas
+
+      # Standing rule 1 — "zero hardcoded rates". §A12's first checklist item is a
+      # grep, and a grep proves the tree on the day somebody remembers to run it.
+      # Every numeric literal in a non-test source is either structural (0, 1, 2) or
+      # carries a written reason in scripts/literal-allowlist.json. Proven in both
+      # directions on 2026-09-09: planting `const RATE = 0.000003` turns it red, and
+      # so does deleting a reason.
+      - name: Rule 1 — no unrecorded numeric literals
+        run: pnpm check:literals
