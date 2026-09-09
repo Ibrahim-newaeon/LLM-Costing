@@ -48,7 +48,6 @@ const NOT_YET_RAISED: Record<string, string> = {
   REROUTED_FOR_ASSET_CONSTRAINT: 'The asset-constraint reroute is not built.',
   REROUTE_BLOCKED_BY_RESIDENCY: 'The asset-constraint reroute is not built.',
   HEURISTIC_ON_UNCALIBRATED_SCRIPT: '§A4.5 tier 3 padding is not built; text.ts refuses instead, so there is no padded heuristic to warn about.',
-  CALIBRATION_SAMPLE_TOO_SMALL: 'No calibration corpus exists yet (backlog 2.1).',
 
   // ── unreachable by construction. Not a defect, and not fixable by emitting it. ──
   CACHE_KEY_MISSING_TOKENIZER_REVISION:
@@ -98,7 +97,7 @@ describe('every WarningCode is raised, or recorded as not raised and why', () =>
     expect(unknown, 'NOT_YET_RAISED names a code the enum does not have.').toEqual([]);
   });
 
-  it('the ledger is 8 of 36, and that ratio is the point', () => {
+  it('the ledger is 7 of 36, and that ratio is the point', () => {
     // Not a vanity assertion. If this number moves without somebody editing the
     // list above, the enum grew a member nothing emits — the exact way the
     // original eighteen accumulated.
@@ -113,7 +112,10 @@ describe('every WarningCode is raised, or recorded as not raised and why', () =>
     // §A6 ingestion then raised the two codes that had waited for it:
     // PRICE_CHANGED_SINCE_LAST_RUN from the snapshot diff, RATE_CONFLICT_UNRESOLVED
     // from the first thing to read `Rate.conflict`.
-    expect(Object.keys(NOT_YET_RAISED)).toHaveLength(8);
+    // §A5.4's capture path raised CALIBRATION_SAMPLE_TOO_SMALL — the prior builder
+    // says how many samples stand behind a LOW prior, which was the layer that had
+    // not been built.
+    expect(Object.keys(NOT_YET_RAISED)).toHaveLength(7);
     expect(codes).toHaveLength(36);
   });
 });
