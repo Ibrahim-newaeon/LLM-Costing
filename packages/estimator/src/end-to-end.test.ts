@@ -39,6 +39,7 @@ import { route, capabilityGate } from '@tokenomics/router';
 import { buildLine, assembleCandidate } from './candidate';
 import { residencyUplift, resolveServiceTier } from './request';
 import { exactRange } from './range';
+import { evaluateCache } from './cache';
 
 const REGISTRY_PATH = join(__dirname, '..', '..', '..', 'registry', 'registry.json');
 
@@ -524,11 +525,44 @@ describe('the second provider also brings honest gaps', () => {
     expect(gRates.input_rate_by_modality.text!.amount).toBe(1.25);
   });
 
-  it('has no cache profile, because none is published for THIS model', () => {
-    // The family publishes cache rates with a per-hour storage charge; 2.5 Pro is
-    // not among them. Carrying a Flash rate across is another model's answer.
-    expect(gRates.cache).toBeNull();
-    expect(rates.cache).not.toBeNull();
+  it('has a cache profile read from the pricing page — and still cannot be evaluated', () => {
+    // Read 2026-09-09 from the pricing page's Gemini 2.5 Pro tab panel (footer
+    // "Last updated 2026-09-08 UTC"): a caching price at two context tiers and a
+    // per-hour storage price. The caching page (2026-09-02) gives the 2,048-token
+    // minimum. What the vendor does NOT publish is a creation/write price, so
+    // `write_rate` stays null — unknown, not zero — and `evaluateCache` refuses
+    // rather than assuming a miss is free (rule 1).
+    const c = gRates.cache!;
+    expect(c.read_rate!.amount).toBe(0.125);
+    expect(c.read_rate!.unit).toBe('per_1m_tokens');
+    expect(c.storage_rate_per_hour!.amount).toBe(4.5);
+    expect(c.storage_rate_per_hour!.unit).toBe('per_1m_tokens_per_hour');
+    expect(c.min_cacheable_tokens.value).toBe(2048);
+    expect(c.is_automatic).toBe(true);
+    expect(c.write_rate).toBeNull();
+    expect(c.ttl_seconds.value).toBeNull();
+    expect(gRates.context_tiers![0]!.cache_read_rate!.amount).toBe(0.125);
+    expect(gRates.context_tiers![1]!.cache_read_rate!.amount).toBe(0.25);
+    for (const r of [c.read_rate!, c.storage_rate_per_hour!]) {
+      expect(r.provenance.source_url).toBe('https://ai.google.dev/gemini-api/docs/pricing');
+      expect(r.provenance.confidence).toBe('HIGH');
+    }
+    const ev = evaluateCache({
+      profile: c, input_rate: gRates.input_rate_by_modality.text!, prefix_tokens: 100_000, variable_tokens: 500,
+      hit_ratio: 0.9, hit_ratio_basis: 'fixed system prompt', calls: 100, hours_cached: 24,
+    });
+    expect(ev.status).toBe('UNAVAILABLE');
+    if (ev.status === 'UNAVAILABLE') expect(ev.reason).toMatch(/unpublished/);
+  });
+
+  it('has its token limits from the model page — the feed was off by one on max_output', () => {
+    // https://ai.google.dev/gemini-api/docs/models/gemini-2.5-pro, footer "Last
+    // updated 2026-06-23 UTC", read 2026-09-09: "Input token limit 1,048,576 /
+    // Output token limit 65,536". LiteLLM's feed states 65,535 for the same model.
+    expect(gemini.context_window.value).toBe(1_048_576);
+    expect(gemini.max_output.value).toBe(65_536);
+    expect(gemini.max_output.provenance.notes).toMatch(/65,535/);
+    expect(gemini.context_window.provenance.source_url).toBe('https://ai.google.dev/gemini-api/docs/models/gemini-2.5-pro');
   });
 });
 
@@ -563,17 +597,27 @@ describe('the router on the real registry', () => {
     expect(text.eligible.map((m) => m.model_id)).toEqual(['claude-opus-5', 'gemini-2.5-pro']);
   });
 
-  it('reports Gemini’s unknown context window as unverified rather than as a fit', () => {
-    // Google's spec tables are JS-rendered, so the window was never fetched. The
-    // gate cannot check it and says so instead of passing it quietly.
+  it('checks Gemini’s context window now that it is sourced — nothing is left unverified', () => {
+    // Until 2026-09-09 this row's window was UNAVAILABLE (JS-rendered spec table)
+    // and the gate reported the check as unverified rather than passing it. The
+    // model page has now been read in the browser; the gate can answer.
     const r = capabilityGate({
       models: [opus, gemini],
       tasks: [task('summarize')],
       input_tokens_by_task: { summarize: 500_000 },
     });
-    const unchecked = r.unverified.filter((u) => u.check === 'context_window');
-    expect(unchecked.map((u) => u.model_id)).toContain('gemini-2.5-pro');
-    expect(unchecked.map((u) => u.model_id)).not.toContain('claude-opus-5');
+    expect(r.unverified.filter((u) => u.check === 'context_window')).toEqual([]);
+    expect(r.eligible.map((m) => m.model_id).sort()).toEqual(['claude-opus-5', 'gemini-2.5-pro']);
+  });
+
+  it('a 1,020,000-token read separates the two windows: Opus (1,000,000) drops, Gemini (1,048,576) fits', () => {
+    const r = capabilityGate({
+      models: [opus, gemini],
+      tasks: [task('summarize')],
+      input_tokens_by_task: { summarize: 1_020_000 },
+    });
+    expect(r.excluded.map((e) => [e.model_id, e.reason])).toEqual([['claude-opus-5', 'CONTEXT_TOO_SMALL']]);
+    expect(r.eligible.map((m) => m.model_id)).toEqual(['gemini-2.5-pro']);
   });
 
   it('picks Gemini for a 100k-token read — cheaper below the 200k threshold', () => {
