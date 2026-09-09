@@ -25,11 +25,11 @@
 import {
   findOutputPrior,
   type Confidence,
+  type EstimateWarning,
   type Method,
   type OutputBand,
   type OutputPrior,
   type Range,
-  type WarningCode,
 } from '@tokenomics/contracts';
 
 export interface OutputEstimateInput {
@@ -59,7 +59,13 @@ export interface OutputEstimate {
   truncation_likely: boolean;
   method: Method;
   confidence: Confidence;
-  warnings: WarningCode[];
+  /**
+   * A warning carries its own sentence. This was the one module #20 left as bare
+   * codes — it already HAD codes, so it looked finished — and its two warnings
+   * reached an estimate only if a caller wrote the sentence back in from `notes`.
+   * Same channel as every other module now.
+   */
+  warnings: EstimateWarning[];
   notes: string[];
 }
 
@@ -101,7 +107,7 @@ export function estimateOutputTokens(input: OutputEstimateInput): OutputResult {
     );
   }
 
-  const warnings: WarningCode[] = [];
+  const warnings: EstimateWarning[] = [];
   const notes: string[] = [];
 
   const visibleRaw: Range = { ...prior.output_tokens, p99: null };
@@ -143,11 +149,13 @@ export function estimateOutputTokens(input: OutputEstimateInput): OutputResult {
 
     if (visibleRaw.p90 > max_tokens) {
       // The spec's wording: "your cap is below P90, expect truncation".
-      warnings.push('MAX_TOKENS_BELOW_P90');
-      notes.push(
-        `max_tokens is ${max_tokens} but the calibrated p90 output is ${visibleRaw.p90}. ` +
+      warnings.push({
+        code: 'MAX_TOKENS_BELOW_P90',
+        message:
+          `max_tokens is ${max_tokens} but the calibrated p90 output is ${visibleRaw.p90}. ` +
           'Expect truncation. The clamp lowers the BILL, not the risk.',
-      );
+        severity: 'WARN',
+      });
     }
   } else if (band === 'unbounded') {
     // No cap and no bound is not an estimate, it is an open cheque.
@@ -160,7 +168,13 @@ export function estimateOutputTokens(input: OutputEstimateInput): OutputResult {
 
   if (reasoning !== null) {
     // Even a calibrated reasoning term is an estimate of something nobody can see.
-    warnings.push('REASONING_TOKENS_ESTIMATED');
+    warnings.push({
+      code: 'REASONING_TOKENS_ESTIMATED',
+      message:
+        `Reasoning tokens (p50 ${reasoning.p50}, p90 ${reasoning.p90}) are billed but never shown in the ` +
+        `response; this term comes from ${prior.n_samples} observed run(s), not from anything visible in this request.`,
+      severity: 'INFO',
+    });
   }
 
   const billable: Range = {

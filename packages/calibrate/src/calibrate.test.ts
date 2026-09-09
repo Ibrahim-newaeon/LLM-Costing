@@ -213,7 +213,7 @@ describe('the estimator stops refusing when a prior exists — and still refuses
     expect(r.billable_output).toMatchObject({ p50: 200, p90: 320 });
     expect(r.method).toBe('CALIBRATED_HEURISTIC');
     expect(r.confidence).toBe('LOW');
-    expect(r.warnings).toContain('REASONING_TOKENS_ESTIMATED');
+    expect(r.warnings.map((w) => w.code)).toContain('REASONING_TOKENS_ESTIMATED');
   });
 
   it('a reasoning model whose samples never reported reasoning still refuses — the invisible term is not zero', () => {
