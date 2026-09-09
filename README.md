@@ -22,6 +22,7 @@ error bars — and a refusal where a number would be a guess.
 | `packages/contracts/` | Zod contracts — the canonical shapes |
 | `packages/estimator/` | Pure functions over the contracts. Visual token counting so far (§A5.2) |
 | `packages/parser/` | §A4.4 Layer 0 — deterministic L1 request parse. No model, no network, no clock |
+| `scripts/` | Workspace-wide gates. `check-literals.mjs` enforces rule 1 in CI |
 | `schemas/` | Seven JSON Schemas, all **generated** from the contracts and gated in CI |
 | `prompts/analyzer.system.md` | Runtime analyzer system prompt; ships at `/prompts/` in the built app |
 | `prototype/` | Working Vite/React prototype recovered from `~/llm-token-calculator`. Reference only — see `docs/prototype-salvage.md` |
@@ -285,6 +286,95 @@ Each guard broken on purpose, against 44 parser tests:
 The last row is the contract doing the work: one wrong id fails `WorkflowInput.parse`, so every
 test that parses a workflow goes red at once. The third is the narrowest — one test — which is
 honest about its coverage rather than flattering.
+
+## §A5.3 — a provider may price a video frame off its own scale
+
+`VideoInputProfile` had exactly one cost path: frames sampled at
+`frame_sample_rate_hz`, each priced through the model's **image** geometry.
+`per_frame_uses_vision_geometry: false` could say *"not that"*, and then there was
+nothing to multiply by, so such a model refused outright. The refusal message named
+the gap itself: *"no alternative per-frame count is published."*
+
+Google publishes one. From
+[ai.google.dev/gemini-api/docs/tokens](https://ai.google.dev/gemini-api/docs/tokens)
+(page footer: last updated 2026-09-04 UTC), read 2026-09-08:
+
+| | |
+|---|---|
+| Video, bullet list | *"263 tokens per second (applies to static processing)"* |
+| Video, table below it | *"~100 tokens/second by default (low resolution) or ~300 tokens/second (high resolution). All frames sampled at 1 FPS."* |
+| Images | *"≤384 pixels in both dimensions count as 258 tokens. Larger images are tiled into 768x768 pixel tiles, each counting as 258 tokens."* |
+
+None of 100, 263 or 300 is 258. Pricing a Gemini frame through Gemini's image
+geometry would have produced a different number in the same unit — the failure that
+reads as an answer rather than as an error.
+
+`tokens_per_frame` is **per sampled frame, not per second.** The two coincide only
+at 1 fps, and the frame is the quantity that scales: `sampleFrames` already derives
+the count from duration × fps and clamps at `max_frames`, so a per-second field
+would multiply the fps in twice and skip the clamp. Google's own note — *"token
+usage scales proportionally with the configured FPS"* — is the per-frame reading. A
+vendor publishing per-second converts at its own default rate, and that division is
+`method: 'DERIVED'`.
+
+A refinement refuses a row carrying both paths. Two prices for one frame makes which
+one gets read an implementation detail, which is the same defect as two definitions
+of a contract shape.
+
+### And Gemini video is still not priced — VERIFY #7
+
+Not for want of a field. **The same page states 263 tokens/second in one place and
+~100/~300 in another, both labelled static processing.** Rule 5: reported, never
+merged. 263 sits between 100 and 300, which makes averaging look reasonable and
+would fabricate a fourth number no source states.
+
+Where that lands is itself a finding: `RateConflict` is rule 5's only implementation
+in the contracts and it lives on `Rate`, shaped for money (`competing_amount`,
+`delta_pct`). A vendor contradicting itself about a **sourced constant** — a
+tokens-per-second, a tile size, a resolution limit — has nowhere to be recorded, and
+can only appear as a plain absence.
+
+### A fixture that had never been checked against its contract
+
+`videoProfile()` in `media.test.ts` returned `any` from a hand-built literal, so the
+video fixtures were never validated against `VideoInputProfile`. Adding a required
+field should have broken every call site at compile time — the property the tier-1
+`covers` change relied on deliberately. Instead one test failed at run time with
+`Cannot read properties of undefined`. It now parses, as its sibling `audioProfile`
+always did. `hardware` in `selfhosted.test.ts` and the `EstimateLine` literals in
+`request.test.ts` still do not.
+
+## Rule 1, made mechanical
+
+§A12's first checklist item is a grep: *"finds zero numeric price literals, tile
+constants, or tokens-per-second values in `/packages` and `/apps`"*. A grep run by
+hand proves the tree on the day somebody remembers to run it.
+
+`pnpm check:literals` runs in CI. Every numeric literal in a non-test source under
+`packages/*/src` is either **structural** (0, 1, 2 — indices, arity, tier numbers)
+or recorded in `scripts/literal-allowlist.json` **with a reason a human wrote**.
+Counts are matched exactly, so a second occurrence of an already-allowed value is
+also drift, and an entry whose literal has gone is reported as stale — a list that
+only grows stops being a record.
+
+Keyed on `(file, value)` and deliberately **not** on line number: a gate that churns
+on every edit above it gets regenerated without being read.
+
+It is a lexer, not a parser. TypeScript 7 is the native port and ships no JS
+compiler API, and a parser dependency for a lint of our own source is not worth its
+supply chain. It blanks comments and string bodies with a small state machine and
+then matches numbers, so its failure direction is **over**-reporting: an unusual
+construct produces a spurious entry that someone annotates, never a rate that slips
+through silently.
+
+Proven in four directions on 2026-09-09 — a planted `0.000005`, a second occurrence
+of an allowed `0.1`, a blanked reason, and a stale entry each turn it red.
+
+The sweep found **no rule-1 violation**: 59 entries, all structural arity, calendar
+and unit conversions, HTTP statuses, named thresholds, and the Chinese numeral
+table. This is a regression guard, not a bug fix. It did catch that the four
+`parseConfidence` penalties in the parser are unnamed weights, which is why they now
+carry written reasons.
 
 ## Tier 1 — reading the endpoint properly, and the bug that found
 
