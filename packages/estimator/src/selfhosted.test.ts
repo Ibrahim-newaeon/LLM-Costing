@@ -7,7 +7,7 @@
 //   pnpm vitest src/selfhosted.test.ts     # offline, free
 
 import { describe, it, expect } from 'vitest';
-import { Provenance, InstanceProfile, DeploymentPlan, BYTES_PER_GIB } from '@tokenomics/contracts';
+import { Provenance, InstanceProfile, DeploymentPlan, HardwareProfile, BYTES_PER_GIB } from '@tokenomics/contracts';
 import {
 
   kvGeometryFrom,
@@ -56,7 +56,8 @@ const rate = (amount: number, unit: string) => ({
  * asserts RELATIONSHIPS between its own inputs and outputs, never that any real
  * model has these dimensions.
  */
-const hardware = (over: Record<string, unknown> = {}): any => ({
+const hardware = (over: Record<string, unknown> = {}): HardwareProfile =>
+  HardwareProfile.parse({
   params_b_total: 70,
   params_b_active: 70,
   is_moe: false,
@@ -74,8 +75,8 @@ const hardware = (over: Record<string, unknown> = {}): any => ({
   decode_throughput_tps: s(40, { method: 'MEASURED_BENCHMARK', confidence: 'MEDIUM' }),
   ttft_seconds: s(0.2, { method: 'MEASURED_BENCHMARK', confidence: 'MEDIUM' }),
   architecture_source_url: 'https://example.invalid/config.json',
-  ...over,
-});
+    ...over,
+  });
 
 const instance = (over: Record<string, unknown> = {}) =>
   InstanceProfile.parse({
@@ -116,7 +117,9 @@ describe('error 1: the KV term reads kv_heads and cannot read attention_heads', 
 
     const actual = kvCacheBytes(g.geometry, 8_000, 1);
     // What the same arithmetic gives if somebody reaches for the query count.
-    const wrong = kvCacheBytes({ ...g.geometry, kv_heads: h.attention_heads }, 8_000, 1);
+    // `attention_heads` is nullable on the contract; the fixture sets it. The `any`
+    // cast used to hide that, which is finding 3.16 in one line.
+    const wrong = kvCacheBytes({ ...g.geometry, kv_heads: h.attention_heads! }, 8_000, 1);
     expect(wrong / actual).toBe(8);
     expect(actual).toBe(2 * 80 * 8 * 128 * 2 * 8_000 * 1);
   });

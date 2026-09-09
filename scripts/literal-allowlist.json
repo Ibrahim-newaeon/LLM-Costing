@@ -239,27 +239,27 @@
     },
     "packages/parser/src/parse.ts|0.15": {
       "count": 1,
-      "reason": "Parse-confidence penalty for three or more scripts in one instruction. A labelled scoring weight — see the note below on why these are not yet named constants."
+      "reason": "PENALTY.MANY_SCRIPTS — parse-confidence weight, named in code (3.20)."
     },
     "packages/parser/src/parse.ts|0.2": {
       "count": 2,
-      "reason": "Parse-confidence penalties for a long free-text instruction and for a conditional branch. Scoring weights."
+      "reason": "PENALTY.LONG_INSTRUCTION and PENALTY.CONDITIONAL_BRANCH — two parse-confidence weights that share a value, named in code (3.20)."
     },
     "packages/parser/src/parse.ts|0.25": {
       "count": 1,
-      "reason": "Parse-confidence penalty for a suppressed (negated) verb. A scoring weight."
+      "reason": "PENALTY.NEGATED_VERB_PRESENT — a parse-confidence weight, named in code (3.20). Author judgement, not a measurement; sized so any two penalties cross the 0.6 escalation floor."
     },
     "packages/parser/src/parse.ts|0.6": {
       "count": 1,
       "reason": "PARSE_CONFIDENCE_FLOOR — below this L1 escalates to L2 rather than emitting. A routing threshold."
     },
     "packages/parser/src/parse.ts|100": {
-      "count": 2,
-      "reason": "Rounding the confidence score to two decimals."
+      "count": 1,
+      "reason": "SCORE_DECIMALS — the score is reported to two decimals (× 100, ÷ 100 via one named constant). Rounding policy, not a rate."
     },
     "packages/parser/src/parse.ts|600": {
       "count": 1,
-      "reason": "Character length above which an instruction counts as long free text. A scoring threshold."
+      "reason": "LONG_INSTRUCTION_CHARS — matchable-character length above which the long-instruction penalty applies. A threshold, not a rate."
     },
     "packages/parser/src/quantities.ts|12": {
       "count": 1,

@@ -83,22 +83,26 @@ describe('reasoning tokens are invisible but billed', () => {
         priors: [prior({ reasoning_tokens: { p50: 100, p90: 200 } })],
       }),
     );
-    expect(r.warnings).toContain('REASONING_TOKENS_ESTIMATED');
+    expect(r.warnings.map((w) => w.code)).toContain('REASONING_TOKENS_ESTIMATED');
+    expect(r.warnings.find((w) => w.code === 'REASONING_TOKENS_ESTIMATED')!.message).toMatch(/billed but never shown/);
   });
 });
 
 describe('max_tokens is a clamp, not a forecast', () => {
   it('warns when the cap is below p90 and says truncation, not savings', () => {
     const r = ok(estimateOutputTokens({ ...base, priors: [prior()], max_tokens: 500 }));
-    expect(r.warnings).toContain('MAX_TOKENS_BELOW_P90');
+    expect(r.warnings.map((w) => w.code)).toContain('MAX_TOKENS_BELOW_P90');
     expect(r.truncation_likely).toBe(true);
     expect(r.visible_output.p90).toBe(500);
-    expect(r.notes.join(' ')).toContain('lowers the BILL, not the risk');
+    // The sentence rides WITH the code now (3.26), not in a parallel notes array.
+    const w = r.warnings.find((x) => x.code === 'MAX_TOKENS_BELOW_P90')!;
+    expect(w.message).toContain('lowers the BILL, not the risk');
+    expect(w.severity).toBe('WARN');
   });
 
   it('does not warn when the cap is comfortably above p90', () => {
     const r = ok(estimateOutputTokens({ ...base, priors: [prior()], max_tokens: 4000 }));
-    expect(r.warnings).not.toContain('MAX_TOKENS_BELOW_P90');
+    expect(r.warnings.map((w) => w.code)).not.toContain('MAX_TOKENS_BELOW_P90');
     expect(r.truncation_likely).toBe(false);
     expect(r.visible_output.p90).toBe(900);
   });
@@ -145,7 +149,7 @@ describe('max_tokens is a clamp, not a forecast', () => {
       }),
     );
     expect(r.visible_output.p90).toBe(8000);
-    expect(r.warnings).toContain('MAX_TOKENS_BELOW_P90');
+    expect(r.warnings.map((w) => w.code)).toContain('MAX_TOKENS_BELOW_P90');
   });
 });
 

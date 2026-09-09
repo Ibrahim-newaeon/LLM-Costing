@@ -6,8 +6,8 @@
 //   pnpm vitest src/request.test.ts     # offline, free
 
 import { describe, it, expect } from 'vitest';
-import { Provenance, RequestOptions, ImageMetrics } from '@tokenomics/contracts';
-import { buildLine } from './candidate';
+import { Provenance, RequestOptions, ImageMetrics, ServiceTierProfile, ComplianceProfile, TextRateProfile, ServerToolFee } from '@tokenomics/contracts';
+import { buildLine, type LineInput } from './candidate';
 import {
 
   resolveServiceTier,
@@ -53,28 +53,31 @@ const rate = (amount: number, unit: string, over: Partial<any> = {}) => ({
   provenance: prov(over),
 });
 
-const tierProfile = (over: Record<string, unknown> = {}): any => ({
+const tierProfile = (over: Record<string, unknown> = {}): ServiceTierProfile =>
+  ServiceTierProfile.parse({
   tier: 'priority',
   multiplier: s(2),
   available: true,
   excludes: [],
   unavailable_in_regions: [],
-  ...over,
-});
+    ...over,
+  });
 
-const compliance = (over: Record<string, unknown> = {}): any => ({
+const compliance = (over: Record<string, unknown> = {}): ComplianceProfile =>
+  ComplianceProfile.parse({
   data_residency_region: ['us-east', 'me-central'],
   is_prc_hosted: false,
   contractual_dpa_available: true,
   residency_uplift_pct: s(0.15),
   notes: null,
-  ...over,
-});
+    ...over,
+  });
 
-const rates = (over: Record<string, unknown> = {}): any => ({
+const rates = (over: Record<string, unknown> = {}): TextRateProfile =>
+  TextRateProfile.parse({
   variant: 'standard',
   currency: 'USD',
-  input_rate_by_modality: { text: rate(3, 'per_1m_tokens') },
+  input_rate_by_modality: { text: rate(3, 'per_1m_tokens'), image: null, audio: null, video: null },
   output_rate: rate(15, 'per_1m_tokens'),
   reasoning_output_rate: null,
   per_request_fee: null,
@@ -84,10 +87,10 @@ const rates = (over: Record<string, unknown> = {}): any => ({
   server_tool_fees: [
     { tool: 'web_search', rate: rate(10, 'per_1k_calls'), free_allowance_per_month: null },
   ],
-  ...over,
-});
+    ...over,
+  });
 
-const line = (over: Record<string, unknown> = {}) =>
+const line = (over: Partial<LineInput> = {}) =>
   buildLine({
     task_id: 't1',
     component: 'prompt_input',
@@ -99,7 +102,7 @@ const line = (over: Record<string, unknown> = {}) =>
     confidence: 'HIGH',
     tier: 2,
     ...over,
-  } as any);
+  });
 
 /* ══════════════ the service tier — per provider, never shared ══════════════ */
 
@@ -220,7 +223,7 @@ describe('toolUseSystemPromptTokens', () => {
       rate_record_id: 'r1',
       method: 'PROVIDER_FORMULA',
       confidence: r.confidence,
-    } as any);
+    });
     expect(schemaLine.component).not.toBe(injectionLine.component);
     expect(injectionLine.quantity!.p50).toBe(346);
   });
@@ -255,7 +258,7 @@ describe('serverToolFees', () => {
   it('reports a non-per-call unit as unpriced rather than guessing the quantity', () => {
     const fees = [{ tool: 'code_container', rate: rate(0.05, 'per_gb_day'), free_allowance_per_month: null }];
     const uses = RequestOptions.parse({ server_tools: [{ tool: 'code_container', calls_per_execution: 1 }] }).server_tools;
-    const r = serverToolFees(fees as any, uses);
+    const r = serverToolFees(ServerToolFee.array().parse(fees), uses);
     expect(r.unpriced[0]!.reason).toMatch(/not a per-call unit/);
   });
 
@@ -264,7 +267,7 @@ describe('serverToolFees', () => {
     const uses = RequestOptions.parse({
       server_tools: [{ tool: 'web_search', calls_per_execution: 300, calls_used_this_month: 900 }],
     }).server_tools;
-    const r = serverToolFees(fees as any, uses);
+    const r = serverToolFees(ServerToolFee.array().parse(fees), uses);
     expect(r.charges[0]!.free_calls).toBe(100);
     expect(r.charges[0]!.billable_calls).toBe(200);
     expect(codes(r.warnings)).not.toContain('SERVER_TOOL_ALLOWANCE_NOT_APPLIED');
@@ -275,7 +278,7 @@ describe('serverToolFees', () => {
     const uses = RequestOptions.parse({
       server_tools: [{ tool: 'web_search', calls_per_execution: 300 }],
     }).server_tools;
-    const r = serverToolFees(fees as any, uses);
+    const r = serverToolFees(ServerToolFee.array().parse(fees), uses);
     expect(r.charges[0]!.free_calls).toBe(0);
     expect(r.charges[0]!.billable_calls).toBe(300);
     expect(codes(r.warnings)).toContain('SERVER_TOOL_ALLOWANCE_NOT_APPLIED');
@@ -287,7 +290,7 @@ describe('serverToolFees', () => {
     const uses = RequestOptions.parse({
       server_tools: [{ tool: 'web_search', calls_per_execution: 50, calls_used_this_month: 4_000 }],
     }).server_tools;
-    expect(serverToolFees(fees as any, uses).charges[0]!.billable_calls).toBe(50);
+    expect(serverToolFees(ServerToolFee.array().parse(fees), uses).charges[0]!.billable_calls).toBe(50);
   });
 
   it('a tool listed with zero calls produces no charge', () => {
@@ -390,7 +393,7 @@ describe('applyRequestMultipliers', () => {
       rate_record_id: null,
       method: 'UNAVAILABLE',
       confidence: 'NONE',
-    } as any);
+    });
     const r = applyRequestMultipliers([refusal], mult());
     expect(r.lines[0]!.cost).toBeNull();
     expect(r.lines[0]!.confidence).toBe('NONE');

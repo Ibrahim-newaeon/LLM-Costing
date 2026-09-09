@@ -66,6 +66,32 @@ export type ParseResult =
 /* ═══════════════════════ confidence ═══════════════════════ */
 
 /**
+ * The four penalties, named. They were inline literals until 2026-09-09 (finding
+ * 3.20); the rule-1 gate had recorded each with a reason, but a weight that lives
+ * only in an allowlist is a weight nobody can read from the function that applies
+ * it. None of these is measured — they are the author's judgement of how much each
+ * signal should pull toward L2, sized so that any two together cross the 0.6
+ * escalation line and no single one does. Calibrating them against L2 outcomes is
+ * backlog 2.7's sibling.
+ */
+const PENALTY = {
+  /** "don't summarize, just extract" parsed correctly still means the next clause may negate more than it appears. */
+  NEGATED_VERB_PRESENT: 0.25,
+  /** Three or more scripts in one instruction; lexicon selection is less certain. */
+  MANY_SCRIPTS: 0.15,
+  /** Long free text; L1 matches verbs, not structure. */
+  LONG_INSTRUCTION: 0.2,
+  /** A conditional branch whose probability the text does not state. */
+  CONDITIONAL_BRANCH: 0.2,
+} as const;
+/** Script count above which MANY_SCRIPTS applies (two is a bilingual instruction, which is normal here). */
+const MANY_SCRIPTS_ABOVE = 2;
+/** Matchable-character length above which LONG_INSTRUCTION applies. */
+const LONG_INSTRUCTION_CHARS = 600;
+/** Score is reported to two decimals. */
+const SCORE_DECIMALS = 100;
+
+/**
  * How much L1 trusts its own read.
  *
  * Deliberately pessimistic in the two places where being wrong is expensive: a
@@ -85,25 +111,23 @@ export function parseConfidence(hits: LexiconHit[], normalized: Normalized): {
     return { score: 0, reasons: ['No actionable verb matched the lexicon.'] };
   }
   if (hits.some((h) => h.negated)) {
-    // "don't summarize, just extract" parsed correctly still means the sentence is
-    // doing something subtle, and the next clause may negate more than it appears.
-    score -= 0.25;
+    score -= PENALTY.NEGATED_VERB_PRESENT;
     reasons.push('A negated verb was found and suppressed; the surrounding clause may qualify others.');
   }
   const mixCount = Object.keys(normalized.script_mix).length;
-  if (mixCount > 2) {
-    score -= 0.15;
+  if (mixCount > MANY_SCRIPTS_ABOVE) {
+    score -= PENALTY.MANY_SCRIPTS;
     reasons.push(`Three or more scripts in the instruction (${mixCount}); lexicon selection is less certain.`);
   }
-  if (normalized.matchable.length > 600) {
-    score -= 0.2;
+  if (normalized.matchable.length > LONG_INSTRUCTION_CHARS) {
+    score -= PENALTY.LONG_INSTRUCTION;
     reasons.push('Long free-text instruction; L1 matches verbs, not structure.');
   }
   if (detectConditional(normalized.matchable).is_conditional) {
-    score -= 0.2;
+    score -= PENALTY.CONDITIONAL_BRANCH;
     reasons.push('A conditional branch was detected and its probability is not inferable from the text.');
   }
-  return { score: Math.max(0, Math.round(score * 100) / 100), reasons };
+  return { score: Math.max(0, Math.round(score * SCORE_DECIMALS) / SCORE_DECIMALS), reasons };
 }
 
 /* ═══════════════════════ the parse ═══════════════════════ */
