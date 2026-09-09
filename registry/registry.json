@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-09-08T11:20:00.000Z",
+  "generated_at": "2026-09-09T14:59:03.000Z",
   "models": [
     {
       "model_id": "claude-opus-5",
@@ -440,27 +440,29 @@
         "text"
       ],
       "context_window": {
-        "value": null,
+        "value": 1048576,
+        "conflict": null,
         "provenance": {
-          "method": "UNAVAILABLE",
-          "confidence": "NONE",
+          "method": "PROVIDER_FORMULA",
+          "confidence": "HIGH",
           "source_class": "VENDOR_DOCS",
-          "source_url": null,
-          "verified_at": null,
+          "source_url": "https://ai.google.dev/gemini-api/docs/models/gemini-2.5-pro",
+          "verified_at": "2026-09-09T14:59:03.000Z",
           "verified_by": null,
-          "notes": "Model spec tables are JS-rendered; WebFetch returns only the navigation shell. Not fetched."
+          "notes": "Model page, \"Token limits[*]: Input token limit 1,048,576\". Footer \"Last updated 2026-06-23 UTC\". The [*] footnote marker has no text in the rendered page. Read in the browser; the earlier WebFetch attempt returned only the navigation shell."
         }
       },
       "max_output": {
-        "value": null,
+        "value": 65536,
+        "conflict": null,
         "provenance": {
-          "method": "UNAVAILABLE",
-          "confidence": "NONE",
+          "method": "PROVIDER_FORMULA",
+          "confidence": "HIGH",
           "source_class": "VENDOR_DOCS",
-          "source_url": null,
-          "verified_at": null,
+          "source_url": "https://ai.google.dev/gemini-api/docs/models/gemini-2.5-pro",
+          "verified_at": "2026-09-09T14:59:03.000Z",
           "verified_by": null,
-          "notes": "Same: the spec table did not load."
+          "notes": "Model page, \"Output token limit 65,536\". Footer \"Last updated 2026-06-23 UTC\". LiteLLM's feed states 65,535 for the same key (observed 2026-09-09) — off by one from the vendor page; the vendor figure is recorded."
         }
       },
       "is_reasoning_model": false,
@@ -546,7 +548,7 @@
             "video": null
           },
           "output_rate": {
-            "amount": 10.0,
+            "amount": 10,
             "unit": "per_1m_tokens",
             "list_currency": "USD",
             "fx_rate_used": null,
@@ -595,7 +597,7 @@
                 }
               },
               "output_rate": {
-                "amount": 10.0,
+                "amount": 10,
                 "unit": "per_1m_tokens",
                 "list_currency": "USD",
                 "fx_rate_used": null,
@@ -616,7 +618,28 @@
                   "notes": "Published as \"Input $1.25, prompts <=200k $2.50, prompts >200k\". The wording is \"prompts >200k tokens\", so the whole prompt reprices, not the overflow."
                 }
               },
-              "cache_read_rate": null,
+              "cache_read_rate": {
+                "amount": 0.125,
+                "unit": "per_1m_tokens",
+                "list_currency": "USD",
+                "fx_rate_used": null,
+                "fx_rate_date": null,
+                "fx_source_url": null,
+                "effective_from": "2026-09-09T14:59:03.000Z",
+                "effective_to": null,
+                "time_of_day_variant": "all_hours",
+                "max_age_days": 30,
+                "conflict": null,
+                "provenance": {
+                  "method": "PROVIDER_FORMULA",
+                  "confidence": "HIGH",
+                  "source_class": "VENDOR_DOCS",
+                  "source_url": "https://ai.google.dev/gemini-api/docs/pricing",
+                  "verified_at": "2026-09-09T14:59:03.000Z",
+                  "verified_by": null,
+                  "notes": "Pricing page, Gemini 2.5 Pro, Standard tab, Paid Tier per 1M tokens in USD: \"Context caching price $0.125, prompts <= 200k tokens $0.25, prompts > 200k\". Footer \"Last updated 2026-09-08 UTC\". Read from the tab panel's textContent; the tab is not in the visible page text."
+                }
+              },
               "applies_to_whole_request": true
             },
             {
@@ -644,7 +667,7 @@
                 }
               },
               "output_rate": {
-                "amount": 15.0,
+                "amount": 15,
                 "unit": "per_1m_tokens",
                 "list_currency": "USD",
                 "fx_rate_used": null,
@@ -665,11 +688,106 @@
                   "notes": "Published as \"Input $1.25, prompts <=200k $2.50, prompts >200k\". The wording is \"prompts >200k tokens\", so the whole prompt reprices, not the overflow."
                 }
               },
-              "cache_read_rate": null,
+              "cache_read_rate": {
+                "amount": 0.25,
+                "unit": "per_1m_tokens",
+                "list_currency": "USD",
+                "fx_rate_used": null,
+                "fx_rate_date": null,
+                "fx_source_url": null,
+                "effective_from": "2026-09-09T14:59:03.000Z",
+                "effective_to": null,
+                "time_of_day_variant": "all_hours",
+                "max_age_days": 30,
+                "conflict": null,
+                "provenance": {
+                  "method": "PROVIDER_FORMULA",
+                  "confidence": "HIGH",
+                  "source_class": "VENDOR_DOCS",
+                  "source_url": "https://ai.google.dev/gemini-api/docs/pricing",
+                  "verified_at": "2026-09-09T14:59:03.000Z",
+                  "verified_by": null,
+                  "notes": "Pricing page, Gemini 2.5 Pro, Standard tab, Paid Tier per 1M tokens in USD: \"Context caching price $0.125, prompts <= 200k tokens $0.25, prompts > 200k\". Footer \"Last updated 2026-09-08 UTC\". Read from the tab panel's textContent; the tab is not in the visible page text. This is the \"> 200k\" figure."
+                }
+              },
               "applies_to_whole_request": true
             }
           ],
-          "cache": null,
+          "cache": {
+            "write_rate": null,
+            "read_rate": {
+              "amount": 0.125,
+              "unit": "per_1m_tokens",
+              "list_currency": "USD",
+              "fx_rate_used": null,
+              "fx_rate_date": null,
+              "fx_source_url": null,
+              "effective_from": "2026-09-09T14:59:03.000Z",
+              "effective_to": null,
+              "time_of_day_variant": "all_hours",
+              "max_age_days": 30,
+              "conflict": null,
+              "provenance": {
+                "method": "PROVIDER_FORMULA",
+                "confidence": "HIGH",
+                "source_class": "VENDOR_DOCS",
+                "source_url": "https://ai.google.dev/gemini-api/docs/pricing",
+                "verified_at": "2026-09-09T14:59:03.000Z",
+                "verified_by": null,
+                "notes": "Pricing page, Gemini 2.5 Pro, Standard tab, Paid Tier per 1M tokens in USD: \"Context caching price $0.125, prompts <= 200k tokens $0.25, prompts > 200k\". Footer \"Last updated 2026-09-08 UTC\". Read from the tab panel's textContent; the tab is not in the visible page text."
+              }
+            },
+            "write_multipliers_by_ttl": {},
+            "min_cacheable_tokens": {
+              "value": 2048,
+              "conflict": null,
+              "provenance": {
+                "method": "PROVIDER_FORMULA",
+                "confidence": "HIGH",
+                "source_class": "VENDOR_DOCS",
+                "source_url": "https://ai.google.dev/gemini-api/docs/caching",
+                "verified_at": "2026-09-09T14:59:03.000Z",
+                "verified_by": null,
+                "notes": "Caching page, table \"Model / Min token limit\": \"Gemini 2.5 Pro 2,048\". Footer \"Last updated 2026-09-02 UTC\"."
+              }
+            },
+            "ttl_seconds": {
+              "value": null,
+              "conflict": null,
+              "provenance": {
+                "method": "UNAVAILABLE",
+                "confidence": "NONE",
+                "source_class": "VENDOR_DOCS",
+                "source_url": null,
+                "verified_at": null,
+                "verified_by": null,
+                "notes": "The caching page read on 2026-09-09 documents implicit caching for the Interactions API and states no TTL; explicit-cache TTL lives under generateContent and was not read. Not guessed."
+              }
+            },
+            "is_automatic": true,
+            "storage_rate_per_hour": {
+              "amount": 4.5,
+              "unit": "per_1m_tokens_per_hour",
+              "list_currency": "USD",
+              "fx_rate_used": null,
+              "fx_rate_date": null,
+              "fx_source_url": null,
+              "effective_from": "2026-09-09T14:59:03.000Z",
+              "effective_to": null,
+              "time_of_day_variant": "all_hours",
+              "max_age_days": 30,
+              "conflict": null,
+              "provenance": {
+                "method": "PROVIDER_FORMULA",
+                "confidence": "HIGH",
+                "source_class": "VENDOR_DOCS",
+                "source_url": "https://ai.google.dev/gemini-api/docs/pricing",
+                "verified_at": "2026-09-09T14:59:03.000Z",
+                "verified_by": null,
+                "notes": "Pricing page, Gemini 2.5 Pro, Standard tab: \"$4.50 / 1,000,000 tokens per hour (storage price)\". Footer \"Last updated 2026-09-08 UTC\". Billed whether or not the model is called (§A5.10)."
+              }
+            }
+          },
           "tool_use_system_prompt_tokens": [],
           "server_tool_fees": []
         }
@@ -686,7 +804,7 @@
               "source_url": "https://ai.google.dev/gemini-api/docs/pricing",
               "verified_at": "2026-09-08T11:20:00.000Z",
               "verified_by": null,
-              "notes": "\"Batch API offers 50% cost reduction\". Same figure Anthropic publishes \u2014 read per provider, never shared."
+              "notes": "\"Batch API offers 50% cost reduction\". Same figure Anthropic publishes — read per provider, never shared."
             }
           },
           "available": true,
@@ -697,7 +815,7 @@
       "vision": {
         "geometry": {
           "geometry": "UNAVAILABLE",
-          "reason": "The tile geometry is published \u2014 258 tokens for images <=384px in both dimensions, larger images tiled into 768x768 tiles at 258 tokens each \u2014 but the page states no per-image base and offers no worked example, so whether a total is tiles x 258 or 258 + tiles x 258 is unresolved. That is 258 tokens on every image (~25% on a 1000x1000). See docs/verify-resolution.md VERIFY #6.",
+          "reason": "The tile geometry is published — 258 tokens for images <=384px in both dimensions, larger images tiled into 768x768 tiles at 258 tokens each — but the page states no per-image base and offers no worked example, so whether a total is tiles x 258 or 258 + tiles x 258 is unresolved. That is 258 tokens on every image (~25% on a 1000x1000). See docs/verify-resolution.md VERIFY #6.",
           "probe_candidate": true
         },
         "low_detail": {

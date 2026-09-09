@@ -200,7 +200,10 @@ describe('compareRates — the registry against the feed', () => {
     for (const c of cs) { expect(c.delta_pct).toBe(0); expect(c.conflict).toBeNull(); expect(c.registry?.unit).toBe('per_1m_tokens'); }
   });
 
-  it('on the real data the Gemini tiers AGREE and the cache slots the registry never sourced are leads, not values', async () => {
+  it('on the real data every Gemini figure the feed states — six of them, cache read at both tiers included — AGREES', async () => {
+    // The two cache-read slots were REGISTRY_UNSOURCED leads when this pipeline
+    // first ran (2026-09-09 morning). The pricing page was then read in the browser
+    // and the row filled in; the same run now agrees on all six.
     const { observations } = await pull();
     const cs = compareRates(gemini, observations, 0);
     const outcome = (dir: string, above: number | null) =>
@@ -209,11 +212,25 @@ describe('compareRates — the registry against the feed', () => {
     expect(outcome('output', null)).toBe('AGREE');
     expect(outcome('input', 200_000)).toBe('AGREE');
     expect(outcome('output', 200_000)).toBe('AGREE');
-    expect(outcome('cache_read', null)).toBe('REGISTRY_UNSOURCED');
-    expect(outcome('cache_read', 200_000)).toBe('REGISTRY_UNSOURCED');
+    expect(outcome('cache_read', null)).toBe('AGREE');
+    expect(outcome('cache_read', 200_000)).toBe('AGREE');
+    expect(cs.filter((c) => c.outcome !== 'AGREE')).toEqual([]);
+  });
+
+  it('a slot the registry never sourced is REGISTRY_UNSOURCED — a lead with a path, not a value', async () => {
+    // SYNTHETIC: the real row with its cache profile removed, which is exactly the
+    // state the row was in before the pricing page was read.
+    const { observations } = await pull();
+    const bare = structuredClone(gemini);
+    bare.text_rates[0]!.cache = null;
+    bare.text_rates[0]!.context_tiers![1]!.cache_read_rate = null;
+    const cs = compareRates(bare, observations, 0);
     const lead = cs.find((c) => c.key.direction === 'cache_read' && c.key.above_tokens === null)!;
+    expect(lead.outcome).toBe('REGISTRY_UNSOURCED');
     expect(lead.path).toBe('text_rates[standard].cache.read_rate');
+    expect(lead.registry).toBeNull();
     expect(lead.reason).toContain('not a value to write');
+    expect(cs.find((c) => c.key.direction === 'cache_read' && c.key.above_tokens === 200_000)?.outcome).toBe('REGISTRY_UNSOURCED');
   });
 
   it('a tier boundary the registry does not draw is NO_SLOT, not the nearest tier', async () => {

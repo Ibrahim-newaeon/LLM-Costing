@@ -529,6 +529,39 @@ found instead was the other five outcomes doing their job:
 - `claude-opus-5` `deprecation_date`: the feed claims 2027-07-24; the registry has null. A
   lifecycle claim from an aggregator is reported, never written — the vendor's page decides.
 
+### The three leads, read on the vendor pages the same day
+
+Each was a claim by an aggregator. Each was checked against the vendor, in the browser, and
+the vendor's figure — or the vendor's silence — is what the registry now records.
+
+**Gemini cache (2.9).** The pricing page's Gemini 2.5 Pro tab panel (footer "Last updated
+2026-09-08 UTC") states *"Context caching price $0.125, prompts <= 200k tokens $0.25, prompts >
+200k"* and *"$4.50 / 1,000,000 tokens per hour (storage price)"*; the caching page (2026-09-02)
+gives the 2,048-token minimum and says implicit caching is on by default for 2.5 models. All
+four are on the row with their URLs. What the vendor does **not** publish is a creation price,
+so `write_rate` stays null — unknown, not zero — and `evaluateCache` still refuses the Gemini
+row: a miss whose cost nobody stated cannot be priced as free. The feed and the vendor now
+agree on all six Gemini figures the feed states. The tab panels, incidentally, are readable:
+`textContent` includes hidden tabs where `innerText` does not, which is why the earlier note
+that these tables "did not appear in page text" was true and not the end of the story.
+
+**Gemini limits (2.10).** The model page (footer "Last updated 2026-06-23 UTC"): *"Input token
+limit 1,048,576 / Output token limit 65,536"*. The feed had said 65,535 — off by one from the
+vendor, and the vendor's figure is what the row carries, with the discrepancy in its note. The
+router's context check on this row is no longer "could not perform": a 500k-token read fits
+both rows, and a 1,020,000-token read now separates them — Opus (1,000,000) drops with
+`CONTEXT_TOO_SMALL`, Gemini (1,048,576) stays.
+
+**Opus deprecation (2.11).** Anthropic's model-deprecations page (no page date) lists
+`claude-opus-5` as *"Active · Deprecated: N/A · Tentative retirement date: Not sooner than
+July 24, 2027"*. That is not a deprecation date. It is a **floor** on retirement, and the feed
+had carried it under the name `deprecation_date` — a semantic mismatch that would have made
+`modelInService` report the model deprecated from a day the vendor only promised it would not
+be retired *before*. Nothing was written. The contract has a deprecation date and a withdrawal
+date and no field for "not before", which is recorded as a gap; the lesson is the one the
+ingest pipeline was built around, from the other side — a feed's field name is a claim about
+what the number means, and it is checked like any other.
+
 Zero conflicts, so the conflict path is proven on **synthetic** observations named as such
 (`example.invalid` sources, the real reading doubled) and by mutation: averaging the two
 figures, ignoring the tolerance, silencing an unresolved conflict, downgrading it to WARN,
@@ -770,11 +803,12 @@ examples — the same ones that caught our off-by-one. Google's blocks because i
 difference is not general documentation quality; it is whether the vendor publishes the specific
 artefact that makes a geometry checkable.
 
-Also unpriced and recorded rather than assumed: cache (published for the Flash models in this
-family, **not** for 2.5 Pro — carrying a Flash rate across is another model's answer), audio and
+Also unpriced and recorded rather than assumed, as of this row's first reading: cache, audio and
 video input rates (siblings price audio separately, so parity with text would assume this model is
 the exception), and the context window (Google's spec tables are JS-rendered and return only a
-navigation shell).
+navigation shell to WebFetch). *Since then the cache read and storage rates and both token
+limits have been read in the browser — see "The three leads" under §A6. Audio and video stay
+unpriced; the cache stays unevaluable for want of a published write price.*
 
 ## The router — §A7
 
@@ -824,9 +858,12 @@ router returns null *with a reason*, which is the correct output rather than a g
 reported, not just the outcome: a model can fail both the vision check and the rate check, and
 "fixing the rate does not make a text-only model see". Capability first, pricing after.
 
-It also reports checks it **could not perform**, separately from passes. Gemini's context window is
-`UNAVAILABLE` — Google's spec tables are JS-rendered — so the gate cannot tell whether a 500k-token
-request fits. It says so rather than passing it silently. An unexamined pass is not a pass.
+It also reports checks it **could not perform**, separately from passes. When this was written
+Gemini's context window was `UNAVAILABLE` — Google's spec tables are JS-rendered — so the gate
+could not tell whether a 500k-token request fit, and said so rather than passing it silently. An
+unexamined pass is not a pass. *The window has since been read (1,048,576; see "The three leads"
+under §A6) and the same test now asserts the check is performed — and that a 1,020,000-token
+read drops Opus and keeps Gemini.*
 
 ### On the real registry
 
