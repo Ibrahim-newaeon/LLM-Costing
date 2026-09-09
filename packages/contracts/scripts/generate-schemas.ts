@@ -24,7 +24,7 @@ import { WorkflowInput } from '../src/workflow';
 import { InstanceProfile } from '../src/instance';
 import { RequestOptions } from '../src/request';
 import { EstimateOutput } from '../src/estimate';
-import { TextCalibration, OutputPrior } from '../src/calibration';
+import { TextCalibration, OutputPrior, OutputSample } from '../src/calibration';
 
 const OUT_DIR = join(__dirname, '..', '..', '..', 'schemas');
 
@@ -40,6 +40,9 @@ const TARGETS: Array<{ file: string; schema: z.ZodType; name: string }> = [
   { file: 'estimate-output.schema.json', schema: EstimateOutput, name: 'EstimateOutput' },
   { file: 'text-calibration.schema.json', schema: TextCalibration, name: 'TextCalibration' },
   { file: 'output-prior.schema.json', schema: OutputPrior, name: 'OutputPrior' },
+  // §A5.4 — the observed response a prior is built from. A capture integration
+  // validates against this before a sample is kept.
+  { file: 'output-sample.schema.json', schema: OutputSample, name: 'OutputSample' },
   // §A5.9 — the deployment economics the deleted pricing-record.schema.json
   // carried and nothing replaced. Ingestion writes these rows, so the drift gate
   // has to guard the document it validates them against.

@@ -215,6 +215,44 @@ export const OutputPrior = z
   });
 export type OutputPrior = z.infer<typeof OutputPrior>;
 
+/* ─────────────────────── output samples (§A5.4 capture) ─────────────────────── */
+
+/**
+ * One observed response — the thing §A5.4 says to "wire from day one". A prior is
+ * built from many of these and from nothing else; a sample is the only way an
+ * output figure enters the system that is not a seed.
+ *
+ * Two token figures, not one, because the providers split the bill differently and
+ * a single `output_tokens` would hide which half was invisible:
+ *
+ *   visible_output_tokens   what came back in the response body
+ *   reasoning_tokens        what was billed as output and never shown — thinking,
+ *                           reasoning, "thoughts". NULL means the provider did not
+ *                           report the figure for this response. It is not zero: a
+ *                           reasoning model whose samples all carry null builds a
+ *                           prior with no reasoning term, and the estimator refuses
+ *                           it, which is the correct outcome for an unmeasured
+ *                           invisible term.
+ *
+ * The adapters in `@tokenomics/calibrate` know where each provider puts these and
+ * whether its reasoning count is a subset of its output count or additional to it —
+ * a difference that would silently double- or under-count if a caller mapped the
+ * fields by hand.
+ */
+export const OutputSample = z.object({
+  model_id: z.string().min(1),
+  band: OutputBand,
+  provider: z.string().min(1),
+  visible_output_tokens: z.number().int().nonnegative(),
+  reasoning_tokens: z.number().int().nonnegative().nullable(),
+  observed_at: z.string().datetime(),
+  /** The provider's response id, so a re-captured response is not a second sample. */
+  response_id: z.string().min(1).nullable().default(null),
+  /** §A3.1 — the count is the provider's; the mapping of its fields is documented at `source_url`. */
+  provenance: Provenance,
+});
+export type OutputSample = z.infer<typeof OutputSample>;
+
 /** Exact-match lookup. Same rule as the text table: never interpolate a band. */
 export function findOutputPrior(
   table: readonly OutputPrior[],

@@ -7,6 +7,7 @@
     "@tokenomics/contracts": "workspace:*",
     "@tokenomics/estimator": "workspace:*",
     "@tokenomics/parser": "workspace:*",
-    "@tokenomics/router": "workspace:*"
+    "@tokenomics/router": "workspace:*",
+    "@tokenomics/calibrate": "workspace:*"
   }
 }
