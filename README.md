@@ -25,9 +25,10 @@ error bars — and a refusal where a number would be a guess.
 | `packages/router/` | §A7 — capability gate, three objectives, split routing |
 | `packages/e2e/` | §A11 — the chain, and the ledger of every unraised `WarningCode` |
 | `packages/ingest/` | §A4.2 / §A6 — pricing ingestion: snapshot, observations, two-source comparison, conflict queue. The second package allowed I/O |
+| `packages/calibrate/` | §A5.4 — output-prior capture: provider usage → `OutputSample`, samples → `OutputPrior`. Pure and keyless |
 | `registry/sources/` | Per-feed config with reasons (`litellm.json`) and the last saved observation set the next pull is diffed against |
 | `scripts/` | Workspace-wide gates. `check-literals.mjs` enforces rule 1 in CI |
-| `schemas/` | Fourteen JSON Schemas, all **generated** from the contracts and gated in CI |
+| `schemas/` | Fifteen JSON Schemas, all **generated** from the contracts and gated in CI |
 | `prompts/analyzer.system.md` | Runtime analyzer system prompt; ships at `/prompts/` in the built app |
 | `prototype/` | Working Vite/React prototype recovered from `~/llm-token-calculator`. Reference only — see `docs/prototype-salvage.md` |
 | `reference/` | The published reference page. **Stale** — 8 drift sites, no generator. Kept so it is not lost, not because it is current |
@@ -42,9 +43,18 @@ version from `SPEC.md` when it is needed.
 
 ## State, honestly
 
-`packages/contracts` is complete as a contract layer and fully gated. `packages/estimator` has
-begun with visual token counting — the first code that consumes the contracts. No tokenizers, no
-ingestion, no router, no UI yet.
+As of 2026-09-09 (`main` after #25): **667 tests across 32 files**, typecheck clean, fifteen
+generated schemas in sync, 75 allowlisted literals each with a written reason. The chain runs
+end to end — prose → parser → estimator → router → `EstimateOutput` — for two registry rows
+whose every figure was read from the vendor's own page. Ingestion checks those rows against
+LiteLLM's feed and never writes a rate. The output side has a capture path and no samples.
+**No live API call has ever been made from this repo**; one live feed pull has. What is not
+built: tier 2, the probe, L2, scenarios, UI, the MCP surface, and every provider beyond the
+two. The sections below are in the order they were built, and each says what it found.
+
+The paragraph that follows is how the toolchain was stood up on 2026-09-07, kept because the
+failure it records — a gate that went green while guarding nothing — is the reason every gate
+here is proven to fail before it is trusted.
 
 The toolchain was stood up on 2026-09-07, and everything here has actually been run rather than
 merely read. The authority is a clean-checkout CI run, not a local one —
@@ -557,6 +567,76 @@ The prototype's refresh script set `verified: true` when a price string appeared
 has any price. That still needs a person and the vendor's page — which is what the comparison
 is *for*.
 
+## §A5.4 — the output side gets a way in
+
+Every output estimate refused, and correctly: §A5.4 says each prior is "calibrated from
+observed runs, not invented", and no run had ever been observed. What was missing was not a
+number but the path a number could take. `packages/calibrate` is that path, pure and keyless.
+An integration that made a real call hands over the response body; `sampleFromResponse` turns it
+into an `OutputSample`, `buildOutputPriors` turns enough samples into an `OutputPrior`, and
+`estimateOutputTokens` prices with it instead of refusing. **No sample exists** — no live call
+has ever been made from this repo — so on `main` every output estimate still refuses. The
+runner reads a file a key wrote somewhere else.
+
+### The three providers do not agree on what "output" contains
+
+Read from each vendor's API reference in the browser on 2026-09-09, quoted in
+`packages/calibrate/src/usage.ts`:
+
+| Provider | Reasoning field | Relationship to the output count |
+|---|---|---|
+| Anthropic | `usage.output_tokens_details.thinking_tokens` — "Breakdown of output tokens by category" | a category **of** `output_tokens`: visible = output − thinking |
+| OpenAI (Responses) | `usage.output_tokens_details.reasoning_tokens`; `max_output_tokens` bounds "visible output tokens and reasoning tokens" | a category **of** `output_tokens` |
+| Google Gemini | `usageMetadata.thoughtsTokenCount`; `totalTokenCount` is "prompt + thoughts + response candidates" (page: last updated 2026-08-28) | **additional** to `candidatesTokenCount`: visible = candidates as it stands |
+
+A caller that mapped `output_tokens → visible` for all three would double-count reasoning on
+two providers and miss it on the third — and reasoning is the invisible, frequently larger half
+of a reasoning model's bill. So `OutputSample` carries two figures, `visible_output_tokens` and
+`reasoning_tokens`, and the adapter that knows the containment fills them. `reasoning_tokens:
+null` means *not reported*, never zero: a reasoning model whose samples all carry null builds a
+prior with no reasoning term, and the estimator's existing guard refuses it, which is the right
+outcome for an unmeasured invisible term. The same test that proves a prior makes the line price
+proves that guard still holds.
+
+Gemini's absent `thoughtsTokenCount` is recorded as null for a reason that is not a preference:
+the API's JSON omits zero-valued integers, so "absent" cannot be told from "zero" by the
+response alone. A caller that knows thinking was off passes `thoughts_known_zero`. The Chat
+Completions field the spec names — `usage.completion_tokens_details` — is deliberately not
+mapped: its reference page was not read for this, and a field mapped from memory is a guessed
+provider fact wearing a citation.
+
+### The builder does not guess either
+
+`min_samples` is required with no default. §A4.1 sets 200 for the text corpus buckets and says
+nothing about output priors; a default in code would be a policy the spec did not state,
+applied to every table. Below it a prior is `LOW` and raises `CALIBRATION_SAMPLE_TOO_SMALL` with
+the two numbers in the sentence; at or above it, `MEDIUM` — never `HIGH`, because a distribution
+measured on one workload is a calibrated table (`CALIBRATED_HEURISTIC`), not a provider fact.
+Percentiles are nearest-rank, no interpolation: an interpolated p90 is a length no response
+produced. An unbounded band with zero spread is refused rather than given a width. One unknown
+reasoning figure withholds the whole reasoning distribution — a partial one understates in the
+direction the bill grows. Re-captured responses are deduped on the provider's response id.
+
+The ledger moved from 8 of 36 to **7**. `packages/e2e/src/priors.test.ts` drives ten synthetic
+responses to a LOW prior, prices the `completion_output` line at the registry's $25/M — $0.005
+p50 and $0.008 p90 for 200 and 320 billable tokens — and carries the warning into the estimate,
+where it lowers confidence to LOW and does not force review.
+
+### A test that passed for the wrong reason
+
+`parseL1('summarize the report')` carries the parser's own blocking `pdf_has_text_layer` gap —
+"the report" is a document of unknown kind — and a blocking gap sets `needs_human_review` by
+itself. The §A6 chain test asserted the flag **true** after a BLOCKING conflict warning and
+passed whether or not the warning did anything. The §A5.4 test asserted the flag **false** after
+a WARN, and could not. Both now parse `'summarize this text'`, assert there is no blocking gap,
+and the §A6 test checks the flag *before* the severity, so a conflict downgraded to WARN fails
+on the claim rather than on a detail. A flag with three causes needs the other two ruled out
+before the assertion means anything.
+
+Mutations: ten tried, nine caught at one to six tests red. The survivor was a hole, not an
+equivalent — the OpenAI adapter's refusal of reasoning larger than output had no test where the
+Anthropic one did — and now has one.
+
 ## Tier 1 — reading the endpoint properly, and the bug that found
 
 `packages/tokenizers` is the first package allowed to do I/O. `estimator` states in its own index
@@ -786,6 +866,8 @@ reader to the right fix; "it lacks vision" sends them to the wrong one.
 → **e2e** ✅ (§A11 chain + §A12's checkable items; `assembleEstimate` is the last box)
 → **ingestion** ◐ (§A4.2 Tier A: snapshot → observations → two-source comparison → conflict
    queue, with LiteLLM as the first feed; Tier B manual overrides and OpenRouter not built)
+→ **calibration** ◐ (§A5.4 output-prior capture: response body → sample → prior; the path
+   exists, no sample does — populating needs a key at a call site outside this repo)
 → registry → UI.
 
 **Estimator before UI.** The math is the product.
