@@ -473,6 +473,79 @@ describe('capabilityGate drops loudly, never silently', () => {
   });
 });
 
+/* ══════════ a model you cannot call is not a cheap model ══════════ */
+
+describe('the lifecycle fields nothing was reading', () => {
+  const AT = new Date('2026-09-09T00:00:00.000Z');
+  const gate = (over: Record<string, unknown>) =>
+    capabilityGate({ models: [model(over)], tasks: [task()], at: AT });
+
+  it('IN_SERVICE by default — no dates set is not a reason to drop anything', () => {
+    const r = gate({});
+    expect(r.eligible.map((m) => m.model_id)).toEqual(['m']);
+    expect(r.warnings).toEqual([]);
+  });
+
+  it('WITHDRAWN is excluded, and the reason names the date rather than the symptom', () => {
+    // Before this, `effective_to` was read by nothing: the router would rank a
+    // shut-down model at a price that is correct for something you cannot call.
+    const r = gate({ effective_to: '2026-03-01T00:00:00.000Z' });
+    expect(r.eligible).toEqual([]);
+    expect(r.excluded[0]!.reason).toBe('MODEL_NOT_IN_SERVICE');
+    expect(r.excluded[0]!.detail).toMatch(/Withdrawn/);
+    expect(r.excluded[0]!.detail).toContain('2026-03-01');
+  });
+
+  it('NOT_YET_AVAILABLE is excluded too — an announced model is not a callable one', () => {
+    const r = gate({ effective_from: '2027-01-01T00:00:00.000Z' });
+    expect(r.eligible).toEqual([]);
+    expect(r.excluded[0]!.reason).toBe('MODEL_NOT_IN_SERVICE');
+    expect(r.excluded[0]!.detail).toMatch(/Not yet available/);
+  });
+
+  it('DEPRECATED is NOT excluded — it still answers, and may still be cheapest', () => {
+    // The distinction that matters. Dropping it would hide a model that works;
+    // ranking it silently would hand somebody a migration they never agreed to.
+    const r = gate({ deprecation_date: '2026-06-01T00:00:00.000Z' });
+    expect(r.eligible.map((m) => m.model_id)).toEqual(['m']);
+    expect(r.warnings.map((w) => w.code)).toEqual(['MODEL_DEPRECATED']);
+    expect(r.warnings[0]!.message).toContain('2026-06-01');
+  });
+
+  it('withdrawn beats deprecated — a shut-down model is not merely deprecated', () => {
+    const r = gate({
+      deprecation_date: '2026-06-01T00:00:00.000Z',
+      effective_to: '2026-08-01T00:00:00.000Z',
+    });
+    expect(r.excluded[0]!.reason).toBe('MODEL_NOT_IN_SERVICE');
+    expect(r.warnings).toEqual([]);
+  });
+
+  it('the lifecycle check runs BEFORE capability, so the reason is the useful one', () => {
+    // A shut-down model also lacks vision, lacks tools, and fails every other
+    // check. "Migrate off this model" is the sentence that helps; "it lacks
+    // vision" sends the reader to fix the wrong thing.
+    const r = capabilityGate({
+      models: [model({ effective_to: '2026-03-01T00:00:00.000Z', supports_tools: false })],
+      tasks: [task({ flags: { ...task().flags, requires_tool_calling: true } })],
+      at: AT,
+    });
+    expect(r.excluded).toHaveLength(1);
+    expect(r.excluded[0]!.reason).toBe('MODEL_NOT_IN_SERVICE');
+  });
+
+  it('route() carries the deprecation warning out to the caller', () => {
+    const r = route({
+      models: [model({ deprecation_date: '2026-06-01T00:00:00.000Z' })],
+      tasks: [task()],
+      candidates: [],
+      at: AT,
+    });
+    expect(r.warnings.map((w) => w.code)).toContain('MODEL_DEPRECATED');
+  });
+});
+
+
 /* ══════════════ end to end ══════════════ */
 
 describe('route gates before it ranks', () => {

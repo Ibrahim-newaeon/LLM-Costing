@@ -218,6 +218,50 @@ export const ModelRow = z
   });
 export type ModelRow = z.infer<typeof ModelRow>;
 
+/* ─────────────────── is this model still a thing you can call? ─────────────────── */
+
+/**
+ * Four states, because "deprecated" and "gone" are different facts with different
+ * fixes, and merging them either drops a model that still works or recommends one
+ * that no longer exists.
+ */
+export type ServiceState = 'IN_SERVICE' | 'NOT_YET_AVAILABLE' | 'DEPRECATED' | 'WITHDRAWN';
+
+/**
+ * ⚠️ `effective_from`, `effective_to` and `deprecation_date` have been on `ModelRow`
+ * since the contract was written, and until this function **nothing read them** —
+ * exactly the shape of the `rateInForce` finding, one level up. The consequence is
+ * worse here than a mispriced rate: the router would happily recommend a model that
+ * has been shut down, at a price that is correct for a thing you cannot call.
+ *
+ * Not hypothetical. Google's models page carries a "Previous models — these models
+ * are deprecated and will be shut down soon" section listing shut-down endpoints
+ * alongside live ones (retrieved 2026-09-08 from
+ * https://ai.google.dev/gemini-api/docs/models; page footer shows no date).
+ *
+ * The distinction the vendors actually draw:
+ *
+ *   DEPRECATED  announced end-of-life; the endpoint still answers. Still callable,
+ *               so NOT excluded — it may genuinely be the right answer today — but
+ *               nobody should pick it for new work without being told.
+ *   WITHDRAWN   past `effective_to`. The row no longer describes anything callable.
+ *
+ * `deprecation_date` is read as "deprecated FROM", `effective_to` as "gone AFTER".
+ * A row where the two disagree resolves to the stronger state, because a withdrawn
+ * model is not merely deprecated.
+ */
+export function modelInService(m: ModelRow, at: Date = new Date()): ServiceState {
+  const t = at.getTime();
+  if (t < Date.parse(m.effective_from)) return 'NOT_YET_AVAILABLE';
+  if (m.effective_to !== null && t >= Date.parse(m.effective_to)) return 'WITHDRAWN';
+  if (m.deprecation_date !== null && t >= Date.parse(m.deprecation_date)) return 'DEPRECATED';
+  return 'IN_SERVICE';
+}
+
+/** The two states the router must drop. DEPRECATED is deliberately not one of them. */
+export const isCallable = (s: ServiceState): boolean =>
+  s === 'IN_SERVICE' || s === 'DEPRECATED';
+
 export const Registry = z.object({
   schema_version: z.literal('2.0.0'),
   generated_at: z.string().datetime(),
