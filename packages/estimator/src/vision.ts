@@ -34,6 +34,7 @@ import {
   type Script,
   type VisionConstraints,
   type VisionProfile,
+  type EstimateWarning,
 } from '@tokenomics/contracts';
 
 /* ─────────────────────────── inputs & results ─────────────────────────── */
@@ -57,6 +58,12 @@ export interface VisionCounted {
   method: Method;
   confidence: Confidence;
   notes: string[];
+  /**
+   * §A11: three of the eighteen lived here. The conditions were all detected and
+   * all written down — in `notes`, or inside a refusal's prose — so nothing
+   * downstream could act on them or even find them.
+   */
+  warnings: EstimateWarning[];
 }
 
 export interface VisionUnavailable {
@@ -65,16 +72,23 @@ export interface VisionUnavailable {
   rung: DispositionRung;
   method: 'UNAVAILABLE';
   confidence: 'NONE';
+  /** A refusal still has a coded reason; the prose above is for a human. */
+  warnings: EstimateWarning[];
 }
 
 export type VisionCount = VisionCounted | VisionUnavailable;
 
-const unavailable = (reason: string, rung: DispositionRung = 'BLOCKED'): VisionUnavailable => ({
+const unavailable = (
+  reason: string,
+  rung: DispositionRung = 'BLOCKED',
+  warnings: EstimateWarning[] = [],
+): VisionUnavailable => ({
   status: 'UNAVAILABLE',
   reason,
   rung,
   method: 'UNAVAILABLE',
   confidence: 'NONE',
+  warnings,
 });
 
 /* ─────────────────────────── evidence collection ─────────────────────────── */
@@ -87,9 +101,16 @@ interface Evidence {
   confidences: Confidence[];
   methods: Method[];
   missing: string[];
+  /**
+   * Warnings ride here rather than being passed to `finish` at fifteen call sites.
+   * The accumulator that already collects what a count was made of is the right
+   * place to collect what should be said about it — and threading a sixteenth
+   * argument is how one call site quietly gets left out.
+   */
+  warnings: EstimateWarning[];
 }
 
-const newEvidence = (): Evidence => ({ confidences: [], methods: [], missing: [] });
+const newEvidence = (): Evidence => ({ confidences: [], methods: [], missing: [], warnings: [] });
 
 /** Read a sourced constant, recording its provenance. Null is recorded as missing. */
 function need<T>(ev: Evidence, s: Sourced<T>, label: string): T | null {
@@ -256,18 +277,26 @@ export function countVisionTokens(profile: VisionProfile, req: VisionRequest): V
       // The prototype scaled unconditionally. That silently prices an asset the
       // provider would have rejected, which is worse than refusing: it produces a
       // number for a request that cannot be made.
-      return unavailable(
+      const reason =
         `Longest edge ${Math.max(w, h)}px exceeds the provider maximum of ${maxEdge}px, and this ` +
-          'provider does not auto-normalize. Resolve on the §A5.2.1 ladder — propose a resize, ' +
-          'reroute, or block — rather than pricing dimensions the provider will not accept.',
-      );
+        'provider does not auto-normalize. Resolve on the §A5.2.1 ladder — propose a resize, ' +
+        'reroute, or block — rather than pricing dimensions the provider will not accept.';
+      return unavailable(reason, 'BLOCKED', [
+        { code: 'ASSET_EXCEEDS_MAX_EDGE', message: reason, severity: 'BLOCKING' },
+      ]);
     }
     const s = scaleToLongEdge(w, h, maxEdge);
     w = s.width;
     h = s.height;
     scaled = s.changed;
     rung = 'PROVIDER_NORMALIZED';
-    notes.push(`Provider normalizes to a ${maxEdge}px long edge; billed at ${w}x${h}.`);
+    // The asset the user supplied is NOT the asset that gets billed. Silent
+    // resizing is how a cost is right and inexplicable at the same time.
+    ev.warnings.push({
+      code: 'PROVIDER_WILL_NORMALIZE',
+      message: `Provider normalizes to a ${maxEdge}px long edge; billed at ${w}x${h}, not at the dimensions supplied.`,
+      severity: 'INFO',
+    });
   }
 
   const shortTarget = c.shortest_edge_target_px.value;
@@ -279,7 +308,11 @@ export function countVisionTokens(profile: VisionProfile, req: VisionRequest): V
       h = s.height;
       scaled = true;
       rung = 'PROVIDER_NORMALIZED';
-      notes.push(`Provider normalizes to a ${shortTarget}px short edge; billed at ${w}x${h}.`);
+      ev.warnings.push({
+        code: 'PROVIDER_WILL_NORMALIZE',
+        message: `Provider normalizes to a ${shortTarget}px short edge; billed at ${w}x${h}, not at the dimensions supplied.`,
+        severity: 'INFO',
+      });
     }
   }
 
@@ -366,6 +399,11 @@ export function countVisionTokens(profile: VisionProfile, req: VisionRequest): V
         const newShort = shortAt(newLong);
         const outW = w >= h ? newLong : newShort;
         const outH = w >= h ? newShort : newLong;
+        ev.warnings.push({
+          code: 'PROVIDER_WILL_NORMALIZE',
+          message: `Cost saturates at the ${cap}-token cap and the provider scales to ${outW}x${outH}; the image is billed lossy, not at the size supplied.`,
+          severity: 'INFO',
+        });
         return finish(ev, patchesAt(newLong), outW, outH, true, 'PROVIDER_NORMALIZED', [
           ...notes,
           `Cost saturates at the ${cap}-token cap; the provider scales to ${outW}x${outH}. ` +
@@ -466,6 +504,8 @@ function finish(
     return unavailable(
       `Vision geometry is incomplete — no published value for: ${ev.missing.join(', ') || 'a required constant'}. ` +
         'A missing constant blocks the estimate; it is not zero (rule 1).',
+      'BLOCKED',
+      ev.warnings,
     );
   }
   const confidence = ev.confidences.length ? minConfidence(...ev.confidences) : 'NONE';
@@ -473,6 +513,8 @@ function finish(
     return unavailable(
       'One of the geometry constants is UNAVAILABLE, so the count would inherit NONE confidence. ' +
         'Refusing rather than reporting a number nobody should act on (§A3.7).',
+      'BLOCKED',
+      ev.warnings,
     );
   }
   return {
@@ -485,6 +527,7 @@ function finish(
     method: resolveMethod(ev.methods),
     confidence,
     notes,
+    warnings: ev.warnings,
   };
 }
 
@@ -498,6 +541,8 @@ export interface ResizeEvaluation {
   reason: string;
   from: VisionCount;
   to: VisionCount;
+  /** §A11: the block was correct and coded nowhere, so no caller could react to it. */
+  warnings: EstimateWarning[];
 }
 
 /**
@@ -523,12 +568,17 @@ export function evaluateResize(
   const from = countVisionTokens(profile, req);
   const to = countVisionTokens(profile, { ...req, ...candidate });
 
-  const blocked = (rung: ResizeEvaluation['rung'], reason: string): ResizeEvaluation => ({
+  const blocked = (
+    rung: ResizeEvaluation['rung'],
+    reason: string,
+    warnings: EstimateWarning[] = [],
+  ): ResizeEvaluation => ({
     recomputed_tile_delta: null,
     rung,
     reason,
     from,
     to,
+    warnings,
   });
 
   if (opts.fidelity_critical) {
@@ -549,11 +599,12 @@ export function evaluateResize(
 
   const floor = legibilityFloorPx(profile.constraints, opts.script ?? null, opts.density ?? null);
   if (floor !== null && Math.min(candidate.width_px, candidate.height_px) < floor) {
-    return blocked(
-      'FIDELITY_LOCKED',
+    const reason =
       `Candidate short edge ${Math.min(candidate.width_px, candidate.height_px)}px is below the ` +
-        `${floor}px legibility floor for this content. A cheaper unreadable image is not a saving.`,
-    );
+      `${floor}px legibility floor for this content. A cheaper unreadable image is not a saving.`;
+    return blocked('FIDELITY_LOCKED', reason, [
+      { code: 'RESIZE_BELOW_LEGIBILITY_FLOOR', message: reason, severity: 'WARN' },
+    ]);
   }
 
   if (from.status !== 'COUNTED' || to.status !== 'COUNTED') {
@@ -569,6 +620,7 @@ export function evaluateResize(
     return {
       recomputed_tile_delta: delta,
       rung: 'RESIZE_SAVES_NOTHING',
+      warnings: [],
       reason:
         delta === 0
           ? 'Recomputed count is identical; the resize crosses no boundary.'
@@ -582,6 +634,7 @@ export function evaluateResize(
   return {
     recomputed_tile_delta: delta,
     rung: 'RESIZE_PROPOSED',
+    warnings: [],
     reason: `Recomputed count is ${-delta} token(s) lower. Propose it; the estimator does not apply it.`,
     from,
     to,

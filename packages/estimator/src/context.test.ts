@@ -57,6 +57,11 @@ describe('selectContextTier', () => {
     if (near.status !== 'SELECTED' || far.status !== 'SELECTED') throw new Error('expected SELECTED');
     expect(near.near_threshold?.headroom_tokens).toBe(5_000);
     expect(far.near_threshold).toBeNull();
+    // §A11: the band was computed and this assertion passed for weeks while
+    // NEAR_CONTEXT_TIER_THRESHOLD reached no estimate. The code now leaves with it.
+    expect(near.warnings.map((w) => w.code)).toContain('NEAR_CONTEXT_TIER_THRESHOLD');
+    expect(near.warnings[0]!.message).toMatch(/reprices the whole request/);
+    expect(far.warnings).toEqual([]);
   });
 
   it('refuses a request that fits no tier rather than pricing it at the top one', () => {

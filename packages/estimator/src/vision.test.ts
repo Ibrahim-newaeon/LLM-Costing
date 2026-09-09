@@ -237,6 +237,10 @@ describe('refusing rather than inventing (§A3.2)', () => {
     if (r.status === 'UNAVAILABLE') {
       expect(r.rung).toBe('BLOCKED');
       expect(r.reason).toContain('does not auto-normalize');
+      // §A11: a refusal needs a code too. The prose is for a human; a caller
+      // deciding whether to reroute or resize needs something it can branch on.
+      expect(r.warnings.map((w) => w.code)).toContain('ASSET_EXCEEDS_MAX_EDGE');
+      expect(r.warnings[0]!.severity).toBe('BLOCKING');
     }
   });
 
@@ -248,6 +252,10 @@ describe('refusing rather than inventing (§A3.2)', () => {
     expect(r.rung).toBe('PROVIDER_NORMALIZED');
     expect(r.scaled).toBe(true);
     expect(Math.max(r.effective_width_px, r.effective_height_px)).toBe(2048);
+    // The asset supplied is not the asset billed. Silent resizing is how a cost
+    // comes out right and unexplainable at the same time.
+    expect(r.warnings.map((w) => w.code)).toContain('PROVIDER_WILL_NORMALIZE');
+    expect(r.warnings[0]!.message).toMatch(/not at the dimensions supplied/);
   });
 });
 
@@ -377,6 +385,7 @@ describe('evaluateResize (§A5.2.1 rungs 3-5)', () => {
     );
     expect(r.rung).toBe('FIDELITY_LOCKED');
     expect(r.reason).toContain('legibility floor');
+    expect(r.warnings.map((w) => w.code)).toContain('RESIZE_BELOW_LEGIBILITY_FLOOR');
   });
 
   it('proposes only when the recomputed grid is genuinely smaller', () => {

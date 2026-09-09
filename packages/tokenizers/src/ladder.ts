@@ -13,7 +13,7 @@
 // and the calibrated heuristic. That gap is the reason a failed tier-1 call is a
 // real event for this provider rather than a minor slowdown — it drops two rungs.
 
-import type { Confidence, Method } from '@tokenomics/contracts';
+import type { Confidence, EstimateWarning, Method } from '@tokenomics/contracts';
 import { CountCache, fingerprint, type CachedCount } from './cache';
 import {
   countTokensAnthropic,
@@ -38,6 +38,13 @@ export interface LadderFailure {
   /** Why tier 1 did not answer, verbatim, so the caller can decide about retrying. */
   reason: string;
   retryable: boolean;
+  /**
+   * §A11 found this one. Falling through is the CORRECT behaviour and had a passing
+   * test — but it was silent, so an estimate that quietly dropped a rung looked
+   * exactly like one that never needed it. §A12 asks for the tier actually used to
+   * be re-tagged AND for ESCALATION_FAILED to be raised; only the first half was true.
+   */
+  warnings: EstimateWarning[];
 }
 
 export type LadderOutcome = ({ status: 'OK' } & LadderResult) | LadderFailure;
@@ -79,7 +86,16 @@ export async function countWithLadder(
 
   const counted = await countTokensAnthropic(input, opts);
   if (counted.status === 'UNAVAILABLE') {
-    return { status: 'FELL_THROUGH', reason: counted.reason, retryable: counted.retryable };
+    return {
+      status: 'FELL_THROUGH',
+      reason: counted.reason,
+      retryable: counted.retryable,
+      warnings: [{
+        code: 'ESCALATION_FAILED',
+        message: `Tier 1 did not answer, so the count falls to the estimator's own heuristic at its lower confidence. ${counted.reason}`,
+        severity: 'WARN',
+      }],
+    };
   }
 
   const entry: CachedCount = {
