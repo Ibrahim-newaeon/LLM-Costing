@@ -21,6 +21,7 @@ error bars — and a refusal where a number would be a guess.
 | `SPEC.md` | The single spec document (formerly `LLM_COST_ENGINE_PROMPT.md`) — Part A, Part B, usage notes |
 | `packages/contracts/` | Zod contracts — the canonical shapes |
 | `packages/estimator/` | Pure functions over the contracts. Visual token counting so far (§A5.2) |
+| `packages/parser/` | §A4.4 Layer 0 — deterministic L1 request parse. No model, no network, no clock |
 | `schemas/` | Seven JSON Schemas, all **generated** from the contracts and gated in CI |
 | `prompts/analyzer.system.md` | Runtime analyzer system prompt; ships at `/prompts/` in the built app |
 | `prototype/` | Working Vite/React prototype recovered from `~/llm-token-calculator`. Reference only — see `docs/prototype-salvage.md` |
@@ -241,6 +242,50 @@ outcome is one that will eventually ship the second as a zero.
   2× one-hour write, 0.1× reads), not absolute rates, so the cache rates carry `method: DERIVED` and
   name the arithmetic in their provenance.
 
+## Layer 0 — four ways a parser silently undercounts
+
+`packages/parser` is §A4.4's L1: a deterministic parse with no model, no network and no clock.
+`parse_meta.parser_model_id` is `null` and the contract permits null **only** for L1 — an L1 parse
+costs nothing, and that absence is the margin metric, not a missing field.
+
+L1 either emits a `WorkflowInput` or escalates to L2 with what it managed (matched intents, script
+mix) rather than an empty workflow or a raw string. `parseConfidence` prices four penalties —
+a suppressed verb, three or more scripts, a long free-text instruction, a conditional branch — and
+`PARSE_CONFIDENCE_FLOOR` is 0.6.
+
+Every defect below is an **undercount**, and that asymmetry is why they are worth this much prose:
+a verb that vanishes takes a whole document's tokens out of the estimate and leaves nothing on
+screen to notice, while an overcount is visible and editable.
+
+| | What broke | How it was caught |
+|---|---|---|
+| **1** | `extract` was in the lexicon in Arabic (`استخرج`) and Chinese (`提取`) but **not English**. "Extract the clauses from the contract" matched no verb, so the contract's READ never entered the workflow | A negation test that used the English word. The same audit flagged `analyze` (Arabic `حلل` is there, English is not) — **not** added, because "analyze this image" belongs to `analyze_image` and widening `ingest` would route it to text ingestion. Recorded, not papered over |
+| **2** | Ta-marbuta folded to `ه` **before** pronominal-suffix stripping, so the suffix rule ate the letter the fold had just produced: `مراجعة` → `مراجعه` → `مراجع`. The stem stopped matching the lexicon and the verb disappeared | An assertion that `مراجعة` normalizes to `مراجعه`. The fold now runs **last**; a real suffix never attaches to a bare `ة`, so stripping first is safe |
+| **3** | A 24-character negation window suppressed the verb in "don't summarize, **just** extract" — `extract` sits 17 characters after the negator, well inside the window | Distance cannot separate that from "don't summarize **or** extract", where the verb genuinely is negated. The contrast marker is the only signal in the sentence that can, so `isNegated` now scans from the **end** of the latest negator for one. From the end, because `rather than` contains `rather ` and `instead of` contains `instead ` — scanning from the start would let those two negators cancel themselves |
+| **4** | A compound verb's two halves both pointed `expands_from` at a synthetic parent id (`intent:summarize`) that was not a task | `WorkflowInput` rejected the whole workflow: `expands_from` must name a task that exists. The pair now anchors on its own first half — which is also the right answer, because a parent row would be a third entry that nothing bills, and §A4.4.3's point is that the expansion **is** the two things you pay for |
+
+Defect 4 is the one worth noting for how it was found. It was not caught by a test written to look
+for it; it was caught because the contract already refused to represent it. That is the same
+property that made `CostComponent` the right guard for §A4.4.1's "system overhead must not be a
+per-candidate line" — `SystemOverhead` lives on `EstimateOutput`, `CostComponent` has no member for
+it, and so no runtime check is needed or written.
+
+### The mutations
+
+Each guard broken on purpose, against 44 parser tests:
+
+| Mutation | Red |
+|---|---|
+| Numeral westernization removed (§A4.4.2's named defect) | 3 |
+| `translate` → WRITE only, `summarize` → READ only (§A4.4.3's two named misclassifications) | 4 |
+| Ta-marbuta folded before suffix stripping | 1 |
+| Contrast marker ignored | 3 |
+| `expands_from` anchored on a synthetic parent | 13 |
+
+The last row is the contract doing the work: one wrong id fails `WorkflowInput.parse`, so every
+test that parses a workflow goes red at once. The third is the narrowest — one test — which is
+honest about its coverage rather than flattering.
+
 ## Tier 1 — reading the endpoint properly, and the bug that found
 
 `packages/tokenizers` is the first package allowed to do I/O. `estimator` states in its own index
@@ -446,9 +491,10 @@ request fits. It says so rather than passing it silently. An unexamined pass is 
 **Contracts** ✅ (Zod canonical, JSON Schema generated with a CI drift gate)
 → **estimator** ✅ (pure functions, fully unit-tested — every §A5 section has a module:
    vision, text, output, audio/video, cache, tiers, assembly, self-hosting, request multipliers)
-→ **tokenizers** ◐ (§A4.5 tiers 0 and 1 done; no tier 2 for Anthropic) + Layer 0 parser (§A4.4)
+→ **tokenizers** ◐ (§A4.5 tiers 0 and 1 done; no tier 2 for Anthropic)
+→ **parser** ◐ (§A4.4 L1 deterministic; L2 model-assisted not built — L1 escalates to it)
 → **router** ✅ (§A7 gate, three objectives, split routing — pure)
-→ pricing ingestion → registry → router → UI → e2e.
+→ pricing ingestion → registry → UI → e2e.
 
 **Estimator before UI.** The math is the product.
 
