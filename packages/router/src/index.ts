@@ -23,7 +23,7 @@ export * from './split';
 import { capabilityGate, type GateInput, type GateResult } from './gate';
 import { rank, type RankInput } from './rank';
 import { splitRoute, type TaskCandidates } from './split';
-import type { ExcludedModel, Recommendations } from '@tokenomics/contracts';
+import type { EstimateWarning, ExcludedModel, Recommendations } from '@tokenomics/contracts';
 
 export interface RouteInput extends GateInput {
   /** Whole-workflow candidates, one per surviving model. */
@@ -41,6 +41,13 @@ export interface RouteResult {
   unverified: GateResult['unverified'];
   /** Why an objective is null, and anything the split could not conclude. */
   notes: string[];
+  /**
+   * Coded warnings about models that PASSED the gate. A deprecated model is still
+   * callable and may still be the cheapest, so it is ranked — and the caller is
+   * told, because a recommendation with an announced shutdown date is a migration
+   * nobody agreed to.
+   */
+  warnings: EstimateWarning[];
 }
 
 /**
@@ -87,5 +94,6 @@ export function route(input: RouteInput): RouteResult {
     excluded: [...gated.excluded, ...ranked.excluded],
     unverified: gated.unverified,
     notes,
+    warnings: gated.warnings,
   };
 }

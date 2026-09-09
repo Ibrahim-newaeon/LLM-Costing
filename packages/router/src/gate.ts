@@ -17,9 +17,12 @@
 // Spec anchors: §A7 (the gate) · §A6 (residency) · §A4.2 (staleness)
 
 import {
+  isCallable,
+  modelInService,
   rankingEligibility,
   rateFreshness,
   rateInForce,
+  type EstimateWarning,
   type ExcludedModel,
   type ExclusionReason,
   type ModelRow,
@@ -49,6 +52,8 @@ export interface GateResult {
   eligible: ModelRow[];
   excluded: ExcludedModel[];
   unverified: UnverifiedCheck[];
+  /** Things true of an ELIGIBLE model that the caller must still be told. */
+  warnings: EstimateWarning[];
 }
 
 const exclude = (
@@ -78,6 +83,7 @@ export function capabilityGate(input: GateInput): GateResult {
   const eligible: ModelRow[] = [];
   const excluded: ExcludedModel[] = [];
   const unverified: UnverifiedCheck[] = [];
+  const warnings: EstimateWarning[] = [];
 
   const needed = requiredModalities(tasks);
   const needsTools = tasks.some((t) => t.flags.requires_tool_calling);
@@ -86,6 +92,34 @@ export function capabilityGate(input: GateInput): GateResult {
     .find((r): r is string => r !== null);
 
   for (const m of models) {
+    // ── is it a thing you can call at all ─────────────────────────────────────
+    // FIRST, before capability. "This model was shut down in March" is the useful
+    // sentence; "this model lacks vision" is true of a shut-down model too and
+    // sends the reader to fix the wrong thing.
+    const service = modelInService(m, at);
+    if (!isCallable(service)) {
+      excluded.push(
+        exclude(
+          m.model_id,
+          'MODEL_NOT_IN_SERVICE',
+          service === 'WITHDRAWN'
+            ? `Withdrawn: this row stops applying at ${m.effective_to}. Migrate; there is nothing to price.`
+            : `Not yet available: this row begins at ${m.effective_from}, after the date being priced.`,
+        ),
+      );
+      continue;
+    }
+    if (service === 'DEPRECATED') {
+      // Not excluded. It still answers, and it may still be the right answer —
+      // but a recommendation carrying an announced shutdown is a migration nobody
+      // was warned about.
+      warnings.push({
+        code: 'MODEL_DEPRECATED',
+        message: `${m.model_id} was deprecated on ${m.deprecation_date} and is still callable. It can be recommended, but not for anything that has to outlive it.`,
+        severity: 'WARN',
+      });
+    }
+
     // ── modality ──────────────────────────────────────────────────────────────
     const missing = [...needed].filter((mod) => !m.modalities_in.includes(mod as never));
     if (missing.length > 0) {
@@ -214,5 +248,5 @@ export function capabilityGate(input: GateInput): GateResult {
     eligible.push(m);
   }
 
-  return { eligible, excluded, unverified };
+  return { eligible, excluded, unverified, warnings };
 }

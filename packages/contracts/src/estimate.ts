@@ -416,6 +416,13 @@ export const ExclusionReason = z.enum([
    * nothing could price ranks FIRST, at $0.00.
    */
   'ESTIMATE_INCOMPLETE',
+  /**
+   * The model is not callable at the date being priced — either withdrawn past its
+   * `effective_to`, or not yet available. One reason rather than two because the
+   * router's action is identical (drop it) even though the reader's fix differs;
+   * `detail` names which state it is, and that is where the fix lives.
+   */
+  'MODEL_NOT_IN_SERVICE',
 ]);
 export type ExclusionReason = z.infer<typeof ExclusionReason>;
 
@@ -549,6 +556,9 @@ export const WarningCode = z.enum([
   'SERVICE_TIER_UNAVAILABLE',
   'RESIDENCY_UPLIFT_APPLIED',
   'REROLL_COUNT_DEFAULTED',
+  // Model lifecycle. Still callable, so not an exclusion — but a recommendation
+  // for a model with an announced shutdown date is a migration nobody was warned about.
+  'MODEL_DEPRECATED',
 ]);
 export type WarningCode = z.infer<typeof WarningCode>;
 

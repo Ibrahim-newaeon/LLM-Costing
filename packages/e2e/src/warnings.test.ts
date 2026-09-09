@@ -100,7 +100,7 @@ describe('every WarningCode is raised, or recorded as not raised and why', () =>
     expect(unknown, 'NOT_YET_RAISED names a code the enum does not have.').toEqual([]);
   });
 
-  it('the ledger is 10 of 35, and that ratio is the point', () => {
+  it('the ledger is 10 of 36, and that ratio is the point', () => {
     // Not a vanity assertion. If this number moves without somebody editing the
     // list above, the enum grew a member nothing emits — the exact way the
     // original eighteen accumulated.
@@ -110,9 +110,10 @@ describe('every WarningCode is raised, or recorded as not raised and why', () =>
     // eight are now raised — VISUAL_TOKENS_DOMINATE_CONTEXT (#20), six in #21, and
     // the §A12 media guard (#22) — and one turned out to be unreachable because the
     // contract refuses the data outright. The enum grew to 35 when #20 gave the
-    // three cache conditions codes they had never had.
+    // three cache conditions codes they had never had, and to 36 when MODEL_DEPRECATED
+    // was added for a model that is still callable but has an announced shutdown.
     expect(Object.keys(NOT_YET_RAISED)).toHaveLength(10);
-    expect(codes).toHaveLength(35);
+    expect(codes).toHaveLength(36);
   });
 });
 

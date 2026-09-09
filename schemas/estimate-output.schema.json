@@ -1010,7 +1010,8 @@
         "VRAM_INFEASIBLE",
         "TOKENIZER_UNAVAILABLE",
         "ASSET_EXCEEDS_CONSTRAINTS",
-        "ESTIMATE_INCOMPLETE"
+        "ESTIMATE_INCOMPLETE",
+        "MODEL_NOT_IN_SERVICE"
       ]
     },
     "Optimization": {
@@ -1413,7 +1414,8 @@
         "SERVER_TOOL_ALLOWANCE_NOT_APPLIED",
         "SERVICE_TIER_UNAVAILABLE",
         "RESIDENCY_UPLIFT_APPLIED",
-        "REROLL_COUNT_DEFAULTED"
+        "REROLL_COUNT_DEFAULTED",
+        "MODEL_DEPRECATED"
       ]
     },
     "SystemOverhead": {
