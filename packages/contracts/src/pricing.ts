@@ -133,17 +133,47 @@ export type Rate = z.infer<typeof Rate>;
  *
  * STALE must block estimation, not annotate it (§A3.2).
  */
+/** Milliseconds in a day. Calendar arithmetic, shared by both freshness checks. */
+const MS_PER_DAY = 86_400_000;
+
 export function rateFreshness(r: Rate, now: Date = new Date()): Freshness {
   if (r.provenance.verified_at === null) return 'UNVERIFIED';
   if (r.max_age_days === null) return 'NO_POLICY';
   const verifiedAt = Date.parse(r.provenance.verified_at);
   if (Number.isNaN(verifiedAt)) return 'UNVERIFIED';
-  const ageDays = (now.getTime() - verifiedAt) / 86_400_000;
+  const ageDays = (now.getTime() - verifiedAt) / MS_PER_DAY;
   return ageDays > r.max_age_days ? 'STALE' : 'FRESH';
 }
 
 /** True only for the one state that may be priced against. */
 export const isPriceable = (f: Freshness): boolean => f === 'FRESH';
+
+/**
+ * §A4.2 — a converted price is only as current as its conversion.
+ *
+ * `rateFreshness` asks whether the RATE was re-checked recently enough. On a
+ * non-USD row that is half the question: the vendor's list price may be unchanged
+ * for a year while the exchange rate that turned it into dollars has moved. The
+ * contract has required `fx_rate_used` + `fx_rate_date` since it was written and,
+ * until now, **nothing read the date** — the same defect `rateInForce` was written
+ * for, one field along.
+ *
+ * ⚠️ The window is the rate's OWN `max_age_days`, deliberately, and no new policy
+ * field is invented for it. A row that says it must be re-verified every 30 days is
+ * making a claim about how fast its price goes out of date; a conversion older than
+ * that is stale by the row's own standard. Where the row states no policy this
+ * returns NO_POLICY rather than picking a number nobody published.
+ */
+export function fxFreshness(r: Rate, now: Date = new Date()): Freshness {
+  if (r.list_currency === 'USD') return 'FRESH'; // nothing was converted.
+  if (r.fx_rate_date === null) return 'UNVERIFIED';
+  if (r.max_age_days === null) return 'NO_POLICY';
+  const at = Date.parse(r.fx_rate_date);
+  if (Number.isNaN(at)) return 'UNVERIFIED';
+  const ageDays = (now.getTime() - at) / MS_PER_DAY;
+  return ageDays > r.max_age_days ? 'STALE' : 'FRESH';
+}
+
 
 /* ─────────────────────── validity, which is not freshness ─────────────────────── */
 

@@ -275,7 +275,14 @@ describe('countWithLadder reports the producing tier, not the serving one', () =
     const s = stub([{ status: 500, json: null, text: 'upstream' }]);
     const r = await countWithLadder(INPUT, opts(s.port));
     expect(r.status).toBe('FELL_THROUGH');
-    if (r.status === 'FELL_THROUGH') expect(r.retryable).toBe(true);
+    if (r.status === 'FELL_THROUGH') {
+      expect(r.retryable).toBe(true);
+      // §A11: the behaviour was right and SILENT. §A12 asks for the tier actually
+      // used to be re-tagged AND for ESCALATION_FAILED to be raised; only the first
+      // was true, so an estimate that dropped a rung looked like one that never had to.
+      expect(r.warnings.map((w) => w.code)).toEqual(['ESCALATION_FAILED']);
+      expect(r.warnings[0]!.message).toMatch(/lower confidence/);
+    }
   });
 
   it('does not cache a failure', async () => {

@@ -10,7 +10,7 @@
 // saving. Sizing that saving on the overflow alone understates it by orders of
 // magnitude on a long request.
 
-import type { ContextTier, Rate } from '@tokenomics/contracts';
+import type { ContextTier, EstimateWarning, Rate } from '@tokenomics/contracts';
 
 /** Default proximity band for the near-threshold warning. Config, not a constant. */
 export const TIER_PROXIMITY_WARN_PCT = 0.1;
@@ -28,6 +28,12 @@ export interface TierSelection {
     /** Fraction of the tier's ceiling still unused. */
     headroom_fraction: number;
   } | null;
+  /**
+   * §A11 found this one: `near_threshold` was computed correctly, had a passing
+   * test, and reached no estimate — because the module said it in its own shape and
+   * nothing translated. The code now travels with the sentence that explains it.
+   */
+  warnings: EstimateWarning[];
 }
 
 export type TierResult =
@@ -95,6 +101,20 @@ export function selectContextTier(
         }
       : null;
 
+  const warnings: EstimateWarning[] = [];
+  if (near !== null) {
+    // Not a rounding nicety. §A5.7's tiers reprice the WHOLE request, so a prompt
+    // sitting just under a bound is one edit away from roughly doubling — and the
+    // trim that avoids it is smaller than the saving by an order of magnitude.
+    warnings.push({
+      code: 'NEAR_CONTEXT_TIER_THRESHOLD',
+      message:
+        `${near.headroom_tokens} tokens of headroom below the ${near.upper_bound_tokens}-token ` +
+        'threshold. Crossing it reprices the whole request at the next tier, not just the overflow.',
+      severity: 'WARN',
+    });
+  }
+
   return {
     status: 'SELECTED',
     tier,
@@ -102,6 +122,7 @@ export function selectContextTier(
     input_rate: tier.input_rate,
     output_rate: tier.output_rate,
     near_threshold: near,
+    warnings,
   };
 }
 
