@@ -280,6 +280,7 @@ describe('§A4.5 tier 1 turns the text refusal into a costed estimate', () => {
     },
     calibration: [],
     message_count: 1,
+    payload_has_media: false,
     heuristic_safety_pad_pct: 0.15,
   };
 

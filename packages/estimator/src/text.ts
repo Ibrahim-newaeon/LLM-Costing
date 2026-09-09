@@ -30,6 +30,7 @@ import {
   type TextCalibration,
   type TextMetrics,
   type TokenizerProfile,
+  type EstimateWarning,
 } from '@tokenomics/contracts';
 
 /* ─────────────────────────── results ─────────────────────────── */
@@ -80,6 +81,8 @@ export interface TextUnavailable {
   reason: string;
   /** Shaped for `EstimateOutput.missing_data[]`. */
   missing_data: { field: string; why_it_matters: string; blocks_estimate: true };
+  /** A coded refusal, for the caller that branches rather than reads. */
+  warnings?: EstimateWarning[];
 }
 
 export type TextCount = TextCounted | TextUnavailable;
@@ -181,19 +184,73 @@ export interface TextCountInput {
     /** Vendor caveats worth carrying to the line, e.g. unbilled system tokens. */
     note?: string | null;
   };
+  /**
+   * Whether the request this text belongs to ALSO carries images, audio or video.
+   *
+   * Required, not optional, and deliberately so: a caller who forgets would get the
+   * unsafe path by default, and §A12's rule exists because that path silently prices
+   * the media at zero. Making it required broke every call site at compile time,
+   * which is the point.
+   *
+   * A text-only count on a media-bearing request is not wrong by itself — this
+   * package composes a text line and a vision line and adds them. What is wrong is
+   * a count that CLAIMS to cover the whole request when it cannot have seen the
+   * media. See the guard at the top of `countTextTokens`.
+   */
+  payload_has_media: boolean;
   /** §A4.5.5. Config, not a literal, and it applies to Tier 3 only. */
   heuristic_safety_pad_pct: number;
 }
 
 export function countTextTokens(input: TextCountInput): TextCount {
   const {
-    model_id, tokenizer, metrics, calibration, message_count, exact, heuristic_safety_pad_pct,
+    model_id, tokenizer, metrics, calibration, message_count, exact,
+    payload_has_media, heuristic_safety_pad_pct,
   } = input;
 
   const components: TextComponent[] = [];
   const confidences: Confidence[] = [];
 
-  /* ---- 0. a whole-request count is the ENTIRE answer ---- */
+  /* ---- 0a. §A12 — a whole-request claim only a remote count can make ---- */
+  // "A media-bearing payload never returns a local text-only count; it escalates to
+  // Tier 1 or returns UNAVAILABLE."
+  //
+  // A LOCAL tokenizer handed a multimodal payload tokenizes the text parts and
+  // ignores the image blocks. The number it returns looks like a request count and
+  // is short by every image in the request. Tagged WHOLE_REQUEST, it suppresses the
+  // framing and tool-schema components below AND tells the caller nothing else is
+  // owed — so the vision line is never added and the images are priced at zero,
+  // silently, at whatever confidence the tokenizer claimed.
+  //
+  // Only tier 1 — the provider's own count endpoint — has seen the media. Anthropic
+  // says so in as many words: the count "includes system prompts, tool definitions,
+  // messages, thinking blocks, images and PDFs". Nothing that ran on this machine can.
+  if (payload_has_media && exact !== undefined && exact.covers === 'WHOLE_REQUEST' && exact.tier !== 1) {
+    return {
+      status: 'UNAVAILABLE',
+      reason:
+        `A tier-${exact.tier} count claims to cover the whole request, but this request carries ` +
+        'media and nothing outside the provider can have counted it. Escalate to tier 1, or ' +
+        'count the text as PROMPT_ONLY and price the media on its own line (§A12).',
+      missing_data: {
+        field: 'exact.covers',
+        why_it_matters:
+          'A whole-request count from outside the provider cannot include the media, so the ' +
+          'images would be priced at zero rather than refused.',
+        blocks_estimate: true,
+      },
+      warnings: [{
+        code: 'MEDIA_PAYLOAD_NOT_REMOTE_COUNTED',
+        message:
+          `A tier-${exact.tier} count was offered as WHOLE_REQUEST on a media-bearing request. ` +
+          'A local tokenizer sees text and skips image blocks, so accepting it would price every ' +
+          'image at zero while reporting the tokenizer’s own confidence.',
+        severity: 'BLOCKING',
+      }],
+    };
+  }
+
+  /* ---- 0b. a whole-request count is the ENTIRE answer ---- */
   // It already contains framing and tool schemas, so the only correct thing to do
   // with the other two components is not compute them. Returning early rather than
   // guarding each one below keeps that fact in a single place.

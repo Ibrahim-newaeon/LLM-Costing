@@ -56,6 +56,9 @@ const base = {
   tokenizer: tokenizer(),
   calibration: [cal()],
   message_count: 3,
+  // Text-only by default. The §A12 guard below supplies `true` where it matters —
+  // and the field is required precisely so a caller cannot omit it into the unsafe path.
+  payload_has_media: false,
   heuristic_safety_pad_pct: 0.15,
 };
 
@@ -196,6 +199,75 @@ describe('§A4.5.5 — padding is directional', () => {
 });
 
 /* ══════════════ `covers` — the double-count this shape exists to prevent ══════════════ */
+
+describe('§A12 — a whole-request claim only a remote count can make', () => {
+  const whole = (tier: 0 | 1 | 2, tokens = 1_000) => ({
+    tokens,
+    method: 'EXACT_TOKENIZER' as const,
+    confidence: 'HIGH' as const,
+    tier,
+    covers: 'WHOLE_REQUEST' as const,
+  });
+
+  it('refuses a tier-2 whole-request count on a media-bearing request', () => {
+    // The trap: a LOCAL tokenizer handed a multimodal payload tokenizes the text and
+    // skips the image blocks. Tagged WHOLE_REQUEST it suppresses framing AND tells
+    // the caller nothing else is owed — so the images are priced at zero, silently,
+    // at whatever confidence the tokenizer claimed.
+    const r = countTextTokens({
+      ...base,
+      metrics: metrics(),
+      payload_has_media: true,
+      exact: whole(2),
+    });
+    expect(r.status).toBe('UNAVAILABLE');
+    if (r.status !== 'UNAVAILABLE') return;
+    expect(r.warnings?.map((w) => w.code)).toContain('MEDIA_PAYLOAD_NOT_REMOTE_COUNTED');
+    expect(r.warnings?.[0]!.severity).toBe('BLOCKING');
+    expect(r.missing_data.blocks_estimate).toBe(true);
+  });
+
+  it('accepts it from tier 1 — the provider counted the images itself', () => {
+    // Anthropic: the count "includes system prompts, tool definitions, messages,
+    // thinking blocks, images and PDFs". Nothing running here can say that.
+    const r = countTextTokens({
+      ...base,
+      metrics: metrics(),
+      payload_has_media: true,
+      exact: whole(1),
+    });
+    expect(r.status).toBe('COUNTED');
+    if (r.status === 'COUNTED') expect(r.total.p50).toBe(1_000);
+  });
+
+  it('a cached tier-1 count is still tier 1 — tier 0 is where it was FETCHED from', () => {
+    // The producing tier is what `exact.tier` carries; `served_from` is separate.
+    // A guard keyed on "not tier 1" must not reject a remembered remote count.
+    const r = countTextTokens({
+      ...base, metrics: metrics(), payload_has_media: true, exact: whole(1),
+    });
+    expect(r.status).toBe('COUNTED');
+  });
+
+  it('a text-only request is unaffected, at any tier', () => {
+    const r = countTextTokens({
+      ...base, metrics: metrics(), payload_has_media: false, exact: whole(2),
+    });
+    expect(r.status).toBe('COUNTED');
+  });
+
+  it('PROMPT_ONLY on a media request is fine — the vision line prices the rest', () => {
+    // The guard is about a false CLAIM of coverage, not about counting text next to
+    // media. This package composes a text line and a vision line and adds them.
+    const r = countTextTokens({
+      ...base,
+      metrics: metrics(),
+      payload_has_media: true,
+      exact: { ...whole(2), covers: 'PROMPT_ONLY' as const },
+    });
+    expect(r.status).toBe('COUNTED');
+  });
+});
 
 describe('an exact count says what it already contains', () => {
   it('PROMPT_ONLY still owes framing and tool schemas', () => {
