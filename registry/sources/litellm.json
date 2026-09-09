@@ -1,0 +1,24 @@
+{
+  "_what": "§A4.2 Tier A source config for `pnpm -F @tokenomics/ingest ingest:litellm`. Data, not code: which feed, which currency it quotes in, and which feed key describes each registry row. Every key mapping carries its reason because LiteLLM lists one product under many keys at different prices — they are different routes, not different readings.",
+  "source_id": "litellm",
+  "source_class": "AGGREGATOR",
+  "source_url": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
+  "currency": {
+    "value": "USD",
+    "reason": "The feed does not state a currency per entry. LiteLLM documents the functions that read it as returning cost \"in USD\".",
+    "source_url": "https://docs.litellm.ai/docs/completion/token_usage",
+    "verified_at": "2026-09-09T10:57:26.000Z",
+    "quote": "cost_per_token: This returns the cost (in USD) for prompt (input) and completion (output) tokens.",
+    "note": "The docs page shows no publication or last-updated date. The claim is LiteLLM's own and applies to AGGREGATOR observations only, which the contract caps at MEDIUM regardless."
+  },
+  "keys": {
+    "claude-opus-5": {
+      "key": "claude-opus-5",
+      "reason": "litellm_provider: anthropic — the vendor's own API, which the registry row is priced from. The Bedrock (anthropic.claude-opus-5, us./eu./…), Vertex (vertex_ai/claude-opus-5) and reseller keys carry regional uplifts or reseller pricing and describe other routes."
+    },
+    "gemini-2.5-pro": {
+      "key": "gemini/gemini-2.5-pro",
+      "reason": "litellm_provider: gemini — the Gemini API, which the registry row is priced from (ai.google.dev). The bare `gemini-2.5-pro` key is litellm_provider vertex_ai-language-models, a different route with its own lifecycle."
+    }
+  }
+}

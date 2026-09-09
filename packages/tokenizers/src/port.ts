@@ -38,7 +38,11 @@ export interface CountResponse {
  */
 export type CountTokensPort = (req: CountRequest) => Promise<CountResponse>;
 
-/** The one place `fetch` appears in this repo. */
+/**
+ * One of the two places `fetch` appears in this repo. The other is
+ * `packages/ingest/src/port.ts` (§A4.2 — pulling a pricing feed), which was
+ * written against the same port pattern for the same two reasons.
+ */
 export const fetchPort: CountTokensPort = async (req) => {
   const res = await fetch(req.url, {
     method: 'POST',

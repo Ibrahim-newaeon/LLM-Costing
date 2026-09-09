@@ -95,11 +95,68 @@ export const Provenance = z
   });
 export type Provenance = z.infer<typeof Provenance>;
 
+/* ─────────────────── rule 5 for a sourced CONSTANT ─────────────────── */
+
+/**
+ * Two or more readings of one constant that do not agree, kept side by side.
+ *
+ * Rule 5 — conflicts are reported, never merged — had exactly one home in the
+ * contracts, `RateConflict` on `Rate`, and it is shaped for money: one competing
+ * record, one competing amount, a signed delta. A vendor contradicting ITSELF about
+ * a tokens-per-second, a tile size or a resolution limit fitted none of that, and so
+ * could only be recorded as an absence (finding 3.15). Google's tokens page does
+ * exactly this for video — 263 tokens/second in one paragraph, ~100/~300 in the
+ * table below it, all labelled static — and "unpriced, reason unrecorded" was the
+ * best the registry could say.
+ *
+ * This is the other home. Every `sourced()` value carries the slot, so the
+ * disagreement sits on the field it is about rather than in a note somewhere else.
+ * `value` stays whatever the reader could honestly commit to — usually null with
+ * `UNAVAILABLE`, because a number chosen from among the candidates is a number
+ * nobody published — and the candidates say why.
+ *
+ * Deliberately NOT a generalisation of `RateConflict`. That record answers "which
+ * of two rows is right"; this one answers "what did the source actually say". The
+ * ingest pipeline produces the first from a two-source diff and the second from a
+ * single page that disagrees with itself, and folding them together would lose
+ * which question is being asked.
+ */
+export const SourcedConflictCandidate = z.object({
+  value: z.union([z.number(), z.string(), z.boolean()]),
+  source_url: z.string().url(),
+  retrieved_at: z.string().datetime(),
+  /** Where on the page — a quoted phrase, a table caption. Null when not recorded. */
+  locator: z.string().nullable().default(null),
+});
+export type SourcedConflictCandidate = z.infer<typeof SourcedConflictCandidate>;
+
+export const SourcedConflict = z.object({
+  candidates: z.array(SourcedConflictCandidate).min(2),
+  /** A human decided. Until then every candidate is shown and `value` is not one of them. */
+  resolved: z.boolean().default(false),
+  notes: z.string().nullable().default(null),
+});
+export type SourcedConflict = z.infer<typeof SourcedConflict>;
+
 /** Wrap any scalar so it cannot be rendered without its provenance. */
 export const sourced = <T extends z.ZodTypeAny>(inner: T) =>
-  z.object({ value: inner.nullable(), provenance: Provenance });
+  z.object({
+    value: inner.nullable(),
+    provenance: Provenance,
+    /** Rule 5, on the field it is about. Null is "no disagreement recorded". */
+    conflict: SourcedConflict.nullable().default(null),
+  });
 
-export type Sourced<T> = { value: T | null; provenance: Provenance };
+/**
+ * The hand-written companion of `sourced()`. Two spellings of one shape, kept
+ * because a generic type cannot be inferred from a Zod factory; `provenance.test.ts`
+ * assigns a parsed `sourced()` value to this type and back so they cannot drift.
+ */
+export type Sourced<T> = {
+  value: T | null;
+  provenance: Provenance;
+  conflict: SourcedConflict | null;
+};
 
 /* ─────────────────────── confidence propagation (§A3.7) ─────────────────────── */
 

@@ -9,6 +9,14 @@
       "count": 2,
       "reason": "Arity of a fixed tuple/enum the contract defines. Changes only when the shape does."
     },
+    "packages/contracts/src/ingest.ts|64": {
+      "count": 1,
+      "reason": "Length of a sha256 hex digest (256 bits / 4 bits per hex char). Definitional."
+    },
+    "packages/contracts/src/ingest.ts|9": {
+      "count": 1,
+      "reason": "Upper bound of the hex digit class in the sha256 regex ([0-9a-f]). Structural."
+    },
     "packages/contracts/src/instance.ts|1024": {
       "count": 1,
       "reason": "Base of the binary GiB conversion in BYTES_PER_GIB. Definitional, cannot go stale."
@@ -124,6 +132,50 @@
     "packages/estimator/src/text.ts|3": {
       "count": 3,
       "reason": "Arity of the fixed TokenTier ladder (0|1|2|3) and of fixed tuples in this file."
+    },
+    "packages/ingest/src/compare.ts|100": {
+      "count": 1,
+      "reason": "Percent scale for delta_pct. Unit conversion."
+    },
+    "packages/ingest/src/compare.ts|1000": {
+      "count": 1,
+      "reason": "Tokens per per_1k_tokens unit, in TOKENS_PER_UNIT. Unit scale, definitional."
+    },
+    "packages/ingest/src/compare.ts|1000000": {
+      "count": 1,
+      "reason": "Tokens per per_1m_tokens unit, in TOKENS_PER_UNIT. Unit scale, definitional."
+    },
+    "packages/ingest/src/compare.ts|12": {
+      "count": 1,
+      "reason": "DISPLAY_PRECISION — significant digits kept at the display boundary for a rescaled competing amount and a percentage. Rounding policy, not a rate."
+    },
+    "packages/ingest/src/compare.ts|1e-9": {
+      "count": 1,
+      "reason": "FLOAT_NOISE_PCT — below this two rescaled doubles are the same published figure. A float-equality epsilon, not a price tolerance; the price tolerance is a required parameter with no default."
+    },
+    "packages/ingest/src/diff.ts|100": {
+      "count": 1,
+      "reason": "Percent scale for PriceChangeEvent.delta_pct. Unit conversion."
+    },
+    "packages/ingest/src/litellm.ts|1000": {
+      "count": 1,
+      "reason": "TOKENS_PER_K — the k in a LiteLLM `*_above_200k_tokens` field name. Unit scale, definitional."
+    },
+    "packages/ingest/src/litellm.ts|4": {
+      "count": 1,
+      "reason": "Digit count of the year in the feed's YYYY-MM-DD deprecation_date regex. Structural."
+    },
+    "packages/ingest/src/port.ts|200": {
+      "count": 1,
+      "reason": "HTTP 200 returned by the fixture port. Protocol constant."
+    },
+    "packages/ingest/src/snapshot.ts|200": {
+      "count": 1,
+      "reason": "Lower bound of the HTTP 2xx success range. Protocol constant."
+    },
+    "packages/ingest/src/snapshot.ts|300": {
+      "count": 1,
+      "reason": "Exclusive upper bound of the HTTP 2xx success range. Protocol constant."
     },
     "packages/parser/src/lexicon.ts|24": {
       "count": 1,
