@@ -454,11 +454,32 @@ export const AudioInputProfile = z
   });
 export type AudioInputProfile = z.infer<typeof AudioInputProfile>;
 
-export const VideoInputProfile = z.object({
+export const VideoInputProfile = z
+  .object({
   /** §A5.3 — the whole cost. Often user-configurable, so surface it before upload. */
   frame_sample_rate_hz: sourced(z.number().positive()),
   user_configurable_fps: z.boolean().default(false),
   per_frame_uses_vision_geometry: z.boolean().default(true),
+  /**
+   * The other way a provider prices a frame: a published per-frame token count that
+   * has nothing to do with the model's image geometry.
+   *
+   * This exists because the geometry path was the only one, and for at least one
+   * real provider it is the wrong one. Google publishes video in tokens per second
+   * of footage, and the figure is nowhere near its own image tile figure of 258
+   * tokens — so pricing a Gemini frame through Gemini's image geometry would have
+   * been an invented number wearing a sourced unit. `per_frame_uses_vision_geometry:
+   * false` could already say "not the geometry", and then there was nothing to
+   * multiply by, so every such model refused outright.
+   *
+   * ⚠️ Per SAMPLED FRAME, not per second. The two coincide only at 1 fps, and the
+   * frame is the quantity that actually scales: `sampleFrames` already derives the
+   * frame count from duration x fps and clamps it at `max_frames`. Storing a
+   * per-second figure would multiply the fps in twice and ignore the clamp. A vendor
+   * that publishes per-second converts at ITS OWN default rate, and that division is
+   * arithmetic done to a published figure — `method: 'DERIVED'`, naming it.
+   */
+  tokens_per_frame: sourced(z.number().positive()),
   audio_tokens_per_second: sourced(z.number().nonnegative()),
   audio_billed_separately: z.boolean(),
   max_duration_seconds: sourced(z.number().positive()),
@@ -470,7 +491,12 @@ export const VideoInputProfile = z.object({
    */
   has_deterministic_formula: z.boolean().default(false),
   adaptive_mode_available: z.boolean().default(false),
-});
+  })
+  .refine((v) => !v.per_frame_uses_vision_geometry || v.tokens_per_frame.value === null, {
+    message:
+      'A model that prices frames through its image geometry must not also carry a per-frame token count — two prices for one frame is how the wrong one gets read (§A5.3).',
+    path: ['tokens_per_frame'],
+  });
 
 /* ─────────────────────── inferred types ───────────────────────
  * Companions for the schemas above that were defined without one. Every schema in

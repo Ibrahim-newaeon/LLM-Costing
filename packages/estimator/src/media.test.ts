@@ -7,7 +7,7 @@
 //   pnpm vitest src/media.test.ts     # offline, free
 
 import { describe, it, expect } from 'vitest';
-import { VisionProfile, AudioInputProfile, MediaMetrics } from '@tokenomics/contracts';
+import { VisionProfile, AudioInputProfile, VideoInputProfile, MediaMetrics } from '@tokenomics/contracts';
 import { countAudioTokens, countVideoTokens, sampleFrames, billableDuration } from './media';
 import { isExact } from './range';
 
@@ -68,18 +68,27 @@ const audioProfile = (over: Record<string, unknown> = {}) =>
     ...over,
   });
 
-const videoProfile = (over: Record<string, unknown> = {}): any => ({
-  frame_sample_rate_hz: src(1),
-  user_configurable_fps: false,
-  per_frame_uses_vision_geometry: true,
-  audio_tokens_per_second: src(25),
-  audio_billed_separately: false,
-  max_duration_seconds: src(3600),
-  max_frames: src(3600),
-  has_deterministic_formula: true,
-  adaptive_mode_available: false,
-  ...over,
-});
+// ⚠️ Parsed, not cast. This helper used to return `any` from a hand-built literal,
+// so the video fixtures were never checked against VideoInputProfile — a shape the
+// contract would reject sailed through, and a field the estimator reads could be
+// absent. Adding `tokens_per_frame` proved it: instead of a compile error at every
+// call site, one test blew up at run time with `Cannot read properties of undefined`.
+// Its sibling `audioProfile` had always parsed; this one was the odd one out.
+const videoProfile = (over: Record<string, unknown> = {}) =>
+  VideoInputProfile.parse({
+    frame_sample_rate_hz: src(1),
+    user_configurable_fps: false,
+    per_frame_uses_vision_geometry: true,
+    // Null on the geometry path, and the contract refuses it any other way.
+    tokens_per_frame: src(null, prov({ method: 'UNAVAILABLE', confidence: 'NONE', source_url: null })),
+    audio_tokens_per_second: src(25),
+    audio_billed_separately: false,
+    max_duration_seconds: src(3600),
+    max_frames: src(3600),
+    has_deterministic_formula: true,
+    adaptive_mode_available: false,
+    ...over,
+  });
 
 const media = (over: Record<string, unknown> = {}) =>
   MediaMetrics.parse({
@@ -189,7 +198,7 @@ describe('video: per-frame tokens come from the §A5.2 geometry', () => {
     expect(large.quantity.p50 - small.quantity.p50).toBe(60 * (FRAME_TOKENS - 255));
   });
 
-  it('refuses when the model does not price frames through its image geometry', () => {
+  it('refuses when the model prices frames off its geometry and publishes no figure', () => {
     const r = countVideoTokens({ video: videoProfile({ per_frame_uses_vision_geometry: false }), vision: visionProfile(), metrics: media(), frame: FRAME });
     expect(r.status).toBe('UNAVAILABLE');
     if (r.status === 'UNAVAILABLE') expect(r.reason).toMatch(/nothing to multiply by/);
@@ -209,6 +218,98 @@ describe('video: per-frame tokens come from the §A5.2 geometry', () => {
     const r = countVideoTokens({ video: videoProfile(), vision: noGeometry, metrics: media(), frame: FRAME });
     expect(r.status).toBe('UNAVAILABLE');
     if (r.status === 'UNAVAILABLE') expect(r.reason).toMatch(/Per-frame geometry is unavailable/);
+  });
+});
+
+/* ══════════ video: the second way a provider prices a frame ══════════ */
+
+describe('a published per-frame count is a different path, not a fallback', () => {
+  const published = (tokens: number | null, over: Record<string, unknown> = {}) =>
+    videoProfile({
+      per_frame_uses_vision_geometry: false,
+      tokens_per_frame: src(tokens),
+      ...over,
+    });
+
+  it('prices off the published figure and never touches the image geometry', () => {
+    // The geometry here would give FRAME_TOKENS (765). The provider says 100.
+    // Reaching for 765 would be a different number wearing the same unit.
+    const r = countVideoTokens({ video: published(100), vision: visionProfile(), metrics: media({ duration_seconds: 60 }), frame: FRAME });
+    if (r.status !== 'COUNTED') throw new Error(r.reason);
+    expect(r.per_frame_tokens).toBe(100);
+    expect(r.per_frame_tokens).not.toBe(FRAME_TOKENS);
+    expect(r.quantity.p50).toBe(60 * 100);
+  });
+
+  it('prices a model whose image geometry is UNAVAILABLE — the two are independent', () => {
+    // The case that motivated this: a provider that publishes a video figure and no
+    // usable image geometry. Before, the geometry refusal took the video with it.
+    const noGeometry = VisionProfile.parse({
+      geometry: { geometry: 'UNAVAILABLE', reason: 'no worked example published' },
+      low_detail: { kind: 'UNSUPPORTED' },
+      constraints: {
+        max_edge_px: src(8000), min_edge_px: src(1), shortest_edge_target_px: src(null),
+        max_bytes: src(20_000_000), max_pages: src(100), allowed_mime: ['image/png'],
+        provider_auto_normalizes: true, min_legible_edge_px: [], max_context_tokens: src(200_000),
+      },
+      provenance: prov(),
+    });
+    const r = countVideoTokens({ video: published(100), vision: noGeometry, metrics: media({ duration_seconds: 10 }), frame: FRAME });
+    if (r.status !== 'COUNTED') throw new Error(r.reason);
+    expect(r.quantity.p50).toBe(10 * 100);
+  });
+
+  it('scales with the configured frame rate, and the max_frames clamp still applies', () => {
+    // Per FRAME, not per second — the distinction only shows up off 1 fps.
+    const r = countVideoTokens({
+      video: published(100, { user_configurable_fps: true, frame_sample_rate_hz: src(1) }),
+      vision: visionProfile(),
+      metrics: media({ duration_seconds: 60, frame_sample_rate_hz: 2 }),
+      frame: FRAME,
+    });
+    if (r.status !== 'COUNTED') throw new Error(r.reason);
+    expect(r.frames).toBe(120);
+    expect(r.quantity.p50).toBe(120 * 100);
+
+    const clamped = countVideoTokens({
+      video: published(100, { max_frames: src(30) }),
+      vision: visionProfile(),
+      metrics: media({ duration_seconds: 60 }),
+      frame: FRAME,
+    });
+    if (clamped.status !== 'COUNTED') throw new Error(clamped.reason);
+    expect(clamped.frames).toBe(30);
+  });
+
+  it('carries the published figure’s own confidence, not the geometry’s', () => {
+    const r = countVideoTokens({
+      video: published(100, {
+        tokens_per_frame: src(100, prov({ method: 'DERIVED', confidence: 'MEDIUM' })),
+      }),
+      vision: visionProfile(),
+      metrics: media(),
+      frame: FRAME,
+    });
+    if (r.status !== 'COUNTED') throw new Error(r.reason);
+    expect(r.confidence).toBe('MEDIUM');
+  });
+
+  it('the contract refuses a row that carries BOTH a geometry path and a figure', () => {
+    // Two prices for one frame. Which one gets read is then an implementation
+    // detail, which is the same defect as two definitions of a contract shape.
+    const r = VideoInputProfile.safeParse({
+      frame_sample_rate_hz: src(1),
+      user_configurable_fps: false,
+      per_frame_uses_vision_geometry: true,
+      tokens_per_frame: src(100),
+      audio_tokens_per_second: src(25),
+      audio_billed_separately: false,
+      max_duration_seconds: src(3600),
+      max_frames: src(3600),
+      has_deterministic_formula: true,
+      adaptive_mode_available: false,
+    });
+    expect(r.success).toBe(false);
   });
 });
 
